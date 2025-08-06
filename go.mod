@@ -7,6 +7,7 @@ replace agones.dev/agones => agones.dev/agones v1.49.0
 require (
 	agones.dev/agones v1.50.0
 	github.com/ettle/strcase v0.2.0
+	github.com/gamefabric/gf-apiclient v0.1.2
 	github.com/gamefabric/gf-apicore v1.7.0
 	github.com/gamefabric/gf-core v0.26.1-0.20250730133351-d57c3e3a05c1
 	github.com/gamefabric/tfutils v0.0.0-20250523073014-fd998ed8276d
@@ -35,6 +36,7 @@ require (
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.8.1 // indirect
+	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/emicklei/go-restful/v3 v3.12.2 // indirect
@@ -42,7 +44,6 @@ require (
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.8.0 // indirect
-	github.com/gamefabric/gf-apiclient v0.1.2 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-openapi/jsonpointer v0.21.1 // indirect
 	github.com/go-openapi/jsonreference v0.21.0 // indirect

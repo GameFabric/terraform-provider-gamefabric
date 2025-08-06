@@ -61,11 +61,14 @@ func (p *Provider) Configure(_ context.Context, _ provider.ConfigureRequest, res
 func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		dscore.NewEnvironment,
+		dscore.NewRegion,
+		dscore.NewRegions,
 	}
 }
 
 func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		core.NewEnvironment,
+		core.NewRegion,
 	}
 }
