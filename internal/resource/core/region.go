@@ -121,13 +121,13 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 										},
 									},
 									"value_from": schema.SingleNestedAttribute{
-										Description:         "ValueFrom is the source for the environment variable&#39;s value.",
-										MarkdownDescription: "ValueFrom is the source for the environment variable&#39;s value.",
+										Description:         "ValueFrom is the source for the environment variable's value.",
+										MarkdownDescription: "ValueFrom is the source for the environment variable's value.",
 										Optional:            true,
 										Attributes: map[string]schema.Attribute{
 											"field_ref": schema.SingleNestedAttribute{
-												Description:         "FieldRef selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels[&#39;&lt;KEY&gt;&#39;]`, `metadata.annotations[&#39;&lt;KEY&gt;&#39;]`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.",
-												MarkdownDescription: "FieldRef selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels[&#39;&lt;KEY&gt;&#39;]`, `metadata.annotations[&#39;&lt;KEY&gt;&#39;]`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.",
+												Description:         "FieldRef selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.",
+												MarkdownDescription: "FieldRef selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.",
 												Optional:            true,
 												Attributes: map[string]schema.Attribute{
 													"api_version": schema.StringAttribute{
@@ -165,8 +165,8 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 							},
 						},
 						"scheduling": schema.StringAttribute{
-							Description:         "Scheduling strategy. Defaults to &#34;Packed&#34;",
-							MarkdownDescription: "Scheduling strategy. Defaults to &#34;Packed&#34;",
+							Description:         "Scheduling strategy. Defaults to \"Packed\"",
+							MarkdownDescription: "Scheduling strategy. Defaults to \"Packed\"",
 							Optional:            true,
 							Validators: []validator.String{
 								stringvalidator.OneOf("Packed", "Distributed"),
