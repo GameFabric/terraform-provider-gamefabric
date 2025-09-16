@@ -20,7 +20,7 @@ func newEnvironmentModel(obj *corev1.Environment) environmentModel {
 		ID:          types.StringValue(obj.Name),
 		Name:        types.StringValue(obj.Name),
 		Labels:      conv.ForEachMapItem(obj.Labels, func(item string) types.String { return types.StringValue(item) }),
-		DisplayName: conv.OptionalFunc(obj.Spec.DisplayName, types.StringValue, types.StringNull),
+		DisplayName: types.StringValue(obj.Spec.DisplayName),
 		Description: conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
 	}
 }

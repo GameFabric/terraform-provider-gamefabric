@@ -82,7 +82,7 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 			"display_name": schema.StringAttribute{
 				Description:         "DisplayName is the user-friendly name of a region.",
 				MarkdownDescription: "DisplayName is the user-friendly name of a region.",
-				Optional:            true,
+				Required:            true,
 			},
 			"description": schema.StringAttribute{
 				Description:         "Description is the optional description of the region.",
@@ -98,7 +98,7 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 						"locations": schema.ListAttribute{
 							Description:         "Locations defines the locations for a type.",
 							MarkdownDescription: "Locations defines the locations for a type.",
-							Optional:            true,
+							Required:            true,
 							ElementType:         types.StringType,
 						},
 						"env": schema.ListNestedAttribute{
