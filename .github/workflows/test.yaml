@@ -1,0 +1,66 @@
+name: run tests
+
+permissions:
+  contents: read
+  id-token: write
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  Test:
+
+    runs-on: ubuntu-latest
+    env:
+      GOPROXY: https://${{ secrets.GOPROXY }},direct
+      GONOSUMDB: ${{ secrets.GONOSUMDB }}
+      GOLANGCI_LINT_VERSION: v2.1.6
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Proxy Credentials
+        uses: extractions/netrc@v2
+        with:
+          machine: ${{ secrets.GOPROXY }}
+          username: ${{ secrets.GOPROXY_USERNAME }}
+          password: ${{ secrets.GOPROXY_TOKEN }}
+
+      - name: Install Go
+        if: success()
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Download dependencies
+        run: go mod download
+        if: steps.install-go.outputs.cache-hit != 'true'
+
+      - name: Run linter
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
+
+      - name: Setup gotestsum
+        uses: gertd/action-gotestsum@v3.0.0
+        with:
+          gotestsum_version: v1.12.3
+
+      - name: Run Tests
+        run: gotestsum --junitfile tests.xml --format pkgname -- -cover -race ./...
+
+      - name: Test Summary
+        uses: test-summary/action@v2
+        with:
+          paths: "tests.xml"
+        if: always()
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: latest
+          args: release --clean --snapshot --skip=sign
