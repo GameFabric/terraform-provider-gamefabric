@@ -43,6 +43,7 @@ func newRegionModel(obj *corev1.Region) regionModel {
 	return model
 }
 
+// RegionTypeModel is the model for a region type.
 type RegionTypeModel struct {
 	Locations  []types.String  `tfsdk:"locations"`
 	Env        []EnvVarV1Model `tfsdk:"env"`

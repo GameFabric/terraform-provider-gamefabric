@@ -34,10 +34,12 @@ type region struct {
 	clientSet clientset.Interface
 }
 
+// NewRegion returns a new instance of the region resource.
 func NewRegion() resource.Resource {
 	return &region{}
 }
 
+// Metadata defines the resource type name.
 func (r *region) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_region"
 }
@@ -198,7 +200,6 @@ func (r *region) Configure(_ context.Context, req resource.ConfigureRequest, res
 	}
 
 	r.clientSet = procCtx.ClientSet
-	return
 }
 
 func (r *region) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

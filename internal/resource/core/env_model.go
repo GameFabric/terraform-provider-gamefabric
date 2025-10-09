@@ -7,12 +7,14 @@ import (
 	kcorev1 "k8s.io/api/core/v1"
 )
 
+// EnvVarV1Model is the environment variable model.
 type EnvVarV1Model struct {
 	Name      types.String       `tfsdk:"name"`
 	Value     types.String       `tfsdk:"value"`
 	ValueFrom *EnvVarSourceModel `tfsdk:"value_from"`
 }
 
+// NewEnvVarV1Model creates a new model from the API object.
 func NewEnvVarV1Model(obj corev1.EnvVar) EnvVarV1Model {
 	model := EnvVarV1Model{
 		Name:  types.StringValue(obj.Name),
@@ -35,6 +37,7 @@ func NewEnvVarV1Model(obj corev1.EnvVar) EnvVarV1Model {
 	return model
 }
 
+// ToObject converts the model to an API object.
 func (m EnvVarV1Model) ToObject() corev1.EnvVar {
 	obj := corev1.EnvVar{
 		Name:  m.Name.ValueString(),
@@ -57,16 +60,19 @@ func (m EnvVarV1Model) ToObject() corev1.EnvVar {
 	return obj
 }
 
+// EnvVarSourceModel represents a source for the value of an EnvVar.
 type EnvVarSourceModel struct {
 	FieldRef         *ObjectFieldSelectorModel   `tfsdk:"field_ref"`
 	ConfigFileKeyRef *ConfigFileKeySelectorModel `tfsdk:"config_file_key_ref"`
 }
 
+// ObjectFieldSelectorModel selects a field of an object.
 type ObjectFieldSelectorModel struct {
 	APIVersion types.String `tfsdk:"api_version"`
 	FieldPath  types.String `tfsdk:"field_path"`
 }
 
+// ConfigFileKeySelectorModel selects a key of a ConfigFile.
 type ConfigFileKeySelectorModel struct {
 	Name types.String `tfsdk:"name"`
 }

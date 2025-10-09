@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
@@ -37,7 +36,7 @@ func realMain() int {
 	g := gen.New(basePkgPath)
 
 	for _, grp := range objs {
-		ui.Output(fmt.Sprintf("Generating %s", grp.PrefixPath))
+		ui.Output("Generating " + grp.PrefixPath)
 
 		pkgName := prefixPathToPkgName(grp.PrefixPath)
 		if err := g.Generate(grp.PrefixPath, pkgName, grp.ObjInfo...); err != nil {

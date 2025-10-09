@@ -1,0 +1,73 @@
+version: "2"
+run:
+  tests: false
+
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  settings:
+    gofumpt:
+      extra-rules: true
+  exclusions:
+    generated: lax
+
+linters:
+  default: all
+  disable:
+    - gocyclo # duplicate of cyclop
+    - unused # TODO: remove before first phase.
+    - lll # TODO: remove before first phase.
+    - contextcheck
+    - depguard
+    - err113
+    - exhaustive
+    - exhaustruct
+    - forcetypeassert
+    - funcorder
+    - funlen
+    - gochecknoglobals
+    - gochecknoinits
+    - godox
+    - gomoddirectives
+    - inamedparam
+    - ireturn
+    - mnd
+    - nilnil
+    - nlreturn
+    - noinlineerr
+    - nonamedreturns
+    - recvcheck
+    - tagliatelle
+    - varnamelen
+    - wrapcheck
+    - wsl
+    - wsl_v5
+  settings:
+    cyclop:
+      max-complexity: 15
+    gosec:
+      excludes:
+        - G101
+        - G402
+        - G601
+    lll:
+      line-length: 160
+    tagliatelle:
+      case:
+        rules:
+          json: pascal
+        use-field-name: true
+  exclusions:
+    generated: lax
+    rules:
+      - path: (.+)\.go$
+        text: 'ST1000: at least one file in a package should have a package comment'
+      - path: (.+)\.go$
+        text: 'package-comments: should have a package comment'
+      - path: (.+)\.go$
+        text: 'unlambda'
+      - path: internal\/resource\/core\/region\.go
+        text: "lines are duplicate of"

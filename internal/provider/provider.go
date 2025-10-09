@@ -15,11 +15,13 @@ import (
 
 var _ provider.Provider = &Provider{}
 
+// Provider is the GameFabric provider implementation.
 type Provider struct {
 	version   string
 	clientSet clientset.Interface
 }
 
+// New returns a new provider.
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
 		return &Provider{
@@ -28,6 +30,7 @@ func New(version string) func() provider.Provider {
 	}
 }
 
+// NewWithClientSet returns a new provider with the given client set.
 func NewWithClientSet(version string, clientSet clientset.Interface) func() provider.Provider {
 	return func() provider.Provider {
 		return &Provider{
@@ -37,6 +40,7 @@ func NewWithClientSet(version string, clientSet clientset.Interface) func() prov
 	}
 }
 
+// Metadata defines the provider type name and version.
 func (p *Provider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "gamefabric"
 	resp.Version = p.version
@@ -50,6 +54,7 @@ func (p *Provider) Schema(_ context.Context, _ provider.SchemaRequest, resp *pro
 	}
 }
 
+// Configure prepares the provider for data sources and resources.
 func (p *Provider) Configure(_ context.Context, _ provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	// TODO: Implement provider configuration.
 
@@ -58,6 +63,7 @@ func (p *Provider) Configure(_ context.Context, _ provider.ConfigureRequest, res
 	resp.ResourceData = provCtx
 }
 
+// DataSources defines the data sources implemented in the provider.
 func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		dscore.NewEnvironment,
@@ -66,6 +72,7 @@ func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource
 	}
 }
 
+// Resources defines the resources implemented in the provider.
 func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		core.NewEnvironment,

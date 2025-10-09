@@ -21,17 +21,20 @@ var typeMap = map[reflect.Type]reflect.Kind{
 	reflect.TypeOf(intstr.IntOrString{}): reflect.String,
 }
 
+// PathGroup groups objects by their prefix path for code generation.
 type PathGroup struct {
 	PrefixPath string
 	ObjInfo    []ObjInfo
 }
 
+// ObjInfo contains information about an object to generate code for.
 type ObjInfo struct {
 	Filename       string
 	Obj            any
 	Customizations []parser.FieldCustomizerFunc
 }
 
+// Generator generates code for the given objects.
 type Generator struct {
 	parser *parser.Parser
 	gen    *gen.Generator
@@ -41,6 +44,7 @@ type Generator struct {
 	seen        map[reflect.Type]*ast.ExternalObjectType
 }
 
+// New creates a new Generator with the given base package path.
 func New(basePkgPath string) *Generator {
 	g := &Generator{
 		namer:       &typeNamer{},
@@ -60,7 +64,8 @@ func New(basePkgPath string) *Generator {
 	return g
 }
 
-func (g *Generator) Generate(basePath string, pkgName string, infos ...ObjInfo) error {
+// Generate generates the code for the given objects and writes them to files in the specified base path.
+func (g *Generator) Generate(basePath, pkgName string, infos ...ObjInfo) error {
 	typs := make([]ast.Type, 0, len(infos))
 	for _, info := range infos {
 		typ, err := g.parser.Parse(info.Obj, info.Customizations...)

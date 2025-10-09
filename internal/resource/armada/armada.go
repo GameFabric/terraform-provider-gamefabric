@@ -24,14 +24,17 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-type ArmadaResource struct {
+// ArmadaResource is the Armada resource.
+type ArmadaResource struct { //nolint:revive // Be specific.
 	clientSet clientset.Interface
 }
 
+// NewArmadaResource returns a new Armada resource.
 func NewArmadaResource() resource.Resource {
 	return &ArmadaResource{}
 }
 
+// Metadata sets the resource type name.
 func (r *ArmadaResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_armada_v1"
 }
@@ -62,9 +65,9 @@ func (r *ArmadaResource) Configure(_ context.Context, req resource.ConfigureRequ
 	}
 
 	r.clientSet = procCtx.ClientSet
-	return
 }
 
+// Create creates the resource and sets the initial Terraform state on success.
 func (r *ArmadaResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan armada.ArmadaModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -104,6 +107,7 @@ func (r *ArmadaResource) Read(ctx context.Context, req resource.ReadRequest, res
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
+// Update updates the resource and sets the state on success.
 func (r *ArmadaResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state armada.ArmadaModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -118,6 +122,7 @@ func (r *ArmadaResource) Update(ctx context.Context, req resource.UpdateRequest,
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
+// Delete deletes the resource and removes the state on success.
 func (r *ArmadaResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state armada.ArmadaModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -126,10 +131,9 @@ func (r *ArmadaResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	}
 }
 
-func (r *ArmadaResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	id := req.ID
-	_ = id
-
+// ImportState imports the resource state.
+func (r *ArmadaResource) ImportState(context.Context, resource.ImportStateRequest, *resource.ImportStateResponse) {
+	// TODO
 }
 
 func armadaFromModel(model armada.ArmadaModel) *armadav1.Armada {
@@ -234,7 +238,7 @@ func containersFromModel(model []armada.ContainerModel) []armadav1.Container {
 				port := armadav1.Port{
 					Name:          item.Name.ValueString(),
 					Policy:        agonesv1.PortPolicy(item.Policy.ValueString()),
-					ContainerPort: uint16(item.ContainerPort.ValueInt32()),
+					ContainerPort: uint16(item.ContainerPort.ValueInt32()), //nolint:gosec
 					Protocol:      kcorev1.Protocol(item.Protocol.ValueString()),
 				}
 				if !item.ProtectionProtocol.IsNull() && !item.ProtectionProtocol.IsUnknown() {

@@ -25,10 +25,12 @@ type regions struct {
 	clientSet clientset.Interface
 }
 
+// NewRegions creates a new regions data source.
 func NewRegions() datasource.DataSource {
 	return &regions{}
 }
 
+// Metadata defines the data source type name.
 func (r *regions) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_regions"
 }
@@ -187,7 +189,6 @@ func (r *regions) Configure(_ context.Context, req datasource.ConfigureRequest, 
 	}
 
 	r.clientSet = procCtx.ClientSet
-	return
 }
 
 func (r *regions) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

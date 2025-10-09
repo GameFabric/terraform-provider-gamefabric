@@ -30,10 +30,12 @@ type environment struct {
 	clientSet clientset.Interface
 }
 
+// NewEnvironment returns a new environment resource.
 func NewEnvironment() resource.Resource {
 	return &environment{}
 }
 
+// Metadata sets the resource type name.
 func (r *environment) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_environment"
 }
@@ -95,7 +97,6 @@ func (r *environment) Configure(_ context.Context, req resource.ConfigureRequest
 	}
 
 	r.clientSet = procCtx.ClientSet
-	return
 }
 
 func (r *environment) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

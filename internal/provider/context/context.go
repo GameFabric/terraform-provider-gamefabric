@@ -11,10 +11,12 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
+// Context is the provider context.
 type Context struct {
 	ClientSet clientset.Interface
 }
 
+// NewContext creates a new context with the given client set.
 func NewContext(clientSet clientset.Interface) *Context {
 	c := conv.New()
 	c.Register(resource.Quantity{}, quantityToModel, quantityFromModel)

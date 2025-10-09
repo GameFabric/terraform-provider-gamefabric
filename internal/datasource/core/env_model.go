@@ -6,12 +6,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// EnvVarV1Model is the environment variable model.
 type EnvVarV1Model struct {
 	Name      types.String       `tfsdk:"name"`
 	Value     types.String       `tfsdk:"value"`
 	ValueFrom *EnvVarSourceModel `tfsdk:"value_from"`
 }
 
+// NewEnvVarV1Model creates a new model from the API object.
 func NewEnvVarV1Model(obj corev1.EnvVar) EnvVarV1Model {
 	model := EnvVarV1Model{
 		Name:  types.StringValue(obj.Name),
@@ -34,16 +36,19 @@ func NewEnvVarV1Model(obj corev1.EnvVar) EnvVarV1Model {
 	return model
 }
 
+// EnvVarSourceModel is the environment variable source model.
 type EnvVarSourceModel struct {
 	FieldRef         *ObjectFieldSelectorModel   `tfsdk:"field_ref"`
 	ConfigFileKeyRef *ConfigFileKeySelectorModel `tfsdk:"config_file_key_ref"`
 }
 
+// ObjectFieldSelectorModel is the object field selector model.
 type ObjectFieldSelectorModel struct {
 	APIVersion types.String `tfsdk:"api_version"`
 	FieldPath  types.String `tfsdk:"field_path"`
 }
 
+// ConfigFileKeySelectorModel is the config file key selector model.
 type ConfigFileKeySelectorModel struct {
 	Name types.String `tfsdk:"name"`
 }
