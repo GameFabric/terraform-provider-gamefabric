@@ -17,6 +17,8 @@ require (
 	github.com/hashicorp/terraform-plugin-framework-validators v0.19.0
 	github.com/hashicorp/terraform-plugin-go v0.29.0
 	github.com/hashicorp/terraform-plugin-testing v1.13.3
+	github.com/stretchr/testify v1.11.1
+	golang.org/x/oauth2 v0.32.0
 	k8s.io/api v0.34.1
 	k8s.io/apimachinery v0.34.1
 )
@@ -106,6 +108,7 @@ require (
 	github.com/oklog/run v1.2.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/qdm12/reprint v0.0.0-20200326205758-722754a53494 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
@@ -132,7 +135,6 @@ require (
 	golang.org/x/exp v0.0.0-20251002181428-27f1f14c8bb9 // indirect
 	golang.org/x/mod v0.29.0 // indirect
 	golang.org/x/net v0.46.0 // indirect
-	golang.org/x/oauth2 v0.32.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
 	golang.org/x/sys v0.37.0 // indirect
 	golang.org/x/term v0.36.0 // indirect
