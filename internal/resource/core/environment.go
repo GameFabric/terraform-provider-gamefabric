@@ -11,6 +11,7 @@ import (
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -196,7 +197,13 @@ func (r *environment) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
-	// TODO: wait for deletion
+	err = wait.PollUntilNotFound(ctx, r.clientSet.CoreV1().Environments(), state.Name.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Deleting Environment",
+			fmt.Sprintf("Could not ensure Environment is gone: %v", err),
+		)
+	}
 }
 
 func (r *environment) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
