@@ -63,7 +63,7 @@ func TestPollUntilNotFound_GoneLater(t *testing.T) {
 			synctest.Wait()
 			<-time.After(30 * time.Second)
 
-			err = cs.CoreV1().Environments().Delete(t.Context(), "test-env", metav1.DeleteOptions{})
+			err := cs.CoreV1().Environments().Delete(t.Context(), "test-env", metav1.DeleteOptions{})
 			require.NoError(t, err)
 		}()
 
