@@ -27,10 +27,12 @@ type environment struct {
 	clientSet clientset.Interface
 }
 
+// NewEnvironment creates a new environment data source.
 func NewEnvironment() datasource.DataSource {
 	return &environment{}
 }
 
+// Metadata defines the data source type name.
 func (r *environment) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_environment"
 }
@@ -87,7 +89,6 @@ func (r *environment) Configure(_ context.Context, req datasource.ConfigureReque
 	}
 
 	r.clientSet = procCtx.ClientSet
-	return
 }
 
 func (r *environment) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

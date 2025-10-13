@@ -30,12 +30,12 @@ resource "gamefabric_environment" "dev" {
 
 ### Required
 
+- `display_name` (String) DisplayName is friendly name of the environment.
 - `name` (String) The unique object name within its scope.
 
 ### Optional
 
 - `description` (String) Description is the description of the environment.
-- `display_name` (String) DisplayName is friendly name of the environment.
 - `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
 
 ### Read-Only

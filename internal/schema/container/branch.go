@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// BranchModel is the model for a branch resource.
 type BranchModel struct {
 	Name                 types.String                          `tfsdk:"name"`
 	DisplayName          types.String                          `tfsdk:"display_name"`
@@ -16,6 +17,7 @@ type BranchModel struct {
 	RetentionPolicyRules []BranchImageRetentionPolicyRuleModel `tfsdk:"retention_policy_rules"`
 }
 
+// BranchImageRetentionPolicyRuleModel is the model for an image retention policy rule.
 type BranchImageRetentionPolicyRuleModel struct {
 	Name       types.String `tfsdk:"name"`
 	ImageRegex types.String `tfsdk:"image_regex"`
@@ -24,6 +26,7 @@ type BranchImageRetentionPolicyRuleModel struct {
 	KeepDays   types.Int64  `tfsdk:"keep_days"`
 }
 
+// BranchAttributes returns the schema attributes for a branch resource.
 func BranchAttributes() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"name": schema.StringAttribute{

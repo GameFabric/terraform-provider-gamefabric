@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
+// ProtoV6ProviderFactories returns a map of provider factories for testing with the given runtime objects.
 func ProtoV6ProviderFactories(t *testing.T, objs ...runtime.Object) (map[string]func() (tfprotov6.ProviderServer, error), clientset.Interface) {
 	t.Helper()
 

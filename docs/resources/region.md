@@ -56,6 +56,7 @@ resource "gamefabric_region_v1" "europe" {
 
 ### Required
 
+- `display_name` (String) DisplayName is the user-friendly name of a region.
 - `environment` (String) The name of the environment the object belongs to.
 - `name` (String) The unique object name within its scope.
 - `types` (Attributes Map) Types defines the types on infrastructure available in the region. (see [below for nested schema](#nestedatt--types))
@@ -63,7 +64,6 @@ resource "gamefabric_region_v1" "europe" {
 ### Optional
 
 - `description` (String) Description is the optional description of the region.
-- `display_name` (String) DisplayName is the user-friendly name of a region.
 - `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
 
 ### Read-Only
@@ -73,10 +73,13 @@ resource "gamefabric_region_v1" "europe" {
 <a id="nestedatt--types"></a>
 ### Nested Schema for `types`
 
+Required:
+
+- `locations` (List of String) Locations defines the locations for a type.
+
 Optional:
 
 - `env` (Attributes List) Env is a list of environment variables to set on all containers in this region. (see [below for nested schema](#nestedatt--types--env))
-- `locations` (List of String) Locations defines the locations for a type.
 - `scheduling` (String) Scheduling strategy. Defaults to &#34;Packed&#34;
 
 <a id="nestedatt--types--env"></a>

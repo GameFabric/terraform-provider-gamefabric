@@ -2,6 +2,7 @@ package core
 
 import "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 
+// EnvVarAttributes returns the attributes for EnvVar.
 func EnvVarAttributes() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"name": schema.StringAttribute{
