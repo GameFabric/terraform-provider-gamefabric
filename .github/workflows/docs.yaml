@@ -1,4 +1,4 @@
-name: Go TFPluginDocs Check
+name: Check docs
 
 permissions:
   contents: read
