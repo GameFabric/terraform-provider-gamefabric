@@ -11,7 +11,7 @@ on:
   pull_request:
 
 jobs:
-  check:
+  Check:
     runs-on: ubuntu-latest
     env:
       GOPROXY: https://${{ secrets.GOPROXY }},direct
