@@ -73,9 +73,9 @@ type ContainerModel struct {
 	Image        types.String               `tfsdk:"image"`
 	Ports        []PortModel                `tfsdk:"ports"`
 	Command      []types.String             `tfsdk:"command"`
-	Args         []types.String         `tfsdk:"args"`
-	Env          []core.EnvVarV1Model   `tfsdk:"env"`
-	ConfigFiles  []ConfigFileMountModel `tfsdk:"config_files"`
+	Args         []types.String             `tfsdk:"args"`
+	Env          []core.EnvVarModel         `tfsdk:"env"`
+	ConfigFiles  []ConfigFileMountModel     `tfsdk:"config_files"`
 	Resources    *ResourceRequirementsModel `tfsdk:"resources"`
 	VolumeMounts []VolumeMountModel         `tfsdk:"volume_mounts"`
 }

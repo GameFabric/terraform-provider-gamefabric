@@ -279,7 +279,7 @@ func containersFromModel(model []armada.ContainerModel) []armadav1.Container {
 	return containers
 }
 
-func envVarsFromModel(model []core.EnvVarV1Model) []corev1.EnvVar {
+func envVarsFromModel(model []core.EnvVarModel) []corev1.EnvVar {
 	if model == nil {
 		return nil
 	}

@@ -7,28 +7,28 @@ import (
 	kcorev1 "k8s.io/api/core/v1"
 )
 
-// EnvVarV1Model is the environment variable model.
-type EnvVarV1Model struct {
+// EnvVarModel is the environment variable model.
+type EnvVarModel struct {
 	Name      types.String       `tfsdk:"name"`
 	Value     types.String       `tfsdk:"value"`
 	ValueFrom *EnvVarSourceModel `tfsdk:"value_from"`
 }
 
-// NewEnvVarV1Model creates a new model from the API object.
-func NewEnvVarV1Model(obj corev1.EnvVar) EnvVarV1Model {
-	model := EnvVarV1Model{
+// NewEnvVarModel creates a new model from the API object.
+func NewEnvVarModel(obj corev1.EnvVar) EnvVarModel {
+	model := EnvVarModel{
 		Name:  types.StringValue(obj.Name),
 		Value: conv.OptionalFunc(obj.Value, types.StringValue, types.StringNull),
 	}
 	if obj.ValueFrom != nil {
 		model.ValueFrom = &EnvVarSourceModel{}
-		if obj.ValueFrom.FieldRef != nil {
+		switch {
+		case obj.ValueFrom.FieldRef != nil:
 			model.ValueFrom.FieldRef = &ObjectFieldSelectorModel{
 				APIVersion: types.StringValue(obj.ValueFrom.FieldRef.APIVersion),
 				FieldPath:  types.StringValue(obj.ValueFrom.FieldRef.FieldPath),
 			}
-		}
-		if obj.ValueFrom.ConfigFileKeyRef != nil {
+		case obj.ValueFrom.ConfigFileKeyRef != nil:
 			model.ValueFrom.ConfigFileKeyRef = &ConfigFileKeySelectorModel{
 				Name: types.StringValue(obj.ValueFrom.ConfigFileKeyRef.Name),
 			}
@@ -38,20 +38,20 @@ func NewEnvVarV1Model(obj corev1.EnvVar) EnvVarV1Model {
 }
 
 // ToObject converts the model to an API object.
-func (m EnvVarV1Model) ToObject() corev1.EnvVar {
+func (m EnvVarModel) ToObject() corev1.EnvVar {
 	obj := corev1.EnvVar{
 		Name:  m.Name.ValueString(),
 		Value: m.Value.ValueString(),
 	}
 	if m.ValueFrom != nil {
 		obj.ValueFrom = &corev1.EnvVarSource{}
-		if m.ValueFrom.FieldRef != nil {
+		switch {
+		case m.ValueFrom.FieldRef != nil:
 			obj.ValueFrom.FieldRef = &kcorev1.ObjectFieldSelector{
 				APIVersion: m.ValueFrom.FieldRef.APIVersion.ValueString(),
 				FieldPath:  m.ValueFrom.FieldRef.FieldPath.ValueString(),
 			}
-		}
-		if m.ValueFrom.ConfigFileKeyRef != nil {
+		case m.ValueFrom.ConfigFileKeyRef != nil:
 			obj.ValueFrom.ConfigFileKeyRef = &corev1.ConfigFileKeySelector{
 				Name: m.ValueFrom.ConfigFileKeyRef.Name.ValueString(),
 			}
