@@ -54,9 +54,7 @@ jobs:
 
       - name: Install TFPluginDocs Gen
         if: ${{ steps.go-tool.outputs.installed == 'false' }}
-        env:
-          TFPLUGINDOCS_VERSION: ${{ inputs.TFPLUGINDOCS_VERSION }}
-        run: go install -mod=readonly github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@$TFPLUGINDOCS_VERSION
+        run: go install -mod=readonly github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@v0.23.0
 
       - name: Run TFPluginDocs Check
         run: |
