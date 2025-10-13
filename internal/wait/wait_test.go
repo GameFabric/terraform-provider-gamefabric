@@ -41,7 +41,7 @@ func TestPollUntilNotFound_NotGone(t *testing.T) {
 
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "still present")
-		assert.GreaterOrEqual(t, time.Minute, time.Until(now))
+		assert.GreaterOrEqual(t, time.Since(now), time.Minute)
 	})
 }
 
@@ -60,7 +60,7 @@ func TestPollUntilNotFound_GoneLater(t *testing.T) {
 
 		go func() {
 			synctest.Wait()
-			<-time.After(30 * time.Second)
+			<-time.After(time.Minute)
 
 			err := cs.CoreV1().Environments().Delete(t.Context(), "test-env", metav1.DeleteOptions{})
 			require.NoError(t, err)
@@ -69,6 +69,6 @@ func TestPollUntilNotFound_GoneLater(t *testing.T) {
 		err = wait.PollUntilNotFound(t.Context(), cs.CoreV1().Environments(), "test-env")
 
 		require.NoError(t, err)
-		assert.GreaterOrEqual(t, time.Minute, time.Until(now))
+		assert.GreaterOrEqual(t, time.Since(now), time.Minute)
 	})
 }

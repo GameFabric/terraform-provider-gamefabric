@@ -3,7 +3,6 @@ package wait
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/gamefabric/gf-apiclient/tools/clientset"
@@ -12,16 +11,10 @@ import (
 	"github.com/gamefabric/gf-apicore/runtime"
 )
 
-var (
-	maxElapsedTime = 5 * time.Minute
-	maxInterval    = 10 * time.Second
-)
-
 // PollUntilNotFound polls until the resource is not found.
 func PollUntilNotFound[T runtime.Object](ctx context.Context, getFn clientset.Getter[T], name string) error {
 	bo := backoff.NewExponentialBackOff()
-	bo.MaxElapsedTime = maxElapsedTime
-	bo.MaxInterval = maxInterval
+	bo.MaxElapsedTime = 0 // README: Poll forever until the object is gone. We can revisit this decision if necessary.
 
 	return backoff.Retry(func() error {
 		_, err := getFn.Get(ctx, name, v1.GetOptions{})
