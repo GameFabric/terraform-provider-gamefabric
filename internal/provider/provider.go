@@ -157,6 +157,7 @@ func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource
 	return []func() datasource.DataSource{
 		dscore.NewEnvironment,
 		dscore.NewEnvironments,
+		dscore.NewLocation,
 		dscore.NewRegion,
 		dscore.NewRegions,
 	}
