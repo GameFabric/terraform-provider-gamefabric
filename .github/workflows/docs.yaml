@@ -16,7 +16,6 @@ jobs:
     env:
       GOPROXY: https://${{ secrets.GOPROXY }},direct
       GONOSUMDB: ${{ secrets.GONOSUMDB }}
-      TFPLUGINDOCS_VERSION: v0.23.0
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -44,19 +43,6 @@ jobs:
           key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-mod-
-
-      - name: Check for Go Tool
-        id: go-tool
-        run: |
-          if go tool | grep -q "github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs"; then
-            echo "installed=true" >> $GITHUB_OUTPUT
-          else
-            echo "installed=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Install TFPluginDocs Gen
-        if: ${{ steps.go-tool.outputs.installed == 'false' }}
-        run: go install -mod=readonly github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@${{ env.TFPLUGINDOCS_VERSION }}
 
       - name: Run TFPluginDocs Check
         run: |
