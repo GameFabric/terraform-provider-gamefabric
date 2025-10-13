@@ -1,0 +1,63 @@
+version: 2
+project_name: terraform-provider-gamefabric
+dist: dist
+
+env:
+  - CGO_ENABLED=0
+
+builds:
+  - id: terraform-provider-gamefabric
+    binary: "{{ .ProjectName }}_v{{ .Version }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - "-s -w -X main.version={{.Version}} -X main.commit={{.Commit}}"
+    goos:
+      - freebsd
+      - windows
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - "386"
+      - arm
+      - arm64
+    ignore:
+      - goos: darwin
+        goarch: "386"
+      - goos: darwin
+        goarch: arm
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+checksum:
+  extra_files:
+    - glob: 'terraform-registry-manifest.json'
+      name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
+  name_template: "{{ .ProjectName }}_{{ .Version }}_SHA256SUMS"
+  algorithm: sha256
+
+changelog:
+  disable: true
+
+archives:
+  - formats: ["zip"]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+release:
+  extra_files:
+    - glob: 'terraform-registry-manifest.json'
+      name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
+
+snapshot:
+  version_template: 'dev-{{ slice .FullCommit 0 7 }}'
+
+signs:
+  - artifacts: checksum
+    args:
+      - "--batch"
+      - "--local-user"
+      - "{{ .Env.GPG_FINGERPRINT }}"
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"
