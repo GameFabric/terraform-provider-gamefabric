@@ -1,21 +1,21 @@
-name: Go TFPluginDocs Check
+name: Check docs
+
+permissions:
+  contents: read
+  id-token: write
+
 on:
-  workflow_call:
-    inputs:
-      TFPLUGINDOCS_VERSION:
-        description: "The tfplugindocs version to test with"
-        type: string
-        default: "v0.23.0"
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
-  check:
+  Check:
     runs-on: ubuntu-latest
     env:
       GOPROXY: https://${{ secrets.GOPROXY }},direct
       GONOSUMDB: ${{ secrets.GONOSUMDB }}
-    permissions:
-      contents: read
-      id-token: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -43,21 +43,6 @@ jobs:
           key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-mod-
-
-      - name: Check for Go Tool
-        id: go-tool
-        run: |
-          if go tool | grep -q "github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs"; then
-            echo "installed=true" >> $GITHUB_OUTPUT
-          else
-            echo "installed=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Install TFPluginDocs Gen
-        if: ${{ steps.go-tool.outputs.installed == 'false' }}
-        env:
-          OPENAPI_VERSION: ${{ inputs.TFPLUGINDOCS_VERSION }}
-        run: go install -mod=readonly github.com/gamefabric/openapi/cmd/oapi-gen@$TFPLUGINDOCS_VERSION
 
       - name: Run TFPluginDocs Check
         run: |

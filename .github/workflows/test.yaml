@@ -1,4 +1,4 @@
-name: run tests
+name: Run tests
 
 permissions:
   contents: read
@@ -12,7 +12,6 @@ on:
 
 jobs:
   Test:
-
     runs-on: ubuntu-latest
     env:
       GOPROXY: https://${{ secrets.GOPROXY }},direct
