@@ -27,7 +27,6 @@ func TestPollUntilNotFound_NotGone(t *testing.T) {
 	t.Parallel()
 
 	synctest.Test(t, func(t *testing.T) {
-
 		cs, err := fake.New(&v1.Environment{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "test-env",
