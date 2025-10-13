@@ -223,14 +223,14 @@ func validate(cfg *providerModel) []diag.Diagnostic {
 		diags.Append(diag.NewErrorDiagnostic(
 			"Missing Service Account",
 			"The provider cannot create the GameFabric client as there is no service account configured. "+
-				"Please set the service_account value in the provider configuration or use the "+envCustomerID+" environment variable.",
+				"Please set the service_account value in the provider configuration or use the "+envServiceAccount+" environment variable.",
 		))
 	}
 	if cfg.Password.ValueString() == "" {
 		diags.Append(diag.NewErrorDiagnostic(
 			"Missing Password",
 			"The provider cannot create the GameFabric client as there is no password configured. "+
-				"Please set the password value in the provider configuration or use the "+envCustomerID+" environment variable.",
+				"Please set the password value in the provider configuration or use the "+envPassword+" environment variable.",
 		))
 	}
 	return diags
