@@ -1,11 +1,10 @@
 name: Go TFPluginDocs Check
+
 on:
-  workflow_call:
-    inputs:
-      TFPLUGINDOCS_VERSION:
-        description: "The tfplugindocs version to test with"
-        type: string
-        default: "v0.23.0"
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   check:
@@ -56,8 +55,8 @@ jobs:
       - name: Install TFPluginDocs Gen
         if: ${{ steps.go-tool.outputs.installed == 'false' }}
         env:
-          OPENAPI_VERSION: ${{ inputs.TFPLUGINDOCS_VERSION }}
-        run: go install -mod=readonly github.com/gamefabric/openapi/cmd/oapi-gen@$TFPLUGINDOCS_VERSION
+          TFPLUGINDOCS_VERSION: ${{ inputs.TFPLUGINDOCS_VERSION }}
+        run: go install -mod=readonly github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@$TFPLUGINDOCS_VERSION
 
       - name: Run TFPluginDocs Check
         run: |
