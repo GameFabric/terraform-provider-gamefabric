@@ -1,7 +1,6 @@
 package core_test
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -21,7 +20,7 @@ func TestEnvironment(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		IsUnitTest:               true,
 		ProtoV6ProviderFactories: pf,
-		CheckDestroy:             testResourceEnvironmentDestroy(cs),
+		CheckDestroy:             testResourceEnvironmentDestroy(t, cs),
 		Steps: []resource.TestStep{
 			{
 				Config: testResourceEnvironmentConfigBasic(name),
@@ -65,14 +64,14 @@ func testResourceEnvironmentConfigBasicWithDescription(name string) string {
 }`, name)
 }
 
-func testResourceEnvironmentDestroy(cs clientset.Interface) func(s *terraform.State) error {
+func testResourceEnvironmentDestroy(t *testing.T, cs clientset.Interface) func(s *terraform.State) error {
 	return func(s *terraform.State) error {
 		for _, rs := range s.RootModule().Resources {
 			if rs.Type != "gamefabric_environment" {
 				continue
 			}
 
-			resp, err := cs.CoreV1().Environments().Get(context.Background(), rs.Primary.ID, metav1.GetOptions{})
+			resp, err := cs.CoreV1().Environments().Get(t.Context(), rs.Primary.ID, metav1.GetOptions{})
 			if err == nil {
 				if resp.Name == rs.Primary.ID {
 					return fmt.Errorf("environment still exists: %s", rs.Primary.ID)

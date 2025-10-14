@@ -1,7 +1,6 @@
 package core_test
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -20,7 +19,7 @@ func TestRegion(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		IsUnitTest:               true,
 		ProtoV6ProviderFactories: pf,
-		CheckDestroy:             testResourceRegionDestroy(cs),
+		CheckDestroy:             testResourceRegionDestroy(t, cs),
 		Steps: []resource.TestStep{
 			{
 				Config: testResourceRegionConfigBasic(name),
@@ -102,7 +101,7 @@ func testResourceRegionConfigBasicWithDescription(name string) string {
 }`, name)
 }
 
-func testResourceRegionDestroy(cs clientset.Interface) func(s *terraform.State) error {
+func testResourceRegionDestroy(t *testing.T, cs clientset.Interface) func(s *terraform.State) error {
 	return func(s *terraform.State) error {
 		for _, rs := range s.RootModule().Resources {
 			if rs.Type != "gamefabric_region" {
@@ -110,7 +109,7 @@ func testResourceRegionDestroy(cs clientset.Interface) func(s *terraform.State) 
 			}
 
 			env, name, _ := strings.Cut(rs.Primary.ID, "/")
-			resp, err := cs.CoreV1().Regions(env).Get(context.Background(), name, metav1.GetOptions{})
+			resp, err := cs.CoreV1().Regions(env).Get(t.Context(), name, metav1.GetOptions{})
 			if err == nil {
 				if resp.Name == name {
 					return fmt.Errorf("region still exists: %s", rs.Primary.ID)
