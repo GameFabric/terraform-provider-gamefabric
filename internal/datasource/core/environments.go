@@ -3,8 +3,11 @@ package core
 import (
 	"context"
 	"fmt"
+	"slices"
+	"strings"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
@@ -110,6 +113,9 @@ func (r *environments) Read(ctx context.Context, req datasource.ReadRequest, res
 		)
 		return
 	}
+	slices.SortFunc(list.Items, func(a, b corev1.Environment) int {
+		return strings.Compare(a.Name, b.Name)
+	})
 
 	state := newEnvironmentsModel(list.Items)
 	state.LabelFilter = config.LabelFilter
