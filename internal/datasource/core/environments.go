@@ -8,12 +8,8 @@ import (
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
-	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -55,18 +51,11 @@ func (r *environments) Schema(_ context.Context, _ datasource.SchemaRequest, res
 							Description:         "The unique object name within its scope.",
 							MarkdownDescription: "The unique object name within its scope.",
 							Computed:            true,
-							Validators: []validator.String{
-								validators.EnvironmentValidator{},
-								stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("display_name")),
-							},
 						},
 						"display_name": schema.StringAttribute{
 							Description:         "DisplayName is friendly name of the environment.",
 							MarkdownDescription: "DisplayName is friendly name of the environment.",
 							Computed:            true,
-							Validators: []validator.String{
-								stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("name")),
-							},
 						},
 						"labels": schema.MapAttribute{
 							Description:         "A map of keys and values that can be used to organize and categorize objects.",
