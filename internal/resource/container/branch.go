@@ -231,7 +231,6 @@ func (r *branch) Delete(ctx context.Context, request resource.DeleteRequest, res
 
 func (r *branch) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
-
 }
 
 func retentionFromModel(rule branchImageRetentionPolicyRuleModel) containerv1.BranchImageRetentionPolicyRule {
