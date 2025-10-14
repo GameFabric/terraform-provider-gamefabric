@@ -123,8 +123,8 @@ func (r *locations) Read(ctx context.Context, req datasource.ReadRequest, resp *
 	list, err := r.clientSet.CoreV1().Locations().List(ctx, metav1.ListOptions{LabelSelector: lbls})
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Getting Environments",
-			fmt.Sprintf("Could not get Environments: %v", err),
+			"Error Getting Locations",
+			fmt.Sprintf("Could not get Locations: %v", err),
 		)
 		return
 	}
