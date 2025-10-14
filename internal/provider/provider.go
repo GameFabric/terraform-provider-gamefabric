@@ -156,6 +156,7 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		dscore.NewEnvironment,
+		dscore.NewEnvironments,
 		dscore.NewRegion,
 		dscore.NewRegions,
 	}
