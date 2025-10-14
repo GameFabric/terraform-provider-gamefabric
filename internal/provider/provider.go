@@ -12,6 +12,7 @@ import (
 	dscontainer "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/container"
 	dscore "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/core"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -171,6 +172,7 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		core.NewEnvironment,
 		core.NewRegion,
+		container.NewBranch,
 	}
 }
 
