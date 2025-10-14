@@ -63,6 +63,7 @@ resource "gamefabric_region_v1" "europe" {
 
 ### Optional
 
+- `annotations` (Map of String) Annotations is an unstructured map of keys and values stored on an object.
 - `description` (String) Description is the optional description of the region.
 - `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
 
