@@ -9,7 +9,6 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
-	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -43,11 +42,8 @@ func (r *environments) Schema(_ context.Context, _ datasource.SchemaRequest, res
 			"label_filter": schema.MapAttribute{
 				Description:         "A map of keys and values that is used to filter environments.",
 				MarkdownDescription: "A map of keys and values that is used to filter environments.",
-				Required:            true,
+				Optional:            true,
 				ElementType:         types.StringType,
-				Validators: []validator.Map{
-					mapvalidator.SizeAtLeast(1),
-				},
 			},
 			"environments": schema.ListNestedAttribute{
 				Description:         "A list of environments matching the labels filter.",
