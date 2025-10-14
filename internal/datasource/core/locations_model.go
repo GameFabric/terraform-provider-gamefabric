@@ -8,6 +8,7 @@ import (
 type locationsModel struct {
 	Type      types.String   `tfsdk:"type"`
 	City      types.String   `tfsdk:"city"`
+	Country   types.String   `tfsdk:"country"`
 	Continent types.String   `tfsdk:"continent"`
 	NameRegex types.String   `tfsdk:"name_regex"`
 	Locations []types.String `tfsdk:"locations"`

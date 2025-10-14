@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"slices"
+	"strings"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
@@ -45,6 +46,11 @@ func (r *locations) Schema(_ context.Context, _ datasource.SchemaRequest, resp *
 			"city": schema.StringAttribute{
 				Description:         "The city used to filter locations.",
 				MarkdownDescription: "The city used to filter locations.",
+				Optional:            true,
+			},
+			"country": schema.StringAttribute{
+				Description:         "The country used to filter locations.",
+				MarkdownDescription: "The country used to filter locations.",
 				Optional:            true,
 			},
 			"continent": schema.StringAttribute{
@@ -92,16 +98,10 @@ func (r *locations) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		return
 	}
 
-	lbls := map[string]string{}
-	if conv.IsKnown(config.Type) {
-		lbls["g8c.io/provider-type"] = config.Type.ValueString()
-	}
-	if conv.IsKnown(config.City) {
-		lbls["g8c.io/city"] = config.City.ValueString()
-	}
-	if conv.IsKnown(config.Continent) {
-		lbls["g8c.io/continent"] = config.Continent.ValueString()
-	}
+	typ, hasTyp := config.Type.ValueString(), conv.IsKnown(config.Type)
+	city, hasCity := config.City.ValueString(), conv.IsKnown(config.City)
+	country, hasCountry := config.Country.ValueString(), conv.IsKnown(config.Country)
+	continent, hasContinent := config.Continent.ValueString(), conv.IsKnown(config.Continent)
 
 	var (
 		nameRegexp   *regexp.Regexp
@@ -120,7 +120,7 @@ func (r *locations) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		hasNameRegex = true
 	}
 
-	list, err := r.clientSet.CoreV1().Locations().List(ctx, metav1.ListOptions{LabelSelector: lbls})
+	list, err := r.clientSet.CoreV1().Locations().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Getting Locations",
@@ -131,6 +131,23 @@ func (r *locations) Read(ctx context.Context, req datasource.ReadRequest, resp *
 
 	locs := make([]string, 0, len(list.Items))
 	for _, loc := range list.Items {
+		annos := loc.GetAnnotations()
+		if annos == nil {
+			annos = map[string]string{}
+		}
+
+		if hasTyp && !strings.EqualFold(annos["g8c.io/provider-type"], typ) {
+			continue
+		}
+		if hasCity && !strings.EqualFold(annos["g8c.io/city"], city) {
+			continue
+		}
+		if hasCountry && !strings.EqualFold(annos["g8c.io/country"], country) {
+			continue
+		}
+		if hasContinent && !strings.EqualFold(annos["g8c.io/continent"], continent) {
+			continue
+		}
 		if hasNameRegex && !nameRegexp.MatchString(loc.Name) {
 			continue
 		}
@@ -141,6 +158,7 @@ func (r *locations) Read(ctx context.Context, req datasource.ReadRequest, resp *
 	state := newLocationsModel(locs)
 	state.Type = config.Type
 	state.City = config.City
+	state.Country = config.Country
 	state.Continent = config.Continent
 	state.NameRegex = config.NameRegex
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)

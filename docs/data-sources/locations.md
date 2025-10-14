@@ -19,6 +19,7 @@ description: |-
 
 - `city` (String) The city used to filter locations.
 - `continent` (String) The continent used to filter locations.
+- `country` (String) The country used to filter locations.
 - `name_regex` (String) The regex used to filter locations by their name.
 - `type` (String) The type used to filter locations.
 
