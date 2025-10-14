@@ -8,9 +8,10 @@ import (
 	"github.com/gamefabric/gf-apiclient/tools/patch"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
-	containerv1 "github.com/gamefabric/gf-core/pkg/api/container/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -18,8 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 )
 
 var (
@@ -68,6 +67,12 @@ func (r *branch) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "DisplayName is the display name of the branch.",
 				MarkdownDescription: "DisplayName is the display name of the branch.",
 				Optional:            true,
+			},
+			"labels": schema.MapAttribute{
+				Description:         "A map of keys and values that can be used to organize and categorize objects.",
+				MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
+				Optional:            true,
+				ElementType:         types.StringType,
 			},
 			"description": schema.StringAttribute{
 				Description:         "Description is the optional description of the branch.",
@@ -227,18 +232,15 @@ func (r *branch) Delete(ctx context.Context, request resource.DeleteRequest, res
 		)
 		return
 	}
+
+	if err := wait.PollUntilNotFound(ctx, r.clientSet.ContainerV1().Branches(), state.Name.ValueString()); err != nil {
+		resp.Diagnostics.AddError(
+			"Error Deleting Branch",
+			fmt.Sprintf("Could not delete Branch %q: %v", state.Name.ValueString(), err),
+		)
+	}
 }
 
 func (r *branch) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
-}
-
-func retentionFromModel(rule branchImageRetentionPolicyRuleModel) containerv1.BranchImageRetentionPolicyRule {
-	return containerv1.BranchImageRetentionPolicyRule{
-		Name:       rule.Name.ValueString(),
-		ImageRegex: rule.ImageRegex.ValueString(),
-		TagRegex:   rule.TagRegex.ValueString(),
-		KeepCount:  int(rule.KeepCount.ValueInt64()),
-		KeepDays:   int(rule.KeepDays.ValueInt64()),
-	}
 }

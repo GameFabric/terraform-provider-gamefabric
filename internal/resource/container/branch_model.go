@@ -16,6 +16,15 @@ type branchModel struct {
 	RetentionPolicyRules []branchImageRetentionPolicyRuleModel `tfsdk:"retention_policy_rules"`
 }
 
+// branchImageRetentionPolicyRuleModel is the model for an image retention policy rule.
+type branchImageRetentionPolicyRuleModel struct {
+	Name       types.String `tfsdk:"name"`
+	ImageRegex types.String `tfsdk:"image_regex"`
+	TagRegex   types.String `tfsdk:"tag_regex"`
+	KeepCount  types.Int64  `tfsdk:"keep_count"`
+	KeepDays   types.Int64  `tfsdk:"keep_days"`
+}
+
 func newBranchModel(obj *containerv1.Branch) branchModel {
 	return branchModel{
 		ID:          types.StringValue(obj.Name),
@@ -34,15 +43,6 @@ func newBranchModel(obj *containerv1.Branch) branchModel {
 	}
 }
 
-// branchImageRetentionPolicyRuleModel is the model for an image retention policy rule.
-type branchImageRetentionPolicyRuleModel struct {
-	Name       types.String `tfsdk:"name"`
-	ImageRegex types.String `tfsdk:"image_regex"`
-	TagRegex   types.String `tfsdk:"tag_regex"`
-	KeepCount  types.Int64  `tfsdk:"keep_count"`
-	KeepDays   types.Int64  `tfsdk:"keep_days"`
-}
-
 func (m branchModel) ToObject() *containerv1.Branch {
 	return &containerv1.Branch{
 		ObjectMeta: metav1.ObjectMeta{
@@ -53,5 +53,15 @@ func (m branchModel) ToObject() *containerv1.Branch {
 			Description:          m.Description.ValueString(),
 			RetentionPolicyRules: conv.ForEachSliceItem(m.RetentionPolicyRules, retentionFromModel),
 		},
+	}
+}
+
+func retentionFromModel(rule branchImageRetentionPolicyRuleModel) containerv1.BranchImageRetentionPolicyRule {
+	return containerv1.BranchImageRetentionPolicyRule{
+		Name:       rule.Name.ValueString(),
+		ImageRegex: rule.ImageRegex.ValueString(),
+		TagRegex:   rule.TagRegex.ValueString(),
+		KeepCount:  int(rule.KeepCount.ValueInt64()),
+		KeepDays:   int(rule.KeepDays.ValueInt64()),
 	}
 }
