@@ -50,8 +50,8 @@ func (r *branch) Schema(_ context.Context, _ datasource.SchemaRequest, resp *dat
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description:         "DisplayName is friendly name of the environment.",
-				MarkdownDescription: "DisplayName is friendly name of the environment.",
+				Description:         "DisplayName is friendly name of the branch.",
+				MarkdownDescription: "DisplayName is friendly name of the branch.",
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("name")),
@@ -66,27 +66,27 @@ func (r *branch) Schema(_ context.Context, _ datasource.SchemaRequest, resp *dat
 						"name": schema.StringAttribute{
 							Description:         "Name is the name of the image retention policy.",
 							MarkdownDescription: "Name is the name of the image retention policy.",
-							Optional:            true,
+							Computed:            true,
 						},
 						"image_regex": schema.StringAttribute{
 							Description:         "ImageRegex is the optional regex selector for images that this policy applies to.",
 							MarkdownDescription: "ImageRegex is the optional regex selector for images that this policy applies to.",
-							Optional:            true,
+							Computed:            true,
 						},
 						"tag_regex": schema.StringAttribute{
 							Description:         "TagRegex is the optional regex selector for tags that this policy applies to.",
 							MarkdownDescription: "TagRegex is the optional regex selector for tags that this policy applies to.",
-							Optional:            true,
+							Computed:            true,
 						},
 						"keep_count": schema.Int64Attribute{
 							Description:         "KeepCount is the minimum number of tags to keep per image.",
 							MarkdownDescription: "KeepCount is the minimum number of tags to keep per image.",
-							Optional:            true,
+							Computed:            true,
 						},
 						"keep_days": schema.Int64Attribute{
 							Description:         "KeepDays is the minimum number of days an image tag must be kept for.",
 							MarkdownDescription: "KeepDays is the minimum number of days an image tag must be kept for.",
-							Optional:            true,
+							Computed:            true,
 						},
 					},
 				},
@@ -139,7 +139,7 @@ func (r *branch) Read(ctx context.Context, req datasource.ReadRequest, resp *dat
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error Getting Branch",
-				fmt.Sprintf("Could not get Branch %q: %v", config.Name.ValueString(), err),
+				fmt.Sprintf("Could not get Branch with display name %q: %v", config.DisplayName.ValueString(), err),
 			)
 			return
 		}

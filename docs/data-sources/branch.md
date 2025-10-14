@@ -17,7 +17,7 @@ description: |-
 
 ### Optional
 
-- `display_name` (String) DisplayName is friendly name of the environment.
+- `display_name` (String) DisplayName is friendly name of the branch.
 - `name` (String) The unique object name within its scope.
 
 ### Read-Only
@@ -27,7 +27,7 @@ description: |-
 <a id="nestedatt--retention_policy_rules"></a>
 ### Nested Schema for `retention_policy_rules`
 
-Optional:
+Read-Only:
 
 - `image_regex` (String) ImageRegex is the optional regex selector for images that this policy applies to.
 - `keep_count` (Number) KeepCount is the minimum number of tags to keep per image.
