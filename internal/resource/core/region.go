@@ -12,8 +12,8 @@ import (
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
 	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -62,6 +62,7 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"environment": schema.StringAttribute{
@@ -73,6 +74,7 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"labels": schema.MapAttribute{
@@ -80,6 +82,18 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
 				Optional:            true,
 				ElementType:         types.StringType,
+				Validators: []validator.Map{
+					validators.LabelsValidator{},
+				},
+			},
+			"annotations": schema.MapAttribute{
+				Description:         "Annotations is an unstructured map of keys and values stored on an object.",
+				MarkdownDescription: "Annotations is an unstructured map of keys and values stored on an object.",
+				Optional:            true,
+				ElementType:         types.StringType,
+				Validators: []validator.Map{
+					validators.AnnotationsValidator{},
+				},
 			},
 			"display_name": schema.StringAttribute{
 				Description:         "DisplayName is the user-friendly name of a region.",
@@ -108,62 +122,7 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 							MarkdownDescription: "Env is a list of environment variables to set on all containers in this region.",
 							Optional:            true,
 							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"name": schema.StringAttribute{
-										Description:         "Name is the name of the environment variable.",
-										MarkdownDescription: "Name is the name of the environment variable.",
-										Required:            true,
-									},
-									"value": schema.StringAttribute{
-										Description:         "Value is the value of the environment variable.",
-										MarkdownDescription: "Value is the value of the environment variable.",
-										Optional:            true,
-										Validators: []validator.String{
-											stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("value_from")),
-										},
-									},
-									"value_from": schema.SingleNestedAttribute{
-										Description:         "ValueFrom is the source for the environment variable&#39;s value.",
-										MarkdownDescription: "ValueFrom is the source for the environment variable&#39;s value.",
-										Optional:            true,
-										Attributes: map[string]schema.Attribute{
-											"field_ref": schema.SingleNestedAttribute{
-												Description:         "FieldRef selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels[&#39;&lt;KEY&gt;&#39;]`, `metadata.annotations[&#39;&lt;KEY&gt;&#39;]`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.",
-												MarkdownDescription: "FieldRef selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels[&#39;&lt;KEY&gt;&#39;]`, `metadata.annotations[&#39;&lt;KEY&gt;&#39;]`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.",
-												Optional:            true,
-												Attributes: map[string]schema.Attribute{
-													"api_version": schema.StringAttribute{
-														Required: true,
-													},
-													"field_path": schema.StringAttribute{
-														Required: true,
-													},
-												},
-												Validators: []validator.Object{
-													objectvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("config_file_key_ref")),
-												},
-											},
-											"config_file_key_ref": schema.SingleNestedAttribute{
-												Description:         "ConfigFileKeyRef select the configuration file.",
-												MarkdownDescription: "ConfigFileKeyRef select the configuration file.",
-												Optional:            true,
-												Attributes: map[string]schema.Attribute{
-													"name": schema.StringAttribute{
-														Description:         "Name is the name of the configuration file.",
-														MarkdownDescription: "Name is the name of the configuration file.",
-														Required:            true,
-													},
-												},
-												Validators: []validator.Object{
-													objectvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("field_ref")),
-												},
-											},
-										},
-										Validators: []validator.Object{
-											objectvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("value")),
-										},
-									},
-								},
+								Attributes: EnvVarAttributes(),
 							},
 						},
 						"scheduling": schema.StringAttribute{
@@ -299,7 +258,13 @@ func (r *region) Delete(ctx context.Context, req resource.DeleteRequest, resp *r
 		return
 	}
 
-	// TODO: wait for deletion
+	if err = wait.PollUntilNotFound(ctx, r.clientSet.CoreV1().Regions(state.Environment.ValueString()), state.Name.ValueString()); err != nil {
+		resp.Diagnostics.AddError(
+			"Error Waiting for Region Deletion",
+			fmt.Sprintf("Timed out waiting for deletion of Region: %v", err),
+		)
+		return
+	}
 }
 
 func (r *region) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
