@@ -11,11 +11,11 @@ type locationsModel struct {
 	Country   types.String   `tfsdk:"country"`
 	Continent types.String   `tfsdk:"continent"`
 	NameRegex types.String   `tfsdk:"name_regex"`
-	Locations []types.String `tfsdk:"locations"`
+	Names     []types.String `tfsdk:"names"`
 }
 
 func newLocationsModel(locations []string) locationsModel {
 	return locationsModel{
-		Locations: conv.ForEachSliceItem(locations, func(item string) types.String { return types.StringValue(item) }),
+		Names: conv.ForEachSliceItem(locations, func(item string) types.String { return types.StringValue(item) }),
 	}
 }
