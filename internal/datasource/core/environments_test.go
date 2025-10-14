@@ -10,6 +10,8 @@ import (
 )
 
 func TestEnvironments(t *testing.T) {
+	t.Parallel()
+
 	env := &corev1.Environment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "dflt",
@@ -50,6 +52,8 @@ func TestEnvironments(t *testing.T) {
 }
 
 func TestEnvironments_AllowsGettingAll(t *testing.T) {
+	t.Parallel()
+
 	env := &corev1.Environment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "dflt",
