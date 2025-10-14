@@ -12,9 +12,9 @@ import (
 )
 
 type FormationModel struct {
-	Name        types.String     `tfsdk:"name"`
-	Environment types.String     `tfsdk:"environment"`
-	Spec       *FormationSpecModel `tfsdk:"spec"`
+	Name        types.String        `tfsdk:"name"`
+	Environment types.String        `tfsdk:"environment"`
+	Spec        *FormationSpecModel `tfsdk:"spec"`
 }
 
 type FormationSpecModel struct {
@@ -40,15 +40,15 @@ type VesselOverrideModel struct {
 }
 
 type VesselContainerOverrideModel struct {
-	Command types.List         `tfsdk:"command"`
-	Args    types.List            `tfsdk:"args"`
-	Env     []core2.EnvVarV1Model `tfsdk:"env"`
+	Command types.List          `tfsdk:"command"`
+	Args    types.List          `tfsdk:"args"`
+	Env     []core2.EnvVarModel `tfsdk:"env"`
 }
 
 type VolumeTemplateModel struct {
-	Labels      map[string]types.String `tfsdk:"labels"`
-	Annotations map[string]types.String `tfsdk:"annotations"`
-	Spec       *VolumeTemplateSpecModel `tfsdk:"spec"`
+	Labels      map[string]types.String  `tfsdk:"labels"`
+	Annotations map[string]types.String  `tfsdk:"annotations"`
+	Spec        *VolumeTemplateSpecModel `tfsdk:"spec"`
 }
 
 type VolumeTemplateSpecModel struct {
@@ -186,7 +186,7 @@ func FormationAttributes() map[string]schema.Attribute {
 								Description:         "Standard object&#39;s metadata.",
 								MarkdownDescription: "Standard object&#39;s metadata.",
 								Optional:            true,
-								Attributes:          map[string]schema.Attribute{
+								Attributes: map[string]schema.Attribute{
 									"labels": schema.MapAttribute{
 										Description:         "A map of keys and values that can be used to organize and categorize objects.",
 										MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",

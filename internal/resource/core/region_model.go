@@ -1,6 +1,8 @@
 package core
 
 import (
+	"cmp"
+
 	"agones.dev/agones/pkg/apis"
 	"github.com/gamefabric/gf-apiclient/tools/cache"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
@@ -30,10 +32,11 @@ func newRegionModel(obj *corev1.Region) regionModel {
 		Types:       map[string]regionTypeModel{},
 	}
 	for _, typ := range obj.Spec.Types {
+		template := cmp.Or(typ.Template, &corev1.RegionTemplate{})
 		model.Types[typ.Name] = regionTypeModel{
 			Locations:  conv.ForEachSliceItem(typ.Locations, types.StringValue),
-			Env:        conv.ForEachSliceItem(typ.Template.Env, NewEnvVarV1Model),
-			Scheduling: conv.OptionalFunc(string(typ.Template.Scheduling), types.StringValue, types.StringNull),
+			Env:        conv.ForEachSliceItem(template.Env, NewEnvVarModel),
+			Scheduling: conv.OptionalFunc(string(template.Scheduling), types.StringValue, types.StringNull),
 		}
 	}
 	return model
@@ -58,7 +61,7 @@ func (m regionModel) ToObject() *corev1.Region {
 		}
 		if len(typ.Env) > 0 || conv.IsKnown(typ.Scheduling) {
 			regTyp.Template = &corev1.RegionTemplate{
-				Env:        conv.ForEachSliceItem(typ.Env, func(v EnvVarV1Model) corev1.EnvVar { return v.ToObject() }),
+				Env:        conv.ForEachSliceItem(typ.Env, func(v EnvVarModel) corev1.EnvVar { return v.ToObject() }),
 				Scheduling: apis.SchedulingStrategy(typ.Scheduling.ValueString()),
 			}
 		}
@@ -68,7 +71,7 @@ func (m regionModel) ToObject() *corev1.Region {
 }
 
 type regionTypeModel struct {
-	Locations  []types.String  `tfsdk:"locations"`
-	Env        []EnvVarV1Model `tfsdk:"env"`
-	Scheduling types.String    `tfsdk:"scheduling"`
+	Locations  []types.String `tfsdk:"locations"`
+	Env        []EnvVarModel  `tfsdk:"env"`
+	Scheduling types.String   `tfsdk:"scheduling"`
 }
