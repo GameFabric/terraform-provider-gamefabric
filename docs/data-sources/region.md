@@ -38,8 +38,6 @@ data "gamefabric_region" "name" {
 
 ### Read-Only
 
-- `description` (String) Description is the optional description of the region.
-- `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
 - `types` (Attributes Map) Types defines the types on infrastructure available in the region. (see [below for nested schema](#nestedatt--types))
 
 <a id="nestedatt--types"></a>
@@ -48,40 +46,4 @@ data "gamefabric_region" "name" {
 Read-Only:
 
 - `cpu` (String) CPU is the CPU limit for the region type.
-- `env` (Attributes List) Env is a list of environment variables to set on all containers in this region. (see [below for nested schema](#nestedatt--types--env))
-- `locations` (List of String) Locations defines the locations for a type.
 - `memory` (String) Memory is the memory limit for the region type.
-- `scheduling` (String) Scheduling strategy. Defaults to &#34;Packed&#34;
-
-<a id="nestedatt--types--env"></a>
-### Nested Schema for `types.env`
-
-Read-Only:
-
-- `name` (String) Name is the name of the environment variable.
-- `value` (String) Value is the value of the environment variable.
-- `value_from` (Attributes) ValueFrom is the source for the environment variable&#39;s value. (see [below for nested schema](#nestedatt--types--env--value_from))
-
-<a id="nestedatt--types--env--value_from"></a>
-### Nested Schema for `types.env.value_from`
-
-Read-Only:
-
-- `config_file_key_ref` (Attributes) ConfigFileKeyRef select the configuration file. (see [below for nested schema](#nestedatt--types--env--value_from--config_file_key_ref))
-- `field_ref` (Attributes) FieldRef selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels[&#39;&lt;KEY&gt;&#39;]`, `metadata.annotations[&#39;&lt;KEY&gt;&#39;]`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs. (see [below for nested schema](#nestedatt--types--env--value_from--field_ref))
-
-<a id="nestedatt--types--env--value_from--config_file_key_ref"></a>
-### Nested Schema for `types.env.value_from.config_file_key_ref`
-
-Read-Only:
-
-- `name` (String) Name is the name of the configuration file.
-
-
-<a id="nestedatt--types--env--value_from--field_ref"></a>
-### Nested Schema for `types.env.value_from.field_ref`
-
-Read-Only:
-
-- `api_version` (String)
-- `field_path` (String)

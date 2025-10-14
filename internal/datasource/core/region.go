@@ -6,7 +6,9 @@ import (
 
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -14,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var (
@@ -65,42 +66,12 @@ func (r *region) Schema(_ context.Context, _ datasource.SchemaRequest, resp *dat
 					stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("name")),
 				},
 			},
-			"labels": schema.MapAttribute{
-				Description:         "A map of keys and values that can be used to organize and categorize objects.",
-				MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
-				Computed:            true,
-				ElementType:         types.StringType,
-			},
-			"description": schema.StringAttribute{
-				Description:         "Description is the optional description of the region.",
-				MarkdownDescription: "Description is the optional description of the region.",
-				Computed:            true,
-			},
 			"types": schema.MapNestedAttribute{
 				Description:         "Types defines the types on infrastructure available in the region.",
 				MarkdownDescription: "Types defines the types on infrastructure available in the region.",
 				Computed:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"locations": schema.ListAttribute{
-							Description:         "Locations defines the locations for a type.",
-							MarkdownDescription: "Locations defines the locations for a type.",
-							Computed:            true,
-							ElementType:         types.StringType,
-						},
-						"env": schema.ListNestedAttribute{
-							Description:         "Env is a list of environment variables to set on all containers in this region.",
-							MarkdownDescription: "Env is a list of environment variables to set on all containers in this region.",
-							Computed:            true,
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: EnvVarAttributes(),
-							},
-						},
-						"scheduling": schema.StringAttribute{
-							Description:         "Scheduling strategy. Defaults to &#34;Packed&#34;",
-							MarkdownDescription: "Scheduling strategy. Defaults to &#34;Packed&#34;",
-							Computed:            true,
-						},
 						"cpu": schema.StringAttribute{
 							Description:         "CPU is the CPU limit for the region type.",
 							MarkdownDescription: "CPU is the CPU limit for the region type.",
@@ -143,17 +114,61 @@ func (r *region) Read(ctx context.Context, req datasource.ReadRequest, resp *dat
 		return
 	}
 
-	obj, err := r.clientSet.CoreV1().Regions(config.Environment.ValueString()).Get(ctx, config.Name.ValueString(), metav1.GetOptions{})
-	if err != nil {
-		switch {
-		case apierrors.IsNotFound(err):
-			resp.State.RemoveResource(ctx)
-		default:
+	var (
+		obj *corev1.Region
+		err error
+	)
+	switch {
+	case conv.IsKnown(config.Name):
+		obj, err = r.clientSet.CoreV1().Regions(config.Environment.ValueString()).Get(ctx, config.Name.ValueString(), metav1.GetOptions{})
+		if err != nil {
+			if apierrors.IsNotFound(err) {
+				resp.Diagnostics.AddError(
+					"Region Not Found",
+					fmt.Sprintf("Region %q was not found.", config.Name.ValueString()),
+				)
+				return
+			}
 			resp.Diagnostics.AddError(
-				"Error Reading Region",
-				fmt.Sprintf("Could not read Region %q: %v", config.Name.ValueString(), err),
+				"Error Getting Region",
+				fmt.Sprintf("Could not get Region %q: %v", config.Name.ValueString(), err),
 			)
+			return
 		}
+	case conv.IsKnown(config.DisplayName):
+		list, err := r.clientSet.CoreV1().Regions(config.Environment.ValueString()).List(ctx, metav1.ListOptions{})
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Getting Region",
+				fmt.Sprintf("Could not get Region with display name %q: %v", config.DisplayName.ValueString(), err),
+			)
+			return
+		}
+		for _, item := range list.Items {
+			if item.Spec.DisplayName != config.DisplayName.ValueString() {
+				continue
+			}
+			if obj != nil {
+				resp.Diagnostics.AddError(
+					"Multiple Regions Found",
+					fmt.Sprintf("Multiple regions found with display name %q", config.DisplayName.ValueString()),
+				)
+				return
+			}
+			obj = &item
+		}
+		if obj == nil {
+			resp.Diagnostics.AddError(
+				"Region Not Found",
+				fmt.Sprintf("Region with display name %q was not found.", config.DisplayName.ValueString()),
+			)
+			return
+		}
+	default:
+		resp.Diagnostics.AddError(
+			"Insufficient Information",
+			"Either name or display_name must be specified.",
+		)
 		return
 	}
 

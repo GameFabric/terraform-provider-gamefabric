@@ -9,27 +9,19 @@ import (
 type regionModel struct {
 	Name        types.String               `tfsdk:"name"`
 	Environment types.String               `tfsdk:"environment"`
-	Labels      map[string]types.String    `tfsdk:"labels"`
 	DisplayName types.String               `tfsdk:"display_name"`
-	Description types.String               `tfsdk:"description"`
 	Types       map[string]RegionTypeModel `tfsdk:"types"`
 }
 
 func newRegionModel(obj *corev1.Region) regionModel {
 	model := regionModel{
-		Name:        types.StringValue(obj.Name),
+		Name:        conv.OptionalFunc(obj.Name, types.StringValue, types.StringNull),
 		Environment: types.StringValue(obj.Environment),
-		Labels:      conv.ForEachMapItem(obj.Labels, func(item string) types.String { return types.StringValue(item) }),
 		DisplayName: conv.OptionalFunc(obj.Spec.DisplayName, types.StringValue, types.StringNull),
-		Description: conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
 		Types:       map[string]RegionTypeModel{},
 	}
 	for _, typ := range obj.Spec.Types {
-		regTypModel := RegionTypeModel{
-			Locations:  conv.ForEachSliceItem(typ.Locations, types.StringValue),
-			Env:        conv.ForEachSliceItem(typ.Template.Env, NewEnvVarV1Model),
-			Scheduling: conv.OptionalFunc(string(typ.Template.Scheduling), types.StringValue, types.StringNull),
-		}
+		var regTypModel RegionTypeModel
 		for _, typStatus := range obj.Status.Types {
 			if typStatus.Name != typ.Name {
 				continue
@@ -45,9 +37,6 @@ func newRegionModel(obj *corev1.Region) regionModel {
 
 // RegionTypeModel is the model for a region type.
 type RegionTypeModel struct {
-	Locations  []types.String  `tfsdk:"locations"`
-	Env        []EnvVarV1Model `tfsdk:"env"`
-	Scheduling types.String    `tfsdk:"scheduling"`
-	CPU        types.String    `tfsdk:"cpu"`
-	Memory     types.String    `tfsdk:"memory"`
+	CPU    types.String `tfsdk:"cpu"`
+	Memory types.String `tfsdk:"memory"`
 }
