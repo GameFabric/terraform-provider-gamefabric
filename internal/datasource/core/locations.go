@@ -91,6 +91,7 @@ func (r *locations) Configure(_ context.Context, req datasource.ConfigureRequest
 	r.clientSet = procCtx.ClientSet
 }
 
+//nolint:cyclop // Splitting this would not make it much simpler.
 func (r *locations) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var config locationsModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
