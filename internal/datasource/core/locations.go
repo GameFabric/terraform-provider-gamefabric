@@ -63,7 +63,7 @@ func (r *locations) Schema(_ context.Context, _ datasource.SchemaRequest, resp *
 				MarkdownDescription: "The regex used to filter locations by their name.",
 				Optional:            true,
 			},
-			"locations": schema.ListAttribute{
+			"names": schema.ListAttribute{
 				Description:         "The locations matching the filters.",
 				MarkdownDescription: "The locations matching the filters.",
 				Computed:            true,

@@ -25,4 +25,4 @@ description: |-
 
 ### Read-Only
 
-- `locations` (List of String) The locations matching the filters.
+- `names` (List of String) The locations matching the filters.
