@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	containerv1 "github.com/gamefabric/gf-core/pkg/api/container/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
@@ -128,6 +129,13 @@ func (r *branch) Read(ctx context.Context, req datasource.ReadRequest, resp *dat
 	case conv.IsKnown(config.Name):
 		obj, err = r.clientSet.ContainerV1().Branches().Get(ctx, config.Name.ValueString(), metav1.GetOptions{})
 		if err != nil {
+			if apierrors.IsNotFound(err) {
+				resp.Diagnostics.AddError(
+					"Branch Not Found",
+					fmt.Sprintf("No branch found with name %q", config.Name.ValueString()),
+				)
+				return
+			}
 			resp.Diagnostics.AddError(
 				"Error Getting Branch",
 				fmt.Sprintf("Could not get Branch %q: %v", config.Name.ValueString(), err),
@@ -155,6 +163,13 @@ func (r *branch) Read(ctx context.Context, req datasource.ReadRequest, resp *dat
 				return
 			}
 			obj = &item
+		}
+		if obj == nil {
+			resp.Diagnostics.AddError(
+				"Branch Not Found",
+				"No branch found matching the specified criteria.",
+			)
+			return
 		}
 	default:
 		resp.Diagnostics.AddError(
