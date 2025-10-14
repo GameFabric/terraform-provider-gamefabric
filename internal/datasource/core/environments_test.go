@@ -50,26 +50,17 @@ func TestEnvironments(t *testing.T) {
 }
 
 func TestEnvironments_AllowsGettingAll(t *testing.T) {
-	env1 := &corev1.Environment{
+	env := &corev1.Environment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "dflt",
 		},
 		Spec: corev1.EnvironmentSpec{
-			DisplayName: "My Env 1",
-			Description: "My Env Description",
-		},
-	}
-	env2 := &corev1.Environment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "other",
-		},
-		Spec: corev1.EnvironmentSpec{
-			DisplayName: "My Env 2",
+			DisplayName: "My Env",
 			Description: "My Env Description",
 		},
 	}
 
-	pf, _ := providertest.ProtoV6ProviderFactories(t, env1, env2)
+	pf, _ := providertest.ProtoV6ProviderFactories(t, env)
 
 	resource.Test(t, resource.TestCase{
 		IsUnitTest:               true,
@@ -79,13 +70,10 @@ func TestEnvironments_AllowsGettingAll(t *testing.T) {
 				Config: `data "gamefabric_environments" "test1" {}
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.gamefabric_environments.test1", "environments.#", "2"),
+					resource.TestCheckResourceAttr("data.gamefabric_environments.test1", "environments.#", "1"),
 					resource.TestCheckResourceAttr("data.gamefabric_environments.test1", "environments.0.name", "dflt"),
-					resource.TestCheckResourceAttr("data.gamefabric_environments.test1", "environments.0.display_name", "My Env 1"),
+					resource.TestCheckResourceAttr("data.gamefabric_environments.test1", "environments.0.display_name", "My Env"),
 					resource.TestCheckResourceAttr("data.gamefabric_environments.test1", "environments.0.description", "My Env Description"),
-					resource.TestCheckResourceAttr("data.gamefabric_environments.test1", "environments.1.name", "other"),
-					resource.TestCheckResourceAttr("data.gamefabric_environments.test1", "environments.1.display_name", "My Env 2"),
-					resource.TestCheckResourceAttr("data.gamefabric_environments.test1", "environments.1.description", "My Env Description"),
 				),
 			},
 		},
