@@ -67,6 +67,18 @@ func (r *environment) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
 				Optional:            true,
 				ElementType:         types.StringType,
+				Validators: []validator.Map{
+					validators.LabelsValidator{},
+				},
+			},
+			"annotations": schema.MapAttribute{
+				Description:         "Annotations is an unstructured map of keys and values stored on an object.",
+				MarkdownDescription: "Annotations is an unstructured map of keys and values stored on an object.",
+				Optional:            true,
+				ElementType:         types.StringType,
+				Validators: []validator.Map{
+					validators.AnnotationsValidator{},
+				},
 			},
 			"display_name": schema.StringAttribute{
 				Description:         "DisplayName is friendly name of the environment.",
@@ -200,8 +212,8 @@ func (r *environment) Delete(ctx context.Context, req resource.DeleteRequest, re
 	err = wait.PollUntilNotFound(ctx, r.clientSet.CoreV1().Environments(), state.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Deleting Environment",
-			fmt.Sprintf("Could not ensure Environment is gone: %v", err),
+			"Error Waiting for Environment Deletion",
+			fmt.Sprintf("Timed out waiting for deletion of Environment: %v", err),
 		)
 	}
 }

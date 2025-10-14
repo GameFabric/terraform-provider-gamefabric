@@ -1,22 +1,28 @@
 package core_test
 
 import (
+	"context"
 	"fmt"
+	"strings"
 	"testing"
 
+	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func TestEnvironment(t *testing.T) {
 	t.Parallel()
 
 	name := "dflt"
-	pf, _ := providertest.ProtoV6ProviderFactories(t)
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
 
 	resource.Test(t, resource.TestCase{
 		IsUnitTest:               true,
 		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testResourceEnvironmentDestroy(cs),
 		Steps: []resource.TestStep{
 			{
 				Config: testResourceEnvironmentConfigBasic(name),
@@ -46,6 +52,9 @@ func testResourceEnvironmentConfigBasic(name string) string {
 	return fmt.Sprintf(`resource "gamefabric_environment" "test" {
   name = "%s"
   display_name = "My Env"
+  labels = {
+	"env" = "test"
+  }
 }`, name)
 }
 
@@ -55,4 +64,23 @@ func testResourceEnvironmentConfigBasicWithDescription(name string) string {
   display_name = "My Env"
   description = "My Env Description"
 }`, name)
+}
+
+func testResourceEnvironmentDestroy(cs clientset.Interface) func(s *terraform.State) error {
+	return func(s *terraform.State) error {
+		for _, rs := range s.RootModule().Resources {
+			if rs.Type != "gamefabric_environment" {
+				continue
+			}
+
+			env, name, _ := strings.Cut(rs.Primary.ID, "/")
+			resp, err := cs.CoreV1().Regions(env).Get(context.Background(), name, metav1.GetOptions{})
+			if err == nil {
+				if resp.Name == rs.Primary.ID {
+					return fmt.Errorf("environment still exists: %s", rs.Primary.ID)
+				}
+			}
+		}
+		return nil
+	}
 }

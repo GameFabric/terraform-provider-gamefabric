@@ -16,6 +16,7 @@ type regionModel struct {
 	Name        types.String               `tfsdk:"name"`
 	Environment types.String               `tfsdk:"environment"`
 	Labels      map[string]types.String    `tfsdk:"labels"`
+	Annotations map[string]types.String    `tfsdk:"annotations"`
 	DisplayName types.String               `tfsdk:"display_name"`
 	Description types.String               `tfsdk:"description"`
 	Types       map[string]regionTypeModel `tfsdk:"types"`
@@ -27,6 +28,7 @@ func newRegionModel(obj *corev1.Region) regionModel {
 		Name:        types.StringValue(obj.Name),
 		Environment: types.StringValue(obj.Environment),
 		Labels:      conv.ForEachMapItem(obj.Labels, func(item string) types.String { return types.StringValue(item) }),
+		Annotations: conv.ForEachMapItem(obj.Annotations, func(item string) types.String { return types.StringValue(item) }),
 		DisplayName: types.StringValue(obj.Spec.DisplayName),
 		Description: conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
 		Types:       map[string]regionTypeModel{},
@@ -48,6 +50,7 @@ func (m regionModel) ToObject() *corev1.Region {
 			Name:        m.Name.ValueString(),
 			Environment: m.Environment.ValueString(),
 			Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
+			Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
 		},
 		Spec: corev1.RegionSpec{
 			DisplayName: m.DisplayName.ValueString(),
