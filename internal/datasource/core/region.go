@@ -140,7 +140,7 @@ func (r *region) Read(ctx context.Context, req datasource.ReadRequest, resp *dat
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error Getting Region",
-				fmt.Sprintf("Could not get Region %q: %v", config.Name.ValueString(), err),
+				fmt.Sprintf("Could not get Region with display name %q: %v", config.DisplayName.ValueString(), err),
 			)
 			return
 		}
