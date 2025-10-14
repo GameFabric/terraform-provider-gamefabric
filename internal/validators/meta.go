@@ -164,7 +164,7 @@ func (n AnnotationsValidator) ValidateMap(_ context.Context, req validator.MapRe
 	for key, val := range req.ConfigValue.Elements() {
 		if keyErrs := validation.IsQualifiedName(key); len(keyErrs) > 0 {
 			resp.Diagnostics.Append(diag.NewErrorDiagnostic(
-				"Invalid label key",
+				"Invalid annotation key",
 				fmt.Sprintf("Annotation key %q is not valid: %s", key, strings.Join(keyErrs, "; ")),
 			))
 		}
@@ -172,7 +172,7 @@ func (n AnnotationsValidator) ValidateMap(_ context.Context, req validator.MapRe
 		strVal, ok := val.(basetypes.StringValue)
 		if !ok {
 			resp.Diagnostics.Append(diag.NewErrorDiagnostic(
-				"Invalid label value type",
+				"Invalid annotation value type",
 				fmt.Sprintf("Annotation value for key %q is not a string", key),
 			))
 			continue

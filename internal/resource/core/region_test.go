@@ -112,7 +112,7 @@ func testResourceRegionDestroy(cs clientset.Interface) func(s *terraform.State) 
 			env, name, _ := strings.Cut(rs.Primary.ID, "/")
 			resp, err := cs.CoreV1().Regions(env).Get(context.Background(), name, metav1.GetOptions{})
 			if err == nil {
-				if resp.Name == rs.Primary.ID {
+				if resp.Name == name {
 					return fmt.Errorf("region still exists: %s", rs.Primary.ID)
 				}
 			}
