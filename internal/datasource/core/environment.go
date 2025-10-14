@@ -134,6 +134,19 @@ func (r *environment) Read(ctx context.Context, req datasource.ReadRequest, resp
 			}
 			obj = &item
 		}
+		if obj == nil {
+			resp.Diagnostics.AddError(
+				"Environment Not Found",
+				fmt.Sprintf("Environment with display name %q was not found.", config.DisplayName.ValueString()),
+			)
+			return
+		}
+	default:
+		resp.Diagnostics.AddError(
+			"Insufficient Information",
+			"Either name or display_name must be specified.",
+		)
+		return
 	}
 
 	state := newEnvironmentModel(obj)
