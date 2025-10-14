@@ -9,6 +9,7 @@ import (
 
 	"github.com/gamefabric/gf-apiclient/rest"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	dscontainer "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/container"
 	dscore "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/core"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
@@ -161,6 +162,7 @@ func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource
 		dscore.NewLocations,
 		dscore.NewRegion,
 		dscore.NewRegions,
+		dscontainer.NewBranch,
 	}
 }
 
