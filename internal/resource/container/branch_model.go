@@ -11,6 +11,7 @@ import (
 type branchModel struct {
 	ID                   types.String                          `tfsdk:"id"`
 	Name                 types.String                          `tfsdk:"name"`
+	Labels               map[string]types.String               `tfsdk:"labels"`
 	DisplayName          types.String                          `tfsdk:"display_name"`
 	Description          types.String                          `tfsdk:"description"`
 	RetentionPolicyRules []branchImageRetentionPolicyRuleModel `tfsdk:"retention_policy_rules"`
@@ -29,6 +30,7 @@ func newBranchModel(obj *containerv1.Branch) branchModel {
 	return branchModel{
 		ID:          types.StringValue(obj.Name),
 		Name:        types.StringValue(obj.Name),
+		Labels:      conv.ForEachMapItem(obj.Labels, func(item string) types.String { return types.StringValue(item) }),
 		DisplayName: types.StringValue(obj.Spec.DisplayName),
 		Description: conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
 		RetentionPolicyRules: conv.ForEachSliceItem(obj.Spec.RetentionPolicyRules, func(item containerv1.BranchImageRetentionPolicyRule) branchImageRetentionPolicyRuleModel {
@@ -46,7 +48,8 @@ func newBranchModel(obj *containerv1.Branch) branchModel {
 func (m branchModel) ToObject() *containerv1.Branch {
 	return &containerv1.Branch{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: m.Name.ValueString(),
+			Name:   m.Name.ValueString(),
+			Labels: conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
 		},
 		Spec: containerv1.BranchSpec{
 			DisplayName:          m.DisplayName.ValueString(),

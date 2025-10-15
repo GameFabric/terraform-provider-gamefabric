@@ -235,8 +235,8 @@ func (r *branch) Delete(ctx context.Context, request resource.DeleteRequest, res
 
 	if err := wait.PollUntilNotFound(ctx, r.clientSet.ContainerV1().Branches(), state.Name.ValueString()); err != nil {
 		resp.Diagnostics.AddError(
-			"Error Deleting Branch",
-			fmt.Sprintf("Could not delete Branch %q: %v", state.Name.ValueString(), err),
+			"Error Waiting for Branch Deletion",
+			fmt.Sprintf("Timed out waiting for deletion of Branch: %v", err),
 		)
 	}
 }
