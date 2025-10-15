@@ -7,8 +7,6 @@ import (
 )
 
 type branchesModel struct {
-	Name        types.String            `tfsdk:"name"`
-	DisplayName types.String            `tfsdk:"display_name"`
 	LabelFilter map[string]types.String `tfsdk:"label_filter"`
 	Branches    []branchModel           `tfsdk:"branches"`
 }

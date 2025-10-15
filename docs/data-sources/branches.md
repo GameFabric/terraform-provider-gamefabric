@@ -3,7 +3,7 @@
 page_title: "gamefabric_branches Data Source - terraform-provider-gamefabric"
 subcategory: ""
 description: |-
-  Retrieves a list of branches that can be filtered by name, display name, or labels.
+  Retrieves a list of branches that can be filtered by labels.
 ---
 
 # gamefabric_branches (Data Source)
@@ -17,26 +17,8 @@ description: |-
 data "gamefabric_branches" "all" {
 }
 
-# Get branches by name (exact match)
-data "gamefabric_branches" "by_name" {
-  name = "test"
-}
-
-# Get branches by display name (exact match)
-data "gamefabric_branches" "by_display_name" {
-  display_name = "Test Branch"
-}
-
 # Get branches by labels (exact matches of all provided labels)
 data "gamefabric_branches" "baremetal" {
-  label_filter = {
-    baremetal = "true"
-  }
-}
-
-# Combined filters
-data "gamefabric_branches" "filtered" {
-  display_name = "Test Branch"
   label_filter = {
     baremetal = "true"
   }
@@ -48,9 +30,7 @@ data "gamefabric_branches" "filtered" {
 
 ### Optional
 
-- `display_name` (String) DisplayName is friendly name of the branch (filters by exact match).
 - `label_filter` (Map of String) A map of keys and values that is used to filter branches (exact matches of all provided labels).
-- `name` (String) The unique object name within its scope (filters by exact match).
 
 ### Read-Only
 

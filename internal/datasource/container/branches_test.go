@@ -1,7 +1,6 @@
 package container_test
 
 import (
-	"regexp"
 	"testing"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
@@ -75,90 +74,6 @@ func TestBranches(t *testing.T) {
 	})
 }
 
-func TestBranches_FilterByName(t *testing.T) {
-	t.Parallel()
-
-	branch1 := &containerv1.Branch{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-branch-1",
-		},
-		Spec: containerv1.BranchSpec{
-			DisplayName: "Test Branch 1",
-		},
-	}
-
-	branch2 := &containerv1.Branch{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-branch-2",
-		},
-		Spec: containerv1.BranchSpec{
-			DisplayName: "Test Branch 2",
-		},
-	}
-
-	pf, _ := providertest.ProtoV6ProviderFactories(t, branch1, branch2)
-
-	resource.Test(t, resource.TestCase{
-		IsUnitTest:               true,
-		ProtoV6ProviderFactories: pf,
-		Steps: []resource.TestStep{
-			{
-				Config: `data "gamefabric_branches" "test" {
-  name = "test-branch-1"
-}
-`,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "name", "test-branch-1"),
-					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.#", "1"),
-					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.0.name", "test-branch-1"),
-				),
-			},
-		},
-	})
-}
-
-func TestBranches_FilterByDisplayName(t *testing.T) {
-	t.Parallel()
-
-	branch1 := &containerv1.Branch{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-branch-1",
-		},
-		Spec: containerv1.BranchSpec{
-			DisplayName: "Test Branch 1",
-		},
-	}
-
-	branch2 := &containerv1.Branch{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-branch-2",
-		},
-		Spec: containerv1.BranchSpec{
-			DisplayName: "Test Branch 2",
-		},
-	}
-
-	pf, _ := providertest.ProtoV6ProviderFactories(t, branch1, branch2)
-
-	resource.Test(t, resource.TestCase{
-		IsUnitTest:               true,
-		ProtoV6ProviderFactories: pf,
-		Steps: []resource.TestStep{
-			{
-				Config: `data "gamefabric_branches" "test" {
-  display_name = "Test Branch 2"
-}
-`,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "display_name", "Test Branch 2"),
-					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.#", "1"),
-					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.0.name", "test-branch-2"),
-				),
-			},
-		},
-	})
-}
-
 func TestBranches_AllowsGettingAll(t *testing.T) {
 	t.Parallel()
 
@@ -194,44 +109,6 @@ func TestBranches_AllowsGettingAll(t *testing.T) {
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.0.name", "test-branch-1"),
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.1.name", "test-branch-2"),
 				),
-			},
-		},
-	})
-}
-
-func TestBranches_ErrorsOnDuplicateDisplayName(t *testing.T) {
-	t.Parallel()
-
-	branch1 := &containerv1.Branch{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-branch-1",
-		},
-		Spec: containerv1.BranchSpec{
-			DisplayName: "My Branch",
-		},
-	}
-
-	branch2 := &containerv1.Branch{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-branch-2",
-		},
-		Spec: containerv1.BranchSpec{
-			DisplayName: "My Branch",
-		},
-	}
-
-	pf, _ := providertest.ProtoV6ProviderFactories(t, branch1, branch2)
-
-	resource.Test(t, resource.TestCase{
-		IsUnitTest:               true,
-		ProtoV6ProviderFactories: pf,
-		Steps: []resource.TestStep{
-			{
-				Config: `data "gamefabric_branches" "test" {
-  display_name = "My Branch"
-}
-`,
-				ExpectError: regexp.MustCompile(`Multiple Branches Found`),
 			},
 		},
 	})

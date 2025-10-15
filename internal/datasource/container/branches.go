@@ -39,16 +39,6 @@ func (r *branches) Metadata(_ context.Context, req datasource.MetadataRequest, r
 func (r *branches) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"name": schema.StringAttribute{
-				Description:         "The unique object name within its scope (filters by exact match).",
-				MarkdownDescription: "The unique object name within its scope (filters by exact match).",
-				Optional:            true,
-			},
-			"display_name": schema.StringAttribute{
-				Description:         "DisplayName is friendly name of the branch (filters by exact match).",
-				MarkdownDescription: "DisplayName is friendly name of the branch (filters by exact match).",
-				Optional:            true,
-			},
 			"label_filter": schema.MapAttribute{
 				Description:         "A map of keys and values that is used to filter branches (exact matches of all provided labels).",
 				MarkdownDescription: "A map of keys and values that is used to filter branches (exact matches of all provided labels).",
@@ -147,47 +137,12 @@ func (r *branches) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 		return
 	}
 
-	// Apply additional filters
-	filteredBranches := make([]containerv1.Branch, 0)
-	displayNameCounts := make(map[string]int)
-	for _, branch := range list.Items {
-		// Filter by name if specified
-		if conv.IsKnown(config.Name) && branch.Name != config.Name.ValueString() {
-			continue
-		}
-
-		// Filter by display_name if specified
-		if conv.IsKnown(config.DisplayName) && branch.Spec.DisplayName != config.DisplayName.ValueString() {
-			continue
-		}
-
-		filteredBranches = append(filteredBranches, branch)
-
-		// Track display name occurrences for validation
-		if conv.IsKnown(config.DisplayName) {
-			displayNameCounts[branch.Spec.DisplayName]++
-		}
-	}
-
-	// Validate that display_name filter doesn't match multiple branches
-	if conv.IsKnown(config.DisplayName) {
-		if count := displayNameCounts[config.DisplayName.ValueString()]; count > 1 {
-			resp.Diagnostics.AddError(
-				"Multiple Branches Found",
-				fmt.Sprintf("Multiple branches (%d) found with display name %q. Display names are not unique identifiers. Use name or label_filter instead, or ensure display names are unique.", count, config.DisplayName.ValueString()),
-			)
-			return
-		}
-	}
-
 	// Sort branches by name for consistent output
-	slices.SortFunc(filteredBranches, func(a, b containerv1.Branch) int {
+	slices.SortFunc(list.Items, func(a, b containerv1.Branch) int {
 		return strings.Compare(a.Name, b.Name)
 	})
 
-	state := newBranchesModel(filteredBranches)
-	state.Name = config.Name
-	state.DisplayName = config.DisplayName
+	state := newBranchesModel(list.Items)
 	state.LabelFilter = config.LabelFilter
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
