@@ -23,11 +23,11 @@ func TestBranches(t *testing.T) {
 			DisplayName: "Test Branch 1",
 			RetentionPolicyRules: []containerv1.BranchImageRetentionPolicyRule{
 				{
-					Name:        "default",
-					KeepCount:   10,
-					KeepDays:    30,
-					ImageRegex:  ".*",
-					TagRegex:    ".*",
+					Name:       "default",
+					KeepCount:  10,
+					KeepDays:   30,
+					ImageRegex: ".*",
+					TagRegex:   ".*",
 				},
 			},
 		},
