@@ -12,7 +12,7 @@ import (
 func TestBranches(t *testing.T) {
 	t.Parallel()
 
-	branch1 := &containerv1.Branch{
+	branch := &containerv1.Branch{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test-branch-1",
 			Labels: map[string]string{
@@ -33,19 +33,7 @@ func TestBranches(t *testing.T) {
 		},
 	}
 
-	branch2 := &containerv1.Branch{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-branch-2",
-			Labels: map[string]string{
-				"baremetal": "false",
-			},
-		},
-		Spec: containerv1.BranchSpec{
-			DisplayName: "Test Branch 2",
-		},
-	}
-
-	pf, _ := providertest.ProtoV6ProviderFactories(t, branch1, branch2)
+	pf, _ := providertest.ProtoV6ProviderFactories(t, branch)
 
 	resource.Test(t, resource.TestCase{
 		IsUnitTest:               true,
@@ -62,6 +50,7 @@ func TestBranches(t *testing.T) {
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "label_filter.baremetal", "true"),
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.#", "1"),
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.0.name", "test-branch-1"),
+					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.0.display_name", "Test Branch 1"),
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.0.retention_policy_rules.#", "1"),
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.0.retention_policy_rules.0.name", "default"),
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.0.retention_policy_rules.0.keep_count", "10"),
@@ -107,7 +96,9 @@ func TestBranches_AllowsGettingAll(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.#", "2"),
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.0.name", "test-branch-1"),
+					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.0.display_name", "Test Branch 1"),
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.1.name", "test-branch-2"),
+					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.1.display_name", "Test Branch 2"),
 				),
 			},
 		},

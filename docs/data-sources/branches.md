@@ -3,7 +3,7 @@
 page_title: "gamefabric_branches Data Source - terraform-provider-gamefabric"
 subcategory: ""
 description: |-
-  Retrieves a list of branches that can be filtered by labels.
+  
 ---
 
 # gamefabric_branches (Data Source)
@@ -41,6 +41,7 @@ data "gamefabric_branches" "baremetal" {
 
 Read-Only:
 
+- `display_name` (String) The display name of the region.
 - `name` (String) The unique object name within its scope.
 - `retention_policy_rules` (Attributes List) RetentionPolicyRules are the rules that define how images are retained. (see [below for nested schema](#nestedatt--branches--retention_policy_rules))
 
