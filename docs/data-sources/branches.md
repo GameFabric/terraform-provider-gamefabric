@@ -3,7 +3,7 @@
 page_title: "gamefabric_branches Data Source - terraform-provider-gamefabric"
 subcategory: ""
 description: |-
-  
+  Retrieves a list of branches that can be filtered by name, display name, or labels.
 ---
 
 # gamefabric_branches (Data Source)
