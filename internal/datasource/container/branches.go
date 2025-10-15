@@ -154,6 +154,7 @@ func (r *branches) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 
 	// Apply additional filters
 	filteredBranches := make([]containerv1.Branch, 0)
+	displayNameCounts := make(map[string]int)
 	for _, branch := range list.Items {
 		// Filter by name if specified
 		if conv.IsKnown(config.Name) && branch.Name != config.Name.ValueString() {
@@ -166,6 +167,22 @@ func (r *branches) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 		}
 
 		filteredBranches = append(filteredBranches, branch)
+
+		// Track display name occurrences for validation
+		if conv.IsKnown(config.DisplayName) {
+			displayNameCounts[branch.Spec.DisplayName]++
+		}
+	}
+
+	// Validate that display_name filter doesn't match multiple branches
+	if conv.IsKnown(config.DisplayName) {
+		if count := displayNameCounts[config.DisplayName.ValueString()]; count > 1 {
+			resp.Diagnostics.AddError(
+				"Multiple Branches Found",
+				fmt.Sprintf("Multiple branches (%d) found with display name %q. Display names are not unique identifiers. Use name or label_filter instead, or ensure display names are unique.", count, config.DisplayName.ValueString()),
+			)
+			return
+		}
 	}
 
 	// Sort branches by name for consistent output
