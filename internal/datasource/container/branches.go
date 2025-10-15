@@ -57,8 +57,8 @@ func (r *branches) Schema(_ context.Context, _ datasource.SchemaRequest, resp *d
 							Computed:            true,
 						},
 						"display_name": schema.StringAttribute{
-							Description:         "The display name of the region.",
-							MarkdownDescription: "The display name of the region.",
+							Description:         "The display name of the branch.",
+							MarkdownDescription: "The display name of the branch.",
 							Computed:            true,
 						},
 						"retention_policy_rules": schema.ListNestedAttribute{
