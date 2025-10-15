@@ -66,11 +66,6 @@ func (r *branches) Schema(_ context.Context, _ datasource.SchemaRequest, resp *d
 							MarkdownDescription: "The unique object name within its scope.",
 							Computed:            true,
 						},
-						"display_name": schema.StringAttribute{
-							Description:         "DisplayName is friendly name of the branch.",
-							MarkdownDescription: "DisplayName is friendly name of the branch.",
-							Computed:            true,
-						},
 						"retention_policy_rules": schema.ListNestedAttribute{
 							Description:         "RetentionPolicyRules are the rules that define how images are retained.",
 							MarkdownDescription: "RetentionPolicyRules are the rules that define how images are retained.",
