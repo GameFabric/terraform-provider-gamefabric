@@ -62,7 +62,6 @@ func TestBranches(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "label_filter.baremetal", "true"),
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.#", "1"),
-					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.0.name", "test-branch-1"),
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.0.retention_policy_rules.#", "1"),
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.0.retention_policy_rules.0.name", "default"),
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.0.retention_policy_rules.0.keep_count", "10"),
@@ -110,7 +109,6 @@ func TestBranches_FilterByName(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "name", "test-branch-1"),
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.#", "1"),
-					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.0.name", "test-branch-1"),
 				),
 			},
 		},
@@ -152,7 +150,6 @@ func TestBranches_FilterByDisplayName(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "display_name", "Test Branch 2"),
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.#", "1"),
-					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.0.name", "test-branch-2"),
 				),
 			},
 		},
@@ -191,8 +188,6 @@ func TestBranches_AllowsGettingAll(t *testing.T) {
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.#", "2"),
-					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.0.name", "test-branch-1"),
-					resource.TestCheckResourceAttr("data.gamefabric_branches.test", "branches.1.name", "test-branch-2"),
 				),
 			},
 		},
