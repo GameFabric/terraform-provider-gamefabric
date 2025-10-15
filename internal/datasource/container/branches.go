@@ -122,22 +122,16 @@ func (r *branches) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 		return
 	}
 
-	// Build label selector from label_filter
-	labelSelector := conv.ForEachMapItem(config.LabelFilter, func(item types.String) string { return item.ValueString() })
-
-	// Get all branches with label filter
 	list, err := r.clientSet.ContainerV1().Branches().List(ctx, metav1.ListOptions{
-		LabelSelector: labelSelector,
+		LabelSelector: conv.ForEachMapItem(config.LabelFilter, func(item types.String) string { return item.ValueString() }),
 	})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Getting Branches",
-			fmt.Sprintf("Could not get Branches: %v", err),
+			fmt.Sprintf("Could not get branches: %v", err),
 		)
 		return
 	}
-
-	// Sort branches by name for consistent output
 	slices.SortFunc(list.Items, func(a, b containerv1.Branch) int {
 		return strings.Compare(a.Name, b.Name)
 	})
