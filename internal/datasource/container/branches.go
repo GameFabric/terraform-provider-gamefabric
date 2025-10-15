@@ -61,6 +61,11 @@ func (r *branches) Schema(_ context.Context, _ datasource.SchemaRequest, resp *d
 				Computed:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
+						"name": schema.StringAttribute{
+							Description:         "The unique object name within its scope.",
+							MarkdownDescription: "The unique object name within its scope.",
+							Computed:            true,
+						},
 						"retention_policy_rules": schema.ListNestedAttribute{
 							Description:         "RetentionPolicyRules are the rules that define how images are retained.",
 							MarkdownDescription: "RetentionPolicyRules are the rules that define how images are retained.",
