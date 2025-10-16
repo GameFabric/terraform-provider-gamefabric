@@ -3,19 +3,39 @@
 page_title: "gamefabric_environment Data Source - terraform-provider-gamefabric"
 subcategory: ""
 description: |-
-  
+  Environments are a mechanism for isolating groups of resources. Resource names must be unique within each environment, but not across environments. They can therefore be used to separate production, staging, testing, and any other environments and ensure that they don't interfere. Alongside the RBAC features, it also allows limiting the access to certain environments from users.
+  Capacity is managed on a per Environment basis via Regions.
+  For details check the GameFabric documentation.
 ---
 
 # gamefabric_environment (Data Source)
 
+Environments are a mechanism for isolating groups of resources. Resource names must be unique within each environment, but not across environments. They can therefore be used to separate production, staging, testing, and any other environments and ensure that they don't interfere. Alongside the RBAC features, it also allows limiting the access to certain environments from users.
 
+Capacity is managed on a per Environment basis via Regions.
+
+For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/getting-started/glossary#environment">GameFabric documentation</a>.
 
 ## Example Usage
 
 ```terraform
-# Get the environment by display name.
+# Get an environment by its unique name.
+#
+# The name must match exactly and is case-sensitive.
 data "gamefabric_environment" "dev" {
-  display_name = "Development"
+  name = "dev" # The name is the technical identifier (limited to 4 characters).
+}
+# output = "gamefabric_environment_v1.test.name"
+
+# Get a branch by display name.
+#
+# Display names are user-friendly names that can contain spaces and special characters.
+#
+# Note:
+# - Only one of 'name' or 'display_name' should be specified.
+# - If multiple branches share the same display name, an error will occur.
+data "gamefabric_environment" "prod" {
+  display_name = "Production Environment"
 }
 ```
 

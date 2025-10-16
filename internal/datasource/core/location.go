@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
@@ -16,6 +17,9 @@ var (
 	_ datasource.DataSource              = &location{}
 	_ datasource.DataSourceWithConfigure = &location{}
 )
+
+//go:embed location.md
+var locationMarkdown string
 
 type location struct {
 	clientSet clientset.Interface
@@ -33,6 +37,7 @@ func (r *location) Metadata(_ context.Context, req datasource.MetadataRequest, r
 // Schema defines the schema for this data source.
 func (r *location) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: locationMarkdown,
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
 				Description:         "The unique object name of the location.",

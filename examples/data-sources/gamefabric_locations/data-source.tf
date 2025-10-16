@@ -1,10 +1,9 @@
 # Get all locations without filtering.
-# This returns all available locations in the system.
 data "gamefabric_locations" "all" {
 }
+# output: .names = ["frankfurt-gcp", "amsterdam-gcp"] # this is a list of locations that match the criteria
 
 # Filter locations by provider type.
-# Common types include "cloud", "baremetal", "edge", etc.
 data "gamefabric_locations" "cloud" {
   type = "cloud"
 }
@@ -44,37 +43,4 @@ data "gamefabric_locations" "gcp" {
 data "gamefabric_locations" "na_aws" {
   continent  = "north-america"
   name_regex = ".*-aws-.*"
-}
-
-# Access the list of location names.
-# The data source returns a 'names' attribute containing all matching location names.
-output "available_cloud_locations" {
-  description = "List of all cloud location names"
-  value       = data.gamefabric_locations.cloud.names
-}
-
-# Use locations in a region resource.
-# This is a common pattern for dynamically selecting locations.
-data "gamefabric_environment" "prod" {
-  display_name = "Production"
-}
-
-resource "gamefabric_region" "europe" {
-  name         = "europe"
-  display_name = "Europe"
-  environment  = data.gamefabric_environment.prod.name
-
-  types = {
-    baremetal = {
-      # Use all baremetal locations in Europe
-      locations  = data.gamefabric_locations.eu_baremetal.names
-      scheduling = "Packed"
-      env = [
-        {
-          name  = "GAME_REGION"
-          value = "EU"
-        }
-      ]
-    }
-  }
 }

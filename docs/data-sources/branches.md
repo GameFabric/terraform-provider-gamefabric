@@ -3,24 +3,59 @@
 page_title: "gamefabric_branches Data Source - terraform-provider-gamefabric"
 subcategory: ""
 description: |-
-  
+  GameFabric runs its own internal Container registry proxy, which is where you should push your game server images to in order to have them available in Fleets.
+  Those images are scoped by branch. For example, a standard use case would be to have a development branch and a production branch.
+  The development branch would contain dev images to be used by a development Armada,
+  while the production branch would only contain releases of the game server that make it to production.
+  For details check the GameFabric documentation.
 ---
 
 # gamefabric_branches (Data Source)
 
+GameFabric runs its own internal Container registry proxy, which is where you should push your game server images to in order to have them available in Fleets.
+Those images are scoped by branch. For example, a standard use case would be to have a development branch and a production branch.
+The development branch would contain dev images to be used by a development Armada,
+while the production branch would only contain releases of the game server that make it to production.
 
+For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/getting-started/glossary#branch">GameFabric documentation</a>.
 
 ## Example Usage
 
 ```terraform
-# Get all branches
+# Get all branches without filtering.
 data "gamefabric_branches" "all" {
 }
 
-# Get branches by labels (exact matches of all provided labels)
-data "gamefabric_branches" "baremetal" {
+# Get branches filtered by labels.
+#
+# Labels are key-value pairs used to organize and categorize branches.
+# Only branches that have ALL specified labels with exact matching values are returned.
+data "gamefabric_branches" "production" {
   label_filter = {
-    baremetal = "true"
+    env = "prod"
+  }
+}
+# output
+# [
+#   {
+#     name = "production"
+#     retention_policy_rules = [
+#       {
+#         name        = "default"
+#         keep_count  = 10
+#         keep_days   = 30
+#         image_regex = ".*" # this is a regex to match the image name, it should be used to match the image name
+#         tag_regex   = ".*" # this is a regex to match the tag, it should be used to match the tag
+#       }
+#     ]
+#   }
+# ]
+
+# Get branches with multiple label filters.
+data "gamefabric_branches" "production_platform" {
+  label_filter = {
+    env  = "prod"
+    team = "platform"
   }
 }
 ```

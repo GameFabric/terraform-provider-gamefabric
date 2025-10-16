@@ -40,6 +40,7 @@ func (r *regions) Metadata(_ context.Context, req datasource.MetadataRequest, re
 // Schema defines the schema for this data source.
 func (r *regions) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: regionMarkdown,
 		Attributes: map[string]schema.Attribute{
 			"environment": schema.StringAttribute{
 				Description:         "The name of the environment the object belongs to.",
@@ -127,9 +128,8 @@ func (r *regions) Read(ctx context.Context, req datasource.ReadRequest, resp *da
 		return
 	}
 
-	labelSelector := conv.ForEachMapItem(config.LabelFilter, func(item types.String) string { return item.ValueString() })
 	list, err := r.clientSet.CoreV1().Regions(config.Environment.ValueString()).List(ctx, metav1.ListOptions{
-		LabelSelector: labelSelector,
+		LabelSelector: conv.ForEachMapItem(config.LabelFilter, func(item types.String) string { return item.ValueString() }),
 	})
 	if err != nil {
 		resp.Diagnostics.AddError(
