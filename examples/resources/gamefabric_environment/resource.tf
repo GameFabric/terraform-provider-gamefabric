@@ -1,4 +1,3 @@
-# Create a production environment with minimal labels
 resource "gamefabric_environment" "prod" {
   name         = "prod"
   display_name = "Production"

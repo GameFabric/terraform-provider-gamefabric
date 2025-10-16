@@ -16,7 +16,6 @@ For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/g
 ## Example Usage
 
 ```terraform
-# Create a production environment with minimal labels
 resource "gamefabric_environment" "prod" {
   name         = "prod"
   display_name = "Production"
