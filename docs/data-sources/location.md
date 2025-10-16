@@ -3,14 +3,14 @@
 page_title: "gamefabric_location Data Source - terraform-provider-gamefabric"
 subcategory: ""
 description: |-
-  A Location is a group of Sites that share a geographical area and other characteristics. This specific resource is not configurable through the GameFabric UI. It is configured by Nitrado, for you.
+  A Location is a group of Sites that share a geographical area and other characteristics. This specific resource is not configurable through the GameFabric UI. It is configured by GameFabric, for you.
   See also Region for how to use it.
   For details check the GameFabric documentation.
 ---
 
 # gamefabric_location (Data Source)
 
-A Location is a group of Sites that share a geographical area and other characteristics. This specific resource is not configurable through the GameFabric UI. It is configured by Nitrado, for you.
+A Location is a group of Sites that share a geographical area and other characteristics. This specific resource is not configurable through the GameFabric UI. It is configured by GameFabric, for you.
 
 See also Region for how to use it.
 

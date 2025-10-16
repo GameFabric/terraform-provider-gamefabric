@@ -24,7 +24,8 @@ For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/g
 ```terraform
 # Get a specific regions by its unique name.
 data "gamefabric_region" "europe" {
-  name = "eu"
+  name        = "eu"
+  environment = "dev" # The environment this region belongs to (required)
 }
 
 # Get a region by its display name.
@@ -36,6 +37,7 @@ data "gamefabric_region" "europe" {
 # - If multiple branches share the same display name, an error will occur.
 data "gamefabric_region" "europe" {
   display_name = "Europe"
+  environment  = "dev"    # The environment this region belongs to (required)
 }
 ```
 
