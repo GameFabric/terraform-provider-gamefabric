@@ -16,7 +16,7 @@ It is strongly advised to provide the password using the `GAMEFABRIC_PASSWORD` e
 ```terraform
 provider "gamefabric" {
   customer_id     = "<your customer id>"
-  service_account = "<your username>"
+  service_account = "ExampleServiceAccount@ec.nitrado.systems"
 }
 ```
 
