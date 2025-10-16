@@ -117,7 +117,7 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 							Required:            true,
 							ElementType:         types.StringType,
 						},
-						"env": schema.ListNestedAttribute{
+						"envs": schema.ListNestedAttribute{
 							Description:         "Env is a list of environment variables to set on all containers in this region.",
 							MarkdownDescription: "Env is a list of environment variables to set on all containers in this region.",
 							Optional:            true,

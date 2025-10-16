@@ -115,11 +115,11 @@ Required:
 
 Optional:
 
-- `env` (Attributes List) Env is a list of environment variables to set on all containers in this region. (see [below for nested schema](#nestedatt--types--env))
+- `envs` (Attributes List) Env is a list of environment variables to set on all containers in this region. (see [below for nested schema](#nestedatt--types--envs))
 - `scheduling` (String) Scheduling strategy. Defaults to &#34;Packed&#34;
 
-<a id="nestedatt--types--env"></a>
-### Nested Schema for `types.env`
+<a id="nestedatt--types--envs"></a>
+### Nested Schema for `types.envs`
 
 Required:
 
@@ -128,26 +128,26 @@ Required:
 Optional:
 
 - `value` (String) Value is the value of the environment variable.
-- `value_from` (Attributes) ValueFrom is the source for the environment variable&#39;s value. (see [below for nested schema](#nestedatt--types--env--value_from))
+- `value_from` (Attributes) ValueFrom is the source for the environment variable&#39;s value. (see [below for nested schema](#nestedatt--types--envs--value_from))
 
-<a id="nestedatt--types--env--value_from"></a>
-### Nested Schema for `types.env.value_from`
+<a id="nestedatt--types--envs--value_from"></a>
+### Nested Schema for `types.envs.value_from`
 
 Optional:
 
-- `config_file_key_ref` (Attributes) ConfigFileKeyRef select the configuration file. (see [below for nested schema](#nestedatt--types--env--value_from--config_file_key_ref))
-- `field_ref` (Attributes) FieldRef selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels[&#39;&lt;KEY&gt;&#39;]`, `metadata.annotations[&#39;&lt;KEY&gt;&#39;]`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs. (see [below for nested schema](#nestedatt--types--env--value_from--field_ref))
+- `config_file_key_ref` (Attributes) ConfigFileKeyRef select the configuration file. (see [below for nested schema](#nestedatt--types--envs--value_from--config_file_key_ref))
+- `field_ref` (Attributes) FieldRef selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels[&#39;&lt;KEY&gt;&#39;]`, `metadata.annotations[&#39;&lt;KEY&gt;&#39;]`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs. (see [below for nested schema](#nestedatt--types--envs--value_from--field_ref))
 
-<a id="nestedatt--types--env--value_from--config_file_key_ref"></a>
-### Nested Schema for `types.env.value_from.config_file_key_ref`
+<a id="nestedatt--types--envs--value_from--config_file_key_ref"></a>
+### Nested Schema for `types.envs.value_from.config_file_key_ref`
 
 Required:
 
 - `name` (String) Name is the name of the configuration file.
 
 
-<a id="nestedatt--types--env--value_from--field_ref"></a>
-### Nested Schema for `types.env.value_from.field_ref`
+<a id="nestedatt--types--envs--value_from--field_ref"></a>
+### Nested Schema for `types.envs.value_from.field_ref`
 
 Required:
 
