@@ -33,7 +33,7 @@ func newBranchModel(obj *containerv1.Branch) branchModel {
 		Labels:      conv.ForEachMapItem(obj.Labels, func(item string) types.String { return types.StringValue(item) }),
 		DisplayName: types.StringValue(obj.Spec.DisplayName),
 		Description: conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
-		RetentionPolicyRules: conv.ForEachSliceItem(obj.Spec.RetentionPolicyRules, func(item containerv1.BranchImageRetentionPolicyRule) branchImageRetentionPolicyRuleModel {
+		RetentionPolicyRules: emptyIfNil(conv.ForEachSliceItem(obj.Spec.RetentionPolicyRules, func(item containerv1.BranchImageRetentionPolicyRule) branchImageRetentionPolicyRuleModel {
 			return branchImageRetentionPolicyRuleModel{
 				Name:       types.StringValue(item.Name),
 				ImageRegex: types.StringValue(item.ImageRegex),
@@ -41,7 +41,7 @@ func newBranchModel(obj *containerv1.Branch) branchModel {
 				KeepCount:  types.Int64Value(int64(item.KeepCount)),
 				KeepDays:   types.Int64Value(int64(item.KeepDays)),
 			}
-		}),
+		})),
 	}
 }
 
@@ -67,4 +67,11 @@ func retentionFromModel(rule branchImageRetentionPolicyRuleModel) containerv1.Br
 		KeepCount:  int(rule.KeepCount.ValueInt64()),
 		KeepDays:   int(rule.KeepDays.ValueInt64()),
 	}
+}
+
+func emptyIfNil[T any](s []T) []T {
+	if s == nil {
+		return []T{}
+	}
+	return s
 }
