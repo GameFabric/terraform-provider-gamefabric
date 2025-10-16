@@ -82,7 +82,29 @@ func TestProvider_ConfigureValidates(t *testing.T) {
 		ClientCapabilities: tfprovider.ConfigureProviderClientCapabilities{},
 	}, resp)
 
-	require.Len(t, resp.Diagnostics, 4)
+	require.Len(t, resp.Diagnostics, 3)
+}
+
+func TestProvider_ConfigureValidatesHostAndCustomerID(t *testing.T) {
+	schemaResp := &tfprovider.SchemaResponse{}
+	resp := &tfprovider.ConfigureResponse{}
+
+	prov := provider.New("1.0.0")()
+	prov.Schema(t.Context(), tfprovider.SchemaRequest{}, schemaResp)
+	prov.Configure(t.Context(), tfprovider.ConfigureRequest{
+		Config: tfsdk.Config{
+			Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
+				"host":            tftypes.NewValue(tftypes.String, "other"),
+				"customer_id":     tftypes.NewValue(tftypes.String, "something"),
+				"service_account": tftypes.NewValue(tftypes.String, "test"),
+				"password":        tftypes.NewValue(tftypes.String, "test"),
+			}),
+			Schema: schemaResp.Schema,
+		},
+		ClientCapabilities: tfprovider.ConfigureProviderClientCapabilities{},
+	}, resp)
+
+	require.Len(t, resp.Diagnostics, 1)
 }
 
 func TestProvider_Configure(t *testing.T) {
@@ -101,7 +123,41 @@ func TestProvider_Configure(t *testing.T) {
 		Config: tfsdk.Config{
 			Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
 				"host":            tftypes.NewValue(tftypes.String, strings.TrimPrefix(srv.URL, "https://")),
-				"customer_id":     tftypes.NewValue(tftypes.String, "customer_id"),
+				"customer_id":     tftypes.NewValue(tftypes.String, nil),
+				"service_account": tftypes.NewValue(tftypes.String, "service_account"),
+				"password":        tftypes.NewValue(tftypes.String, "secr3t"),
+			}),
+			Schema: schemaResp.Schema,
+		},
+		ClientCapabilities: tfprovider.ConfigureProviderClientCapabilities{},
+	}, resp)
+
+	require.Len(t, resp.Diagnostics, 0)
+	assert.True(t, called.Load() > 0)
+
+	assert.NotPanics(t, func() {
+		assert.NotNil(t, resp.DataSourceData.(*provcontext.Context).ClientSet)
+		assert.NotNil(t, resp.ResourceData.(*provcontext.Context).ClientSet)
+	})
+}
+
+func TestProvider_ConfigureUsesCustomerID(t *testing.T) {
+	var called atomic.Int64
+	srv := testOAuthServer(t, &called, "service_account", "secr3t")
+
+	// Inject custom HTTP client for the oauth2 call.
+	ctx := context.WithValue(t.Context(), oauth2.HTTPClient, srv.Client())
+
+	schemaResp := &tfprovider.SchemaResponse{}
+	resp := &tfprovider.ConfigureResponse{}
+
+	prov := provider.New("1.0.0")()
+	prov.Schema(t.Context(), tfprovider.SchemaRequest{}, schemaResp)
+	prov.Configure(ctx, tfprovider.ConfigureRequest{
+		Config: tfsdk.Config{
+			Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
+				"host":            tftypes.NewValue(tftypes.String, strings.TrimPrefix(srv.URL, "https://")),
+				"customer_id":     tftypes.NewValue(tftypes.String, nil),
 				"service_account": tftypes.NewValue(tftypes.String, "service_account"),
 				"password":        tftypes.NewValue(tftypes.String, "secr3t"),
 			}),
@@ -131,7 +187,6 @@ func TestProvider_ConfigureUsesEnvs(t *testing.T) {
 
 	// Set environment variables.
 	testEnv(t, "GAMEFABRIC_HOST", strings.TrimPrefix(srv.URL, "https://"))
-	testEnv(t, "GAMEFABRIC_CUSTOMER_ID", "customer_id")
 	testEnv(t, "GAMEFABRIC_SERVICE_ACCOUNT", "service_account")
 	testEnv(t, "GAMEFABRIC_PASSWORD", "secr3t")
 
