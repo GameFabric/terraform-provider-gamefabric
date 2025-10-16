@@ -44,6 +44,8 @@ func (r *environment) Metadata(_ context.Context, req resource.MetadataRequest, 
 // Schema defines the schema for this data source.
 func (r *environment) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		Description:         "Environment resource represents a logical grouping and isolation of game servers, configurations, and other related resources within GameFabric.",
+		MarkdownDescription: "Environment resource represents a logical grouping and isolation of game servers, configurations, and other related resources within GameFabric.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description:         "The unique Terraform identifier.",
@@ -51,8 +53,8 @@ func (r *environment) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Computed:            true,
 			},
 			"name": schema.StringAttribute{
-				Description:         "The unique object name within its scope.",
-				MarkdownDescription: "The unique object name within its scope.",
+				Description:         "The unique environment object name. The name must be between 1 and 4 characters long.",
+				MarkdownDescription: "The unique environment object name. The name must be between 1 and 4 characters long and match the pattern `^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`.",
 				Required:            true,
 				Validators: []validator.String{
 					validators.EnvironmentValidator{},
@@ -81,8 +83,8 @@ func (r *environment) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description:         "DisplayName is friendly name of the environment.",
-				MarkdownDescription: "DisplayName is friendly name of the environment.",
+				Description:         "DisplayName is the name of the environment shown in GameFabric.",
+				MarkdownDescription: "DisplayName is the name of the environment shown in GameFabric.",
 				Required:            true,
 			},
 			"description": schema.StringAttribute{

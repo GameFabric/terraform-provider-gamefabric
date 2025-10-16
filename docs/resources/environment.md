@@ -3,12 +3,12 @@
 page_title: "gamefabric_environment Resource - GameFabric"
 subcategory: ""
 description: |-
-  
+  Environment resource represents a logical grouping and isolation of game servers, configurations, and other related resources within GameFabric.
 ---
 
 # gamefabric_environment (Resource)
 
-
+Environment resource represents a logical grouping and isolation of game servers, configurations, and other related resources within GameFabric.
 
 ## Example Usage
 
@@ -31,8 +31,8 @@ resource "gamefabric_environment" "prod" {
 
 ### Required
 
-- `display_name` (String) DisplayName is friendly name of the environment.
-- `name` (String) The unique object name within its scope.
+- `display_name` (String) DisplayName is the name of the environment shown in GameFabric.
+- `name` (String) The unique environment object name. The name must be between 1 and 4 characters long and match the pattern `^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`.
 
 ### Optional
 
