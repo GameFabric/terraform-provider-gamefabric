@@ -3,24 +3,41 @@
 page_title: "gamefabric_region Data Source - terraform-provider-gamefabric"
 subcategory: ""
 description: |-
-  
+  A Region is typically a geographic area made up of one or more Locations where resources can be hosted.
+  It has to be defined on a per-environment basis.
+  While defining, you can assign a custom priority to each location. This priority determines which location will be filled first.
+  For details check the GameFabric documentation.
 ---
 
 # gamefabric_region (Data Source)
 
+A Region is typically a geographic area made up of one or more Locations where resources can be hosted.
 
+It has to be defined on a per-environment basis.
+
+While defining, you can assign a custom priority to each location. This priority determines which location will be filled first.
+
+For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/getting-started/glossary#region">GameFabric documentation</a>.
 
 ## Example Usage
 
 ```terraform
-data "gamefabric_environment" "dev" {
-  display_name = "Development"
+# Get a specific regions by its unique name.
+data "gamefabric_region" "europe" {
+  name        = "eu"
+  environment = "dev" # The environment this region belongs to (required)
 }
 
-# Get the region by display name.
-data "gamefabric_region" "name" {
+# Get a region by its display name.
+#
+# Display names are user-friendly names that can contain spaces and special characters.
+#
+# Note:
+# - Only one of 'name' or 'display_name' should be specified.
+# - If multiple branches share the same display name, an error will occur.
+data "gamefabric_region" "europe" {
   display_name = "Europe"
-  environment  = data.gamefabric_environment.dev.name
+  environment  = "dev"    # The environment this region belongs to (required)
 }
 ```
 

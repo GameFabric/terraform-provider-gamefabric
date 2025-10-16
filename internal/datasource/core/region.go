@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
@@ -23,6 +24,9 @@ var (
 	_ datasource.DataSourceWithConfigure = &region{}
 )
 
+//go:embed region.md
+var regionMarkdown string
+
 type region struct {
 	clientSet clientset.Interface
 }
@@ -40,6 +44,7 @@ func (r *region) Metadata(_ context.Context, req datasource.MetadataRequest, res
 // Schema defines the schema for this data source.
 func (r *region) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: regionMarkdown,
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
 				Description:         "The unique object name within its scope.",

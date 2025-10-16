@@ -13,15 +13,28 @@ description: |-
 ## Example Usage
 
 ```terraform
+# Create a development environment with basic configuration.
+# An environment is a logical isolation boundary for resources like regions, armadas, etc.
+# Each environment has its own set of resources and can have different configurations.
 resource "gamefabric_environment" "dev" {
-  name = "dev" # The name must be unique and is limited to 4 characters.
+  name         = "dev"         # Required: Unique identifier.
+  display_name = "Development" # Required: User-friendly display name for the environment.
+}
+
+# Create a production environment with minimal labels
+resource "gamefabric_environment" "prod" {
+  name         = "prod" # 4-character limit
+  display_name = "Production"
+  description  = "Production environment for live game servers"
+
   labels = {
-    # Labels are optional, but can be used to organize environments and be used as filters for in the gamefabric_environments data source.
-    environment_type = "non-prod"
-    stage            = "dev"
+    environment_type = "production"
+    criticality      = "high"
   }
-  description  = "All development resources"
-  display_name = "Development"
+
+  annotations = {
+    owner = "ops-team"
+  }
 }
 ```
 
