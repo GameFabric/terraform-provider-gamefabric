@@ -74,6 +74,18 @@ func (r *branch) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
 				Optional:            true,
 				ElementType:         types.StringType,
+				Validators: []validator.Map{
+					validators.LabelsValidator{},
+				},
+			},
+			"annotations": schema.MapAttribute{
+				Description:         "Annotations is an unstructured map of keys and values stored on an object.",
+				MarkdownDescription: "Annotations is an unstructured map of keys and values stored on an object.",
+				Optional:            true,
+				ElementType:         types.StringType,
+				Validators: []validator.Map{
+					validators.AnnotationsValidator{},
+				},
 			},
 			"description": schema.StringAttribute{
 				Description:         "Description is the optional description of the branch.",
