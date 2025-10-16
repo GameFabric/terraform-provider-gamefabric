@@ -1,0 +1,1 @@
+terraform import gamefabric_branch.main "{{ name }}"
