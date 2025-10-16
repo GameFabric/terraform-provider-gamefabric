@@ -5,8 +5,6 @@ resource "gamefabric_branch" "prod" {
 
   labels = {
     environment = "production"
-    team        = "platform"
-    managed_by  = "terraform"
   }
   retention_policy_rules = [
     {

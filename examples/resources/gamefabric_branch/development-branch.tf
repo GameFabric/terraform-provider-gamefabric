@@ -5,7 +5,6 @@ resource "gamefabric_branch" "feature" {
 
   labels = {
     environment = "development"
-    branch_type = "feature"
   }
 
   # Define retention policy rules for managing image lifecycle.
