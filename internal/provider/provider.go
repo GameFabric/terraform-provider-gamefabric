@@ -220,11 +220,11 @@ func validate(cfg *providerModel) []diag.Diagnostic {
 				"If you have a customer ID, the host will be derived from it.",
 		))
 	}
-	if cfg.CustomerID.ValueString() == "" {
+	if cfg.CustomerID.ValueString() != "" && cfg.Host.ValueString() != cfg.CustomerID.ValueString()+".gamefabric.dev" {
 		diags.Append(diag.NewErrorDiagnostic(
-			"Missing Customer ID",
-			"The provider cannot create the GameFabric client as there is no customer ID configured. "+
-				"Please set the customer_id value in the provider configuration or use the "+envCustomerID+" environment variable.",
+			"Conflicting Host and Customer ID",
+			"The provider cannot create the GameFabric client as both the host and customer ID are configured, "+
+				"but the host is not derived from the customer ID. ",
 		))
 	}
 	if cfg.ServiceAccount.ValueString() == "" {
