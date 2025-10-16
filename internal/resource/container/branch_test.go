@@ -21,6 +21,7 @@ func TestBranch(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("gamefabric_branch.test", "name", name),
 					resource.TestCheckResourceAttr("gamefabric_branch.test", "display_name", "My Branch"),
+					resource.TestCheckResourceAttr("gamefabric_branch.test", "retention_policy_rules.#", "0"),
 				),
 			},
 			{
@@ -34,6 +35,7 @@ func TestBranch(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_branch.test", "name", name),
 					resource.TestCheckResourceAttr("gamefabric_branch.test", "display_name", "My Branch"),
 					resource.TestCheckResourceAttr("gamefabric_branch.test", "description", "My Branch Description"),
+					resource.TestCheckResourceAttr("gamefabric_branch.test", "retention_policy_rules.#", "0"),
 				),
 			},
 			{
@@ -57,6 +59,7 @@ func testResourceBranchConfigBasic(name string) string {
 	return fmt.Sprintf(`resource "gamefabric_branch" "test" {
   name = "%s"
   display_name = "My Branch"
+  retention_policy_rules = []
 }`, name)
 }
 
@@ -65,6 +68,7 @@ func testResourceBranchConfigBasicWithDescription(name string) string {
   name = "%s"
   display_name = "My Branch"
   description = "My Branch Description"
+  retention_policy_rules = []
 }`, name)
 }
 
