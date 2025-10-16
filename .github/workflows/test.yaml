@@ -91,9 +91,3 @@ jobs:
         with:
           paths: "tests.xml"
         if: always()
-
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
-        with:
-          version: latest
-          args: release --clean --snapshot --skip=sign
