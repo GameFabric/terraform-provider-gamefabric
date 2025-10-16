@@ -1,11 +1,12 @@
 ---
-page_title: "GameFabric Provider"
+page_title: "Provider: GameFabric"
 description: |-
   GameFabric Terraform Provider
 ---
 
-# GameFabric Provider
+# Terraform provider for GameFabric
 
+GameFabric provider is used to interact, provision and manage your GameFabric resources.
 
 ## Example Usage
 
