@@ -78,8 +78,6 @@ resource "gamefabric_branch" "prod" {
 
   labels = {
     environment = "production"
-    team        = "platform"
-    managed_by  = "terraform"
   }
   retention_policy_rules = [
     {
@@ -102,7 +100,6 @@ resource "gamefabric_branch" "feature" {
 
   labels = {
     environment = "development"
-    branch_type = "feature"
   }
 
   # Define retention policy rules for managing image lifecycle.
