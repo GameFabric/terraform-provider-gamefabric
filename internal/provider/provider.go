@@ -15,6 +15,7 @@ import (
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/protection"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -179,6 +180,7 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		core.NewEnvironment,
 		core.NewRegion,
 		container.NewBranch,
+		protection.NewGatewayPolicy,
 	}
 }
 
