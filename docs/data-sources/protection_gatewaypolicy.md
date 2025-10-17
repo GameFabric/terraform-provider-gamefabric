@@ -17,8 +17,8 @@ description: |-
 
 ### Optional
 
-- `display_name` (String) DisplayName is friendly name of the gateway policy.
-- `name` (String) The unique object name within its scope.
+- `display_name` (String) DisplayName is the friendly name of the gateway policy.
+- `name` (String) The unique object name.
 
 ### Read-Only
 
