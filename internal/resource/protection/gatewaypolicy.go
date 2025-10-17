@@ -64,8 +64,8 @@ func (r *gatewayPolicy) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description:         "DisplayName is friendly name of the gateway policy.",
-				MarkdownDescription: "DisplayName is friendly name of the gateway policy.",
+				Description:         "Display name is the friendly name of the gateway policy.",
+				MarkdownDescription: "Display name is the friendly name of the gateway policy.",
 				Required:            true,
 			},
 			"labels": schema.MapAttribute{
