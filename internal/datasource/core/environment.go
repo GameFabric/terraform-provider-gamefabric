@@ -51,8 +51,8 @@ func (r *environment) Schema(_ context.Context, _ datasource.SchemaRequest, resp
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description:         "DisplayName is the name of the environment shown in GameFabric.",
-				MarkdownDescription: "DisplayName is the name of the environment shown in GameFabric.",
+				Description:         "A user-friendly name for the environment, shown in GameFabric. Unlike the technical 'name' field, this can be freely chosen and does not have strict constraints.",
+				MarkdownDescription: "A user-friendly name for the environment, shown in GameFabric. Unlike the technical 'name' field, this can be freely chosen and does not have strict constraints.",
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("name")),
