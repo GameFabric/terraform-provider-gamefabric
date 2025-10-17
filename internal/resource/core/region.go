@@ -126,9 +126,13 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 							},
 						},
 						"scheduling": schema.StringAttribute{
-							Description:         "Scheduling strategy. Defaults to &#34;Packed&#34;",
-							MarkdownDescription: "Scheduling strategy. Defaults to &#34;Packed&#34;",
-							Optional:            true,
+							Description: "Scheduling strategy. Defaults to &#34;Packed&#34;",
+							MarkdownDescription: `Scheduling strategy. Defaults to &#34;Packed&#34;.
+
+**Packed:** Binpack gameservers into as few nodes as possible. This is important for cloud environments where you are charged per node.
+
+**Distributed:** Spread gameservers across as many nodes as possible. This is important for baremetal environments where you want to spread the load across the nodes you have.`,
+							Optional: true,
 							Validators: []validator.String{
 								stringvalidator.OneOf("Packed", "Distributed"),
 							},

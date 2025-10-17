@@ -1,0 +1,98 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+GameFabric runs its own internal Container registry proxy, which is where you should push your game server images to in order to have them available in game servers.
+Those images are scoped by branch. For example, a standard use case would be to have a development branch and a production branch.
+The development branch would contain dev images to be used by a development Armada,
+while the production branch would only contain releases of the game server that make it to production.
+
+For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/getting-started/glossary#branch">GameFabric documentation</a>.
+
+## Retention Policies
+
+Retention policy rules control the lifecycle of container images and tags within a branch. They automatically clean up old images while preserving important releases.
+
+### How Retention Policies Work
+
+- **Multiple Rules**: You can define multiple retention policy rules, each targeting different image or tag patterns
+- **Rule Logic**: Each rule uses regular expressions to match specific images and tags
+- **Keep Conditions**: Rules support both `keep_count` (minimum number of tags to retain) and `keep_days` (minimum age before deletion)  
+- **Union Logic**: When both `keep_count` and `keep_days` are specified, tags are retained if they meet **either** condition
+- **Per-Image Basis**: Retention counts apply per image name, not globally across the branch
+- **Deployment Protection**: Images/tags that are currently deployed will **never** be deleted, regardless of retention policy rules. Only unused images are eligible for deletion.
+
+### Retention Rule Parameters
+
+- `name` (Required): A descriptive name for the retention rule
+- `image_regex` (Optional): Regular expression to match image names. Defaults to `".*"` (all images)
+- `tag_regex` (Optional): Regular expression to match tag names. Defaults to `".*"` (all tags)
+- `keep_count` (Optional): Minimum number of matching tags to retain per image
+- `keep_days` (Optional): Minimum number of days to keep matching tags
+
+### Common Retention Patterns
+
+**Production Releases**: Keep semantic version tags (v1.0.0, v2.1.3) longer.
+```hcl
+{
+  name        = "keep-releases"
+  tag_regex   = "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+  keep_count  = 10
+  keep_days   = 30
+}
+```
+
+**Development Builds**: Keep fewer development/snapshot builds
+```hcl
+{
+  name        = "cleanup-snapshots"
+  tag_regex   = "^snapshot-.*"
+  keep_count  = 5
+  keep_days   = 14
+}
+```
+
+**PR Builds**: Aggressively clean up temporary pull request or feature builds
+```hcl
+{
+  name        = "cleanup-pr-builds"
+  tag_regex   = "^pr-[0-9]+-.*"
+  keep_count  = 3
+  keep_days   = 1
+}
+```
+
+## Example Usage
+
+### Production Branch
+{{ tffile "examples/resources/gamefabric_branch/production-branch.tf" }}
+
+### Development Branch
+{{ tffile "examples/resources/gamefabric_branch/development-branch.tf" }}
+
+
+{{ .SchemaMarkdown | trimspace }}
+{{- if or .HasImport .HasImportIDConfig .HasImportIdentityConfig }}
+
+## Import
+
+Import is supported using the following syntax:
+{{- end }}
+
+{{- if .HasImportIDConfig }}
+
+In Terraform v1.5.0 and later, the [`import` block](https://developer.hashicorp.com/terraform/language/import) can be used with the `id` attribute, for example:
+
+{{tffile .ImportIDConfigFile }}
+{{- end }}
+{{- if .HasImport }}
+
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
+{{codefile "shell" .ImportFile }}
+{{- end }}
