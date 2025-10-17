@@ -9,11 +9,19 @@ description: |-
 
 {{ .Description | trimspace }}
 
-{{ if .HasExample -}}
-## Example Usage
 
-{{ tffile .ExampleFile }}
-{{- end }}
+## Example Usage - Type Continent
+
+Setting up a basic region for baremetal and cloud capacity in europe.
+
+{{ tffile "examples/data-sources/gamefabric_locations/type-continent.tf" }}
+
+## Example Usage - Specific Cloud Provider
+
+Setting up a region for baremetal and two specific cloud providers.
+
+{{ tffile "examples/data-sources/gamefabric_locations/specific-cloud-provider.tf" }}
+
 
 {{ .SchemaMarkdown | trimspace }}
 {{- if or .HasImport .HasImportIDConfig .HasImportIdentityConfig }}
