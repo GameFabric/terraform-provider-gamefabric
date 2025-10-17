@@ -55,7 +55,7 @@ In Terraform v1.5.0 and later, the [`import` block](https://developer.hashicorp.
 
 ```terraform
 import {
-  id = {{name}}"
+  id = "{{ name }}"
   to = gamefabric_protection_gatewaypolicy.game_backend
 }
 ```
