@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	_ "embed"
 	"fmt"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
@@ -24,9 +23,6 @@ var (
 	_ datasource.DataSourceWithConfigure = &environment{}
 )
 
-//go:embed environment.md
-var environmentMarkdown string
-
 type environment struct {
 	clientSet clientset.Interface
 }
@@ -44,7 +40,6 @@ func (r *environment) Metadata(_ context.Context, req datasource.MetadataRequest
 // Schema defines the schema for this data source.
 func (r *environment) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: environmentMarkdown,
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
 				Description:         "The unique object name within its scope.",

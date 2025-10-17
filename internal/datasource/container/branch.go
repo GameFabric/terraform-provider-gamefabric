@@ -2,7 +2,6 @@ package container
 
 import (
 	"context"
-	_ "embed"
 	"fmt"
 
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
@@ -24,9 +23,6 @@ var (
 	_ datasource.DataSourceWithConfigure = &branch{}
 )
 
-//go:embed branch.md
-var branchMarkdown string
-
 type branch struct {
 	clientSet clientset.Interface
 }
@@ -44,7 +40,6 @@ func (r *branch) Metadata(_ context.Context, req datasource.MetadataRequest, res
 // Schema defines the schema for this data source.
 func (r *branch) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: branchMarkdown,
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
 				Description:         "The unique object name within its scope.",
