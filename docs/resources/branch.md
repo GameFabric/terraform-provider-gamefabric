@@ -57,7 +57,7 @@ Retention policy rules control the lifecycle of container images and tags within
 }
 ```
 
-**PR Builds**: Aggressively clean up temporary pull request / feature builds
+**PR Builds**: Aggressively clean up temporary pull request or feature builds
 ```hcl
 {
   name        = "cleanup-pr-builds"
