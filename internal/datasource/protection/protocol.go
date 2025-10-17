@@ -2,7 +2,6 @@ package protection
 
 import (
 	"context"
-	_ "embed"
 	"fmt"
 
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
