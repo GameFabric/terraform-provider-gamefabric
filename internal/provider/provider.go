@@ -74,7 +74,8 @@ func (p *Provider) Metadata(_ context.Context, _ provider.MetadataRequest, resp 
 // Schema defines the provider-level schema for configuration data.
 func (p *Provider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "GameFabric Terraform Provider",
+		Description:         "GameFabric Terraform Provider",
+		MarkdownDescription: "GameFabric provider is used to interact, provision and manage your GameFabric resources.",
 		Attributes: map[string]schema.Attribute{
 			"host": schema.StringAttribute{
 				Description:         "The GameFabric API host URL.",

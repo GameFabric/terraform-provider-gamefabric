@@ -42,8 +42,8 @@ func (r *environment) Schema(_ context.Context, _ datasource.SchemaRequest, resp
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
-				Description:         "The unique object name within its scope.",
-				MarkdownDescription: "The unique object name within its scope.",
+				Description:         "The unique environment object name.",
+				MarkdownDescription: "The unique environment object name.",
 				Optional:            true,
 				Validators: []validator.String{
 					validators.EnvironmentValidator{},
@@ -51,8 +51,8 @@ func (r *environment) Schema(_ context.Context, _ datasource.SchemaRequest, resp
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description:         "DisplayName is friendly name of the environment.",
-				MarkdownDescription: "DisplayName is friendly name of the environment.",
+				Description:         "A user-friendly name for the environment, shown in GameFabric. Unlike the technical 'name' field, this can be freely chosen and does not have strict constraints.",
+				MarkdownDescription: "A user-friendly name for the environment, shown in GameFabric. Unlike the technical 'name' field, this can be freely chosen and does not have strict constraints.",
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("name")),

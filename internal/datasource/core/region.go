@@ -73,13 +73,13 @@ func (r *region) Schema(_ context.Context, _ datasource.SchemaRequest, resp *dat
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"cpu": schema.StringAttribute{
-							Description:         "CPU is the CPU limit for the region type.",
-							MarkdownDescription: "CPU is the CPU limit for the region type.",
+							Description:         "CPU is the CPU limit for the region type. This information can be used to calculate maximum replica numbers.",
+							MarkdownDescription: "CPU is the CPU limit for the region type. This information can be used to calculate maximum replica numbers.",
 							Computed:            true,
 						},
 						"memory": schema.StringAttribute{
-							Description:         "Memory is the memory limit for the region type.",
-							MarkdownDescription: "Memory is the memory limit for the region type.",
+							Description:         "Memory is the memory limit for the region type. This information can be used to calculate maximum replica numbers.",
+							MarkdownDescription: "Memory is the memory limit for the region type. This information can be used to calculate maximum replica numbers.",
 							Computed:            true,
 						},
 					},

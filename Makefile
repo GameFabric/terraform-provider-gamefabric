@@ -27,5 +27,5 @@ build:
 # Docs Generation
 
 docs-gen:
-	@go tool tfplugindocs generate
+	@go tool tfplugindocs generate  --rendered-provider-name="GameFabric"
 .PHONY: docs-gen
