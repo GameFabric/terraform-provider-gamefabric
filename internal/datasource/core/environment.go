@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	_ "embed"
 	"fmt"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
