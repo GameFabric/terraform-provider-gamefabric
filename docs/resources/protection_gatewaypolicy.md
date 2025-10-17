@@ -21,7 +21,7 @@ resource "gamefabric_protection_gatewaypolicy" "game_backend" {
   destination_cidrs = [
     # Data center 1
     "172.123.64.201/32",
-    "173.124.0.0/16"
+    "173.124.0.0/16",
 
     # Data center 2
     "155.12.91.8/32"
@@ -35,7 +35,7 @@ resource "gamefabric_protection_gatewaypolicy" "game_backend" {
 ### Required
 
 - `destination_cidrs` (List of String) The CIDRs that should use the gateway for outbound traffic, rather than the game server node.
-- `display_name` (String) DisplayName is friendly name of the gateway policy.
+- `display_name` (String) Display name is the friendly name of the gateway policy.
 - `name` (String) The unique object name within its scope.
 
 ### Optional
@@ -55,7 +55,7 @@ In Terraform v1.5.0 and later, the [`import` block](https://developer.hashicorp.
 
 ```terraform
 import {
-  id = "{{ name }}"
+  id = "{{name}}"
   to = gamefabric_protection_gatewaypolicy.game_backend
 }
 ```
