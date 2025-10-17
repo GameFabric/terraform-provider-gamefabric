@@ -167,6 +167,7 @@ func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource
 		dscore.NewRegions,
 		dscontainer.NewBranch,
 		dscontainer.NewBranches,
+		dsprotection.NewGatewayPolicy,
 		dsprotection.NewProtocol,
 		dsprotection.NewProtocols,
 	}
