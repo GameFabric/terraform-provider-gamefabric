@@ -1,1 +1,1 @@
-terraform import gamefabric_protection_gatewaypolicy.gamebackend "{{ name }}"
+terraform import gamefabric_protection_gatewaypolicy.game_backend "{{ name }}"
