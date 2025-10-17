@@ -51,8 +51,8 @@ func (r *gatewayPolicy) Schema(_ context.Context, _ datasource.SchemaRequest, re
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description:         "DisplayName is friendly name of the gateway policy.",
-				MarkdownDescription: "DisplayName is friendly name of the gateway policy.",
+				Description:         "DisplayName is the friendly name of the gateway policy.",
+				MarkdownDescription: "DisplayName is the friendly name of the gateway policy.",
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("name")),
