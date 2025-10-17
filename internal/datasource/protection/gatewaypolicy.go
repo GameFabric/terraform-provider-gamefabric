@@ -70,8 +70,8 @@ func (r *gatewayPolicy) Schema(_ context.Context, _ datasource.SchemaRequest, re
 				Computed:            true,
 			},
 			"destination_cidrs": schema.ListAttribute{
-				Description:         "The CIDRs that should use the gateway for outbound traffic, rather then the game server node.",
-				MarkdownDescription: "The CIDRs that should use the gateway for outbound traffic, rather then the game server node.",
+				Description:         "The CIDRs that should use the gateway for outbound traffic, rather than the game server node.",
+				MarkdownDescription: "The CIDRs that should use the gateway for outbound traffic, rather than the game server node.",
 				Computed:            true,
 				ElementType:         types.StringType,
 			},
@@ -123,7 +123,7 @@ func (r *gatewayPolicy) Read(ctx context.Context, req datasource.ReadRequest, re
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error Getting Gateway Policy",
-				fmt.Sprintf("Could not get Gateway Policy %q: %v", config.Name.ValueString(), err),
+				fmt.Sprintf("Could not get Gateway Policy with display name %q: %v", config.DisplayName.ValueString(), err),
 			)
 			return
 		}
