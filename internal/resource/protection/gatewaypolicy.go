@@ -73,6 +73,18 @@ func (r *gatewayPolicy) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
 				Optional:            true,
 				ElementType:         types.StringType,
+				Validators: []validator.Map{
+					&validators.LabelsValidator{},
+				},
+			},
+			"annotations": schema.MapAttribute{
+				Description:         "A map of keys and values that can be used to organize and categorize objects.",
+				MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
+				Optional:            true,
+				ElementType:         types.StringType,
+				Validators: []validator.Map{
+					&validators.AnnotationsValidator{},
+				},
 			},
 			"description": schema.StringAttribute{
 				Description:         "Description is the description of the gateway policy.",

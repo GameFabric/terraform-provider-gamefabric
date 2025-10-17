@@ -26,6 +26,10 @@ func TestGatewayPolicy(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("gamefabric_protection_gatewaypolicy.test", "name", name),
 					resource.TestCheckResourceAttr("gamefabric_protection_gatewaypolicy.test", "display_name", "My Gateway Policy"),
+					resource.TestCheckResourceAttr("gamefabric_protection_gatewaypolicy.test", "labels.%", "1"),
+					resource.TestCheckResourceAttr("gamefabric_protection_gatewaypolicy.test", "labels.example", "label"),
+					resource.TestCheckResourceAttr("gamefabric_protection_gatewaypolicy.test", "annotations.%", "1"),
+					resource.TestCheckResourceAttr("gamefabric_protection_gatewaypolicy.test", "annotations.example", "annotation"),
 					resource.TestCheckResourceAttr("gamefabric_protection_gatewaypolicy.test", "destination_cidrs.#", "2"),
 					resource.TestCheckResourceAttr("gamefabric_protection_gatewaypolicy.test", "destination_cidrs.0", "1.2.3.4/32"),
 					resource.TestCheckResourceAttr("gamefabric_protection_gatewaypolicy.test", "destination_cidrs.1", "2.3.0.0/8"),
@@ -58,8 +62,42 @@ func TestGatewayPolicy_ValidatesCIDR(t *testing.T) {
 		CheckDestroy:             testResourceGatewayPolicyDestroy(t, cs),
 		Steps: []resource.TestStep{
 			{
-				Config:      testResourceGatewayPolicyConfigWithInvalidCIDRs(name),
+				Config:      testResourceGatewayPolicyConfigInvalid(name),
 				ExpectError: regexp.MustCompile(`invalid CIDR`),
+			},
+		},
+	})
+}
+
+func TestGatewayPolicy_ValidatesLabels(t *testing.T) {
+	name := "unreal"
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testResourceGatewayPolicyDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				Config:      testResourceGatewayPolicyConfigInvalid(name),
+				ExpectError: regexp.MustCompile(`Label key .* is not valid`),
+			},
+		},
+	})
+}
+
+func TestGatewayPolicy_ValidatesAnnotations(t *testing.T) {
+	name := "unreal"
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testResourceGatewayPolicyDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				Config:      testResourceGatewayPolicyConfigInvalid(name),
+				ExpectError: regexp.MustCompile(`Annotation key .* is not valid`),
 			},
 		},
 	})
@@ -69,6 +107,12 @@ func testResourceGatewayPolicyConfigBasic(name string) string {
 	return fmt.Sprintf(`resource "gamefabric_protection_gatewaypolicy" "test" {
   name = "%s"
   display_name = "My Gateway Policy"
+  labels = {
+    "example" = "label"
+  }
+  annotations = {
+    "example" = "annotation"
+  }
   destination_cidrs = [
     "1.2.3.4/32", 
     "2.3.0.0/8",
@@ -88,10 +132,16 @@ func testResourceGatewayPolicyConfigBasicWithDescription(name string) string {
 }`, name)
 }
 
-func testResourceGatewayPolicyConfigWithInvalidCIDRs(name string) string {
+func testResourceGatewayPolicyConfigInvalid(name string) string {
 	return fmt.Sprintf(`resource "gamefabric_protection_gatewaypolicy" "test" {
   name = "%s"
   display_name = "My Gateway Policy"
+  labels = {
+    "_" = "label"
+  }
+  annotations = {
+	"-" = "annotation"
+  }
   destination_cidrs = [
     "test",
   ]
