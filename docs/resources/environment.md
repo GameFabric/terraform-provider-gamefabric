@@ -34,7 +34,7 @@ resource "gamefabric_environment" "prod" {
 ### Required
 
 - `display_name` (String) DisplayName is the name of the environment shown in GameFabric.
-- `name` (String) The unique environment object name. The name must be between 1 and 4 characters long and match the pattern `^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`.
+- `name` (String) The unique environment object name. The name must be between 1 and 4 characters long and only contain alphanumeric lowercase characters without any special characters.
 
 ### Optional
 

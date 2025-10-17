@@ -10,7 +10,8 @@ GameFabric provider is used to interact, provision and manage your GameFabric re
 
 ## Example Usage
 
-A typical provider configuration looks like this.
+A typical provider configuration looks like this and requires setting up a service account in GameFabric with appropriate permissions.
+See [GameFabric Documentation](https://docs.gamefabric.com/multiplayer-servers/getting-started/authentication#managing-service-accounts) for more details on creating service accounts and [managing permissions](https://docs.gamefabric.com/multiplayer-servers/getting-started/editing-permissions).
 
 It is strongly advised to provide the password using the `GAMEFABRIC_PASSWORD` environment variable for security reasons.
 

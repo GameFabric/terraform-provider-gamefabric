@@ -53,8 +53,8 @@ func (r *environment) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Computed:            true,
 			},
 			"name": schema.StringAttribute{
-				Description:         "The unique environment object name. The name must be between 1 and 4 characters long.",
-				MarkdownDescription: "The unique environment object name. The name must be between 1 and 4 characters long and match the pattern `^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`.",
+				Description:         "The unique environment object name. The name must be between 1 and 4 characters long and only contain alphanumeric lowercase characters without any special characters.",
+				MarkdownDescription: "The unique environment object name. The name must be between 1 and 4 characters long and only contain alphanumeric lowercase characters without any special characters.",
 				Required:            true,
 				Validators: []validator.String{
 					validators.EnvironmentValidator{},
