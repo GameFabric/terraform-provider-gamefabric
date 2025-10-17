@@ -25,6 +25,6 @@ description: |-
 Read-Only:
 
 - `description` (String) The description of the protocol.
-- `display_name` (String) DisplayName is the user-friendly name of a region.
+- `display_name` (String) DisplayName is the user-friendly name of a protection protocol.
 - `name` (String) The unique object name within its scope.
 - `protocol` (String) The network protocol used by this protocol.
