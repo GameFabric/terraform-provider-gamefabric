@@ -28,6 +28,10 @@ func (v *CIDRValidator) ValidateList(_ context.Context, req validator.ListReques
 	}
 
 	for _, elem := range req.ConfigValue.Elements() {
+		if elem.IsUnknown() || elem.IsNull() {
+			continue
+		}
+
 		val, ok := elem.(basetypes.StringValue)
 		if !ok {
 			resp.Diagnostics.AddError(
