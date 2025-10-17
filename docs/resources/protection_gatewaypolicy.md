@@ -34,7 +34,7 @@ resource "gamefabric_protection_gatewaypolicy" "game_backend" {
 
 ### Required
 
-- `destination_cidrs` (List of String) The CIDRs that should use the gateway for outbound traffic, rather then the game server node.
+- `destination_cidrs` (List of String) The CIDRs that should use the gateway for outbound traffic, rather than the game server node.
 - `display_name` (String) DisplayName is friendly name of the gateway policy.
 - `name` (String) The unique object name within its scope.
 
