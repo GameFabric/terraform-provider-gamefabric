@@ -80,8 +80,8 @@ func (r *gatewayPolicy) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Optional:            true,
 			},
 			"destination_cidrs": schema.ListAttribute{
-				Description:         "The CIDRs that should use the gateway for outbound traffic, rather then the game server node.",
-				MarkdownDescription: "The CIDRs that should use the gateway for outbound traffic, rather then the game server node.",
+				Description:         "The CIDRs that should use the gateway for outbound traffic, rather than the game server node.",
+				MarkdownDescription: "The CIDRs that should use the gateway for outbound traffic, rather than the game server node.",
 				Required:            true,
 				ElementType:         types.StringType,
 				Validators: []validator.List{
