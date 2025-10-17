@@ -49,5 +49,5 @@ data "gamefabric_region" "europe" {
 
 Read-Only:
 
-- `cpu` (String) CPU is the CPU limit for the region type.
-- `memory` (String) Memory is the memory limit for the region type.
+- `cpu` (String) CPU is the CPU limit for the region type. This information can be used to calculate maximum replica numbers.
+- `memory` (String) Memory is the memory limit for the region type. This information can be used to calculate maximum replica numbers.
