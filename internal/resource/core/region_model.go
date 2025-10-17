@@ -37,7 +37,7 @@ func newRegionModel(obj *corev1.Region) regionModel {
 		template := cmp.Or(typ.Template, &corev1.RegionTemplate{})
 		model.Types[typ.Name] = regionTypeModel{
 			Locations:  conv.ForEachSliceItem(typ.Locations, types.StringValue),
-			Env:        conv.ForEachSliceItem(template.Env, NewEnvVarModel),
+			Envs:       conv.ForEachSliceItem(template.Env, NewEnvVarModel),
 			Scheduling: conv.OptionalFunc(string(template.Scheduling), types.StringValue, types.StringNull),
 		}
 	}
@@ -62,9 +62,9 @@ func (m regionModel) ToObject() *corev1.Region {
 			Name:      name,
 			Locations: conv.ForEachSliceItem(typ.Locations, func(v types.String) string { return v.ValueString() }),
 		}
-		if len(typ.Env) > 0 || conv.IsKnown(typ.Scheduling) {
+		if len(typ.Envs) > 0 || conv.IsKnown(typ.Scheduling) {
 			regTyp.Template = &corev1.RegionTemplate{
-				Env:        conv.ForEachSliceItem(typ.Env, func(v EnvVarModel) corev1.EnvVar { return v.ToObject() }),
+				Env:        conv.ForEachSliceItem(typ.Envs, func(v EnvVarModel) corev1.EnvVar { return v.ToObject() }),
 				Scheduling: apis.SchedulingStrategy(typ.Scheduling.ValueString()),
 			}
 		}
@@ -75,6 +75,6 @@ func (m regionModel) ToObject() *corev1.Region {
 
 type regionTypeModel struct {
 	Locations  []types.String `tfsdk:"locations"`
-	Env        []EnvVarModel  `tfsdk:"env"`
+	Envs       []EnvVarModel  `tfsdk:"envs"`
 	Scheduling types.String   `tfsdk:"scheduling"`
 }

@@ -27,13 +27,13 @@ func TestRegion(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_region.test", "name", name),
 					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.locations.0", "loc-1"),
 					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.locations.1", "loc-2"),
-					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.env.0.name", "ENV_VAR_1"),
-					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.env.0.value", "value1"),
-					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.env.1.name", "ENV_VAR_2"),
-					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.env.1.value_from.field_ref.field_path", "metadata.name"),
-					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.env.1.value_from.field_ref.api_version", "v1"),
-					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.env.2.name", "ENV_VAR_3"),
-					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.env.2.value_from.config_file_key_ref.name", "config-file-name"),
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.envs.0.name", "ENV_VAR_1"),
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.envs.0.value", "value1"),
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.envs.1.name", "ENV_VAR_2"),
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.envs.1.value_from.field_ref.field_path", "metadata.name"),
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.envs.1.value_from.field_ref.api_version", "v1"),
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.envs.2.name", "ENV_VAR_3"),
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.envs.2.value_from.config_file_key_ref.name", "config-file-name"),
 					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.scheduling", "Distributed"),
 				),
 			},
@@ -62,7 +62,7 @@ func testResourceRegionConfigBasic(name string) string {
   types = {
     baremetal = {
       locations = ["loc-1", "loc-2"]
-      env = [{
+      envs = [{
         name  = "ENV_VAR_1"
         value = "value1"
       }, {
