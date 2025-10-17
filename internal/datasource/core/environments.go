@@ -37,7 +37,6 @@ func (r *environments) Metadata(_ context.Context, req datasource.MetadataReques
 // Schema defines the schema for this data source.
 func (r *environments) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: environmentMarkdown,
 		Attributes: map[string]schema.Attribute{
 			"label_filter": schema.MapAttribute{
 				Description:         "A map of keys and values that is used to filter environments.",

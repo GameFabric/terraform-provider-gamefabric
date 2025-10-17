@@ -37,7 +37,6 @@ func (r *locations) Metadata(_ context.Context, req datasource.MetadataRequest, 
 // Schema defines the schema for this data source.
 func (r *locations) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: locationMarkdown,
 		Attributes: map[string]schema.Attribute{
 			"type": schema.StringAttribute{
 				Description:         "The type used to filter locations.",

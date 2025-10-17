@@ -40,7 +40,6 @@ func (r *regions) Metadata(_ context.Context, req datasource.MetadataRequest, re
 // Schema defines the schema for this data source.
 func (r *regions) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: regionMarkdown,
 		Attributes: map[string]schema.Attribute{
 			"environment": schema.StringAttribute{
 				Description:         "The name of the environment the object belongs to.",
