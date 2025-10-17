@@ -43,8 +43,8 @@ func (r *protocols) Schema(_ context.Context, _ datasource.SchemaRequest, resp *
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
-							Description:         "The unique object name within its scope.",
-							MarkdownDescription: "The unique object name within its scope.",
+							Description:         "The unique object name.",
+							MarkdownDescription: "The unique object name.",
 							Computed:            true,
 						},
 						"display_name": schema.StringAttribute{
