@@ -6,7 +6,7 @@ resource "gamefabric_protection_gatewaypolicy" "game_backend" {
   destination_cidrs = [
     # Data center 1
     "172.123.64.201/32",
-    "173.124.0.0/16"
+    "173.124.0.0/16",
 
     # Data center 2
     "155.12.91.8/32"
