@@ -11,15 +11,18 @@ A Region is typically a geographic area made up of one or more Locations where r
 
 It has to be defined on a per-environment basis.
 
-While defining, you can assign a custom priority to each location. This priority determines which location will be filled first.
+While defining, you can assign a custom priority to each region type. This priority determines which type will be filled first. **Important**: The order of region types in your configuration code dictates their priority - types listed first will have higher priority. For example, to prioritize cost-effective baremetal infrastructure over more expensive cloud resources, ensure that `baremetal` types are listed before `cloud` types in your configuration.
 
 For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/getting-started/glossary#region">GameFabric documentation</a>.
 
-{{ if .HasExample -}}
-## Example Usage
 
-{{ tffile .ExampleFile }}
-{{- end }}
+## Example Usage - Single Region
+
+This example sets up a single region for europe which uses baremetal and cloud locations.
+It also specifies environment variables based on fields which can be used to differentiate the region and if its running in cloud or baremetal by the gameserver.
+
+{{ tffile "examples/resources/gamefabric_region/single.tf" }}
+
 
 {{ .SchemaMarkdown | trimspace }}
 {{- if or .HasImport .HasImportIDConfig .HasImportIdentityConfig }}

@@ -11,85 +11,108 @@ A Region is typically a geographic area made up of one or more Locations where r
 
 It has to be defined on a per-environment basis.
 
-While defining, you can assign a custom priority to each location. This priority determines which location will be filled first.
+While defining, you can assign a custom priority to each region type. This priority determines which type will be filled first. **Important**: The order of region types in your configuration code dictates their priority - types listed first will have higher priority. For example, to prioritize cost-effective baremetal infrastructure over more expensive cloud resources, ensure that `baremetal` types are listed before `cloud` types in your configuration.
 
 For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/getting-started/glossary#region">GameFabric documentation</a>.
 
-## Example Usage
+
+## Example Usage - Single Region
+
+This example sets up a single region for europe which uses baremetal and cloud locations.
+It also specifies environment variables based on fields which can be used to differentiate the region and if its running in cloud or baremetal by the gameserver.
 
 ```terraform
-# Create a region for Europe that uses the baremetal type.
-# A region represents a logical grouping of locations where game servers or services can be deployed.
+data "gamefabric_environment" "prod" {
+  name = "prod"
+}
+
+data "gamefabric_locations" "cloud_europe" {
+  type      = "cloud"
+  continent = "europe"
+}
+
+data "gamefabric_locations" "baremetal_europe" {
+  type      = "baremetal"
+  continent = "europe"
+}
+
 resource "gamefabric_region" "europe" {
-  # Use for_each to create the region in all environments
-  for_each = { for env in data.gamefabric_environments.all.environments : env.name => env }
-
-  # The unique name of the region within the environment (required)
-  # Must be unique within the environment
-  name = "europe"
-
-  # The user-friendly display name for the region (required)
+  name         = "europe"
   display_name = "Europe"
-
-  # The environment this region belongs to (required)
-  # Regions are scoped to a specific environment
-  environment = each.value.name
-
-  # Labels for organizing and categorizing regions (optional)
-  # Labels can be used for filtering and organization
-  labels = {
-    continent = "europe"
-    region_type = "production"
-  }
-
-  # Annotations for storing additional metadata (optional)
-  annotations = {}
-
-  # Optional description for the region
-  description = "European region for game server deployments"
-
-  # Define the types of infrastructure available in this region (required)
-  # At least one type must be specified
+  environment  = data.gamefabric_environment.prod.name
   types = {
-    # The key (e.g., "baremetal") defines the infrastructure type name
-    baremetal = {
-      # List of location names where this type is available (required)
-      # Locations must exist and be accessible
-      locations = data.gamefabric_locations.eu_baremetal.names
-
-      # Optional environment variables to set on all containers in this region/type
-      # These are injected into game server containers
-      env = [
+    "baremetal" = {
+      locations = data.gamefabric_locations.baremetal_europe.names
+      envs = [
         {
-          name  = "GAME_REGION_NAME" # The environment variable name
-          value = "Europe"           # The environment variable value
-        },
-        {
-          name = "POD_NAME"
+          name = "REGION"
           value_from = {
             field_ref = {
-              field_path = "metadata.name"
+              field_path = "metadata.regionName" # e.g., "europe"
+            }
+          }
+        },
+        {
+          name = "REGION_TYPE"
+          value_from = {
+            field_ref = {
+              field_path = "metadata.regionTypeName" # e.g., "baremetal"
+            }
+          }
+        },
+        {
+          name  = "BACKEND_URL"
+          value = "https://mybackend.eu.example.com"
+        },
+        {
+          name = "BACKEND_TOKEN"
+          value_from = {
+            config_file_key_ref = {
+              name = "eu-token" # Reference a ConfigFile named "eu-token"
             }
           }
         }
+      ]
+      scheduling = "Distributed"
+    },
+    "cloud" = {
+      locations = data.gamefabric_locations.cloud_europe.names
+      envs = [
         {
-            name = "CONFIG_FILE"
-            value_from = {
-              config_file_key_ref = {
-                name = "eu-config" # Reference a ConfigMap named "eu-config"
-              }
+          name = "REGION"
+          value_from = {
+            field_ref = {
+              field_path = "metadata.regionName" # e.g., "europe"
             }
+          }
+        },
+        {
+          name = "REGION_TYPE"
+          value_from = {
+            field_ref = {
+              field_path = "metadata.regionTypeName" # e.g., "cloud"
+            }
+          }
+        },
+        {
+          name  = "BACKEND_URL"
+          value = "https://mybackend.eu.example.com"
+        },
+        {
+          name = "BACKEND_TOKEN"
+          value_from = {
+            config_file_key_ref = {
+              name = "eu-token" # Reference a ConfigFile named "eu-token"
+            }
+          }
         }
       ]
-
-      # Scheduling strategy for distributing workloads (optional, defaults to "Packed")
-      # - "Packed": Fills up locations before moving to the next (cost-optimized)
-      # - "Distributed": Spreads workloads evenly across locations
       scheduling = "Packed"
     }
   }
 }
 ```
+
 
 <!-- schema generated by tfplugindocs -->
 ## Schema
@@ -121,7 +144,11 @@ Required:
 Optional:
 
 - `envs` (Attributes List) Env is a list of environment variables to set on all containers in this region. (see [below for nested schema](#nestedatt--types--envs))
-- `scheduling` (String) Scheduling strategy. Defaults to &#34;Packed&#34;
+- `scheduling` (String) Scheduling strategy. Defaults to &#34;Packed&#34;.
+
+**Packed:** Binpack gameservers into as few nodes as possible. This is important for cloud environments where you are charged per node.
+
+**Distributed:** Spread gameservers across as many nodes as possible. This is important for baremetal environments where you want to spread the load across the nodes you have.
 
 <a id="nestedatt--types--envs"></a>
 ### Nested Schema for `types.envs`
@@ -141,7 +168,7 @@ Optional:
 Optional:
 
 - `config_file_key_ref` (Attributes) ConfigFileKeyRef select the configuration file. (see [below for nested schema](#nestedatt--types--envs--value_from--config_file_key_ref))
-- `field_ref` (Attributes) FieldRef selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels[&#39;&lt;KEY&gt;&#39;]`, `metadata.annotations[&#39;&lt;KEY&gt;&#39;]`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs. (see [below for nested schema](#nestedatt--types--envs--value_from--field_ref))
+- `field_ref` (Attributes) FieldRef selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs. (see [below for nested schema](#nestedatt--types--envs--value_from--field_ref))
 
 <a id="nestedatt--types--envs--value_from--config_file_key_ref"></a>
 ### Nested Schema for `types.envs.value_from.config_file_key_ref`
