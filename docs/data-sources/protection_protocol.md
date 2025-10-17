@@ -18,7 +18,7 @@ description: |-
 ### Optional
 
 - `display_name` (String) DisplayName is the user-friendly name of a protection protocol.
-- `name` (String) The unique object name within its scope.
+- `name` (String) The unique object name.
 
 ### Read-Only
 
