@@ -25,8 +25,18 @@ var (
 	labelValueRegexp  = regexp.MustCompile(`^([A-Za-z0-9][A-Za-z0-9-_.]*)?[A-Za-z0-9]$`)
 )
 
+var (
+	_ validator.String = NameValidator{}
+	_ validator.List   = NameValidator{}
+)
+
 // NameValidator is a custom validator that checks if a string is a valid name.
 type NameValidator struct{}
+
+func (n NameValidator) ValidateList(ctx context.Context, request validator.ListRequest, response *validator.ListResponse) {
+	//TODO implement me
+	panic("implement me")
+}
 
 // Description provides a description of the validator.
 func (n NameValidator) Description(context.Context) string {

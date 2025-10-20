@@ -4,107 +4,178 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"testing"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-//func TestResourceArmadas(t *testing.T) {
-//	name := "my-armada"
-//	env := "dflt"
-//	pf, cs := providertest.ProtoV6ProviderFactories(t)
-//
-//	resource.Test(t, resource.TestCase{
-//		IsUnitTest:               true,
-//		ProtoV6ProviderFactories: pf,
-//		CheckDestroy:             testCheckArmadasDestroy(cs),
-//		Steps: []resource.TestStep{
-//			{
-//				Config: testResourceArmadasConfigBasic(env, name),
-//				Check: resource.ComposeAggregateTestCheckFunc(
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "name", name),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "environment", env),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "description", "My Armada"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "region", "eu"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "replicas.#", "1"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "replicas.0.name", "baremetal"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "replicas.0.min_replicas", "1"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "replicas.0.max_replicas", "2"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "replicas.0.buffer_size", "3"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "template.labels.foo", "bar"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "template.strategy.rolling_update.max_unavailable", "25%"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "template.strategy.rolling_update.max_surge", "10"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "template.containers.0.name", "my-ctr"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "template.containers.0.branch", "prod"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "template.containers.0.image", "test-xyz"),
-//				),
-//			},
-//			{
-//				Config: testResourceArmadasConfigBasicWithEnv(env, name),
-//				Check: resource.ComposeAggregateTestCheckFunc(
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "name", name),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "environment", env),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "description", "My Armada"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "region", "eu"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "replicas.#", "1"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "replicas.0.name", "baremetal"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "replicas.0.min_replicas", "1"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "replicas.0.max_replicas", "2"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "replicas.0.buffer_size", "3"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "template.labels.foo", "bar"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "template.containers.0.name", "my-ctr"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "template.containers.0.branch", "prod"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "template.containers.0.image", "test-xyz"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "template.containers.0.env.#", "2"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "template.containers.0.env.0.name", "foo"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "template.containers.0.env.0.value", "bar"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "template.containers.0.env.1.name", "baz"),
-//					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "template.containers.0.env.1.value_from.config_file_key_ref.name", "bat"),
-//				),
-//			},
-//			// TODO: Add import test when import is supported.
-//			// {
-//			// 	ResourceName:      "gamefabric_armada.test",
-//			// 	ImportState:       true,
-//			// 	ImportStateVerify: true,
-//			// },
-//		},
-//	})
-//}
+func TestResourceArmadas(t *testing.T) {
+	name := "my-armada"
+	env := "dflt"
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckArmadasDestroy(cs),
+		Steps: []resource.TestStep{
+			{
+				Config: testResourceArmadasConfigBasic(env, name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "name", name),
+					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "environment", env),
+					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "description", "My Armada"),
+					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "labels.#", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "labels.example", "armada-label"),
+					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "annotations.#", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armada_v1.test", "annotations.example", "armada-annotation"),
+				),
+			},
+			{
+				ResourceName:      "gamefabric_region.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
 
 func testResourceArmadasConfigBasic(env, name string) string {
-	return fmt.Sprintf(`resource "gamefabric_armada_v1" "test" {
-  name = "%s"
-  environment = "%s"
-
+	return fmt.Sprintf(`resource "gamefabric_armada" "test" {
+  name        = %q
+  environment = %q
   description = "My Armada"
+  labels      = {
+    "example": "armada-label"
+  }
+  annotations = {
+	"example": "armada-annotation"
+  }
+  autoscaling {
+    fixed_interval_seconds = 10
+  }
   region = "eu"
   replicas = [
     {
-      region_type = "baremetal"
+      region_type  = "baremetal"
       min_replicas = 1
       max_replicas = 2
-      buffer_size = 3
+      buffer_size  = 1
+    },
+    {
+      region_type  = "gcp"
+      min_replicas = 2
+      max_replicas = 5
+      buffer_size  = 2
     }
   ]
 
-  template = {
-    labels = {
-      "foo" = "bar"
+  gameserver_labels      = {
+    "example": "gameserver-label"
+  }
+  gameserver_annotations = {
+    "example": "gameserver-annotation"
+  }
+
+  containers = [
+    {
+      name = "example-container"
+      image = {
+        name   = "gameserver-asoda0s"
+        branch = "prod"
+      }
+      command = ["example-command"]
+      args    = ["example-arg"]
+      resources = {
+        limits = {
+          cpu    = "500m"
+          memory = "512Mi"
+        }
+        requests = {
+          cpu    = "250m"
+          memory = "256Mi"
+        }
+      }
+      envs = [
+        {
+          name  = "EXAMPLE_ENV"
+          value = "example_value"
+        },
+        {
+          name = "EXAMPLE_CONFIG_FILE"
+          value_from = {
+            config_file = "example_config_file"
+          }
+        },
+        {
+          name = "EXAMPLE_POD_FIELD"
+          value_from = {
+            field_path = "metadata.name"
+          }
+        }
+      ]
+      ports = [
+        {
+          name                = "http"
+          protocol            = "TCP"
+          container_port      = 8080
+          policy              = "Passthrough"
+          protection_protocol = "something"
+        }
+      ]
+      volume_mounts = [
+        {
+          name          = "example-volume"
+          mount_path    = "/data"
+        }
+      ]
+      config_files = [
+        {
+          name       = "example-config-file"
+          mount_path = "/config/example-config-file"
+        }
+      ]
     }
-    strategy = {
-      rolling_update = {
-        max_unavailable = "25%%"
-        max_surge = "10"
+  ]
+
+  // Agones Health Checks
+  health_checks {
+    disabled              = false
+    initial_delay_seconds = 15
+    period_seconds        = 10
+    failure_threshold     = 5
+  }
+
+  // Termination Grace Period
+  termination_configuration {
+    grace_period_seconds = 30
+  }
+
+
+  // Rollout strategy
+  strategy {
+    rolling_update {
+      max_surge       = "25%%"
+      max_unavailable = "5"
+    }
+  }
+
+  // Volumes
+  volumes = [
+    {
+      name = "example-volume"
+      empty_dir = {
+        size_limit = "1Gi"
       }
     }
-    containers = [{
-      name = "my-ctr"
-      branch = "prod"
-      image = "test-xyz"
-    }]
-  }
+  ]
+  gateway_policies  = ["test-policy"]
+  profiling_enabled = true
+
 }`, name, env)
 }
 
