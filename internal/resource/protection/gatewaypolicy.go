@@ -45,6 +45,8 @@ func (r *gatewayPolicy) Metadata(_ context.Context, req resource.MetadataRequest
 // Schema defines the schema for this data source.
 func (r *gatewayPolicy) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		Description:         "Resource for managing Gateway Policies in GameFabric Protection.",
+		MarkdownDescription: "Resource for managing Gateway Policies in GameFabric Protection.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description:         "The unique Terraform identifier.",
