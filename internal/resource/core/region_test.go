@@ -13,6 +13,8 @@ import (
 )
 
 func TestRegion(t *testing.T) {
+	t.Parallel()
+	
 	name := "eu"
 	pf, cs := providertest.ProtoV6ProviderFactories(t)
 
