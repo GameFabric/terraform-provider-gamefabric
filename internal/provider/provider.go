@@ -181,6 +181,7 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		core.NewEnvironment,
 		core.NewRegion,
 		container.NewBranch,
+		container.NewImageUpdater,
 		protection.NewGatewayPolicy,
 	}
 }
