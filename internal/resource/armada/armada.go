@@ -323,7 +323,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 										MarkdownDescription: "ContainerPort is the port that is being opened on the specified container&#39;s process.",
 										Optional:            true,
 										Validators: []validator.Int32{
-											int32validator.Between(1, 65536),
+											int32validator.Between(1, 65535),
 										},
 									},
 									"protocol": schema.StringAttribute{
