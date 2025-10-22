@@ -25,7 +25,7 @@ func newBranchModel(obj *containerv1.Branch) branchModel {
 		Annotations:          conv.ForEachMapItem(obj.Annotations, func(item string) types.String { return types.StringValue(item) }),
 		DisplayName:          types.StringValue(obj.Spec.DisplayName),
 		Description:          conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
-		RetentionPolicyRules: emptyIfNil(conv.ForEachSliceItem(obj.Spec.RetentionPolicyRules, newBranchImageRetentionPolicyRuleModel)),
+		RetentionPolicyRules: conv.EmptyIfNil(conv.ForEachSliceItem(obj.Spec.RetentionPolicyRules, newBranchImageRetentionPolicyRuleModel)),
 	}
 }
 
@@ -74,11 +74,4 @@ func (m branchImageRetentionPolicyRuleModel) ToObject() containerv1.BranchImageR
 		KeepCount:  int(m.KeepCount.ValueInt64()),
 		KeepDays:   int(m.KeepDays.ValueInt64()),
 	}
-}
-
-func emptyIfNil[T any](s []T) []T {
-	if s == nil {
-		return []T{}
-	}
-	return s
 }

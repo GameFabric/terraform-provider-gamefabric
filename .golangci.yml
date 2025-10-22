@@ -72,3 +72,5 @@ linters:
       - path: internal\/(.+).go
         linters:
           - dupl
+      - path: (.+)\.go$
+        text: "`strat` is a misspelling of `start`"

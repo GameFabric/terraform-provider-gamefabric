@@ -13,6 +13,7 @@ import (
 	dscore "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/core"
 	dsprotection "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/protection"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/armada"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/protection"
@@ -179,6 +180,7 @@ func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource
 // Resources defines the resources implemented in the provider.
 func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		armada.NewArmada,
 		core.NewConfigFile,
 		core.NewEnvironment,
 		core.NewRegion,
