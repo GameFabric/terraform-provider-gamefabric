@@ -1,7 +1,11 @@
 package conv
 
 import (
+	"strconv"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 // ForEachSliceItem applies a function to each item in a slice and returns a new slice with the results.
@@ -41,4 +45,23 @@ func OptionalFunc[T comparable, K attr.Value](v T, valFn func(T) K, defFn func()
 		return defFn()
 	}
 	return valFn(v)
+}
+
+// RequiredFunc returns an empty slice if the input slice is nil, otherwise it returns the input slice.
+func RequiredFunc[T any](v []T) []T {
+	if v == nil {
+		return make([]T, 0)
+	}
+	return v
+}
+
+// FromIntOrString converts an IntOrString to a Terraform String type.
+func FromIntOrString(val *intstr.IntOrString) types.String {
+	if val == nil {
+		return types.StringNull()
+	}
+	if val.Type == intstr.Int {
+		return types.StringValue(strconv.Itoa(int(val.IntVal)))
+	}
+	return types.StringValue(val.StrVal)
 }

@@ -24,14 +24,9 @@ func NewEnvVarModel(obj corev1.EnvVar) EnvVarModel {
 		model.ValueFrom = &EnvVarSourceModel{}
 		switch {
 		case obj.ValueFrom.FieldRef != nil:
-			model.ValueFrom.FieldRef = &ObjectFieldSelectorModel{
-				APIVersion: types.StringValue(obj.ValueFrom.FieldRef.APIVersion),
-				FieldPath:  types.StringValue(obj.ValueFrom.FieldRef.FieldPath),
-			}
+			model.ValueFrom.FieldPath = types.StringValue(obj.ValueFrom.FieldRef.FieldPath)
 		case obj.ValueFrom.ConfigFileKeyRef != nil:
-			model.ValueFrom.ConfigFileKeyRef = &ConfigFileKeySelectorModel{
-				Name: types.StringValue(obj.ValueFrom.ConfigFileKeyRef.Name),
-			}
+			model.ValueFrom.ConfigFile = types.StringValue(obj.ValueFrom.ConfigFileKeyRef.Name)
 		}
 	}
 	return model
@@ -46,14 +41,13 @@ func (m EnvVarModel) ToObject() corev1.EnvVar {
 	if m.ValueFrom != nil {
 		obj.ValueFrom = &corev1.EnvVarSource{}
 		switch {
-		case m.ValueFrom.FieldRef != nil:
+		case !m.ValueFrom.FieldPath.IsNull():
 			obj.ValueFrom.FieldRef = &kcorev1.ObjectFieldSelector{
-				APIVersion: m.ValueFrom.FieldRef.APIVersion.ValueString(),
-				FieldPath:  m.ValueFrom.FieldRef.FieldPath.ValueString(),
+				FieldPath: m.ValueFrom.FieldPath.ValueString(),
 			}
-		case m.ValueFrom.ConfigFileKeyRef != nil:
+		case !m.ValueFrom.ConfigFile.IsNull():
 			obj.ValueFrom.ConfigFileKeyRef = &corev1.ConfigFileKeySelector{
-				Name: m.ValueFrom.ConfigFileKeyRef.Name.ValueString(),
+				Name: m.ValueFrom.ConfigFile.ValueString(),
 			}
 		}
 	}
@@ -62,8 +56,8 @@ func (m EnvVarModel) ToObject() corev1.EnvVar {
 
 // EnvVarSourceModel represents a source for the value of an EnvVar.
 type EnvVarSourceModel struct {
-	FieldRef         *ObjectFieldSelectorModel   `tfsdk:"field_ref"`
-	ConfigFileKeyRef *ConfigFileKeySelectorModel `tfsdk:"config_file_key_ref"`
+	FieldPath  types.String `tfsdk:"field_path"`
+	ConfigFile types.String `tfsdk:"config_file"`
 }
 
 // ObjectFieldSelectorModel selects a field of an object.

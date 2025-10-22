@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
+// EnvVarAttributes returns the schema attributes for an environment variable.
 func EnvVarAttributes() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"name": schema.StringAttribute{
@@ -28,44 +29,20 @@ func EnvVarAttributes() map[string]schema.Attribute {
 			MarkdownDescription: "ValueFrom is the source for the environment variable&#39;s value.",
 			Optional:            true,
 			Attributes: map[string]schema.Attribute{
-				"field_ref": schema.SingleNestedAttribute{
-					Description:         "FieldRef selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.",
-					MarkdownDescription: "FieldRef selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.",
+				"field_path": schema.StringAttribute{
+					Description:         "FieldPath selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.",
+					MarkdownDescription: "FieldPath selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.",
 					Optional:            true,
-					Attributes: map[string]schema.Attribute{
-						"api_version": schema.StringAttribute{
-							Optional: true,
-						},
-						"field_path": schema.StringAttribute{
-							Required: true,
-							Validators: []validator.String{
-								stringvalidator.OneOf(
-									"metadata.name",
-									"metadata.armadaName",
-									"metadata.regionName",
-									"metadata.regionTypeName",
-									"metadata.imageName",
-								),
-							},
-						},
-					},
-					Validators: []validator.Object{
-						objectvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("config_file_key_ref")),
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("config_file")),
 					},
 				},
-				"config_file_key_ref": schema.SingleNestedAttribute{
-					Description:         "ConfigFileKeyRef select the configuration file.",
-					MarkdownDescription: "ConfigFileKeyRef select the configuration file.",
+				"config_file": schema.StringAttribute{
+					Description:         "ConfigFile select the configuration file.",
+					MarkdownDescription: "ConfigFile select the configuration file.",
 					Optional:            true,
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Description:         "Name is the name of the configuration file.",
-							MarkdownDescription: "Name is the name of the configuration file.",
-							Required:            true,
-						},
-					},
-					Validators: []validator.Object{
-						objectvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("field_ref")),
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("field_path")),
 					},
 				},
 			},

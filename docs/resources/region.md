@@ -167,24 +167,8 @@ Optional:
 
 Optional:
 
-- `config_file_key_ref` (Attributes) ConfigFileKeyRef select the configuration file. (see [below for nested schema](#nestedatt--types--envs--value_from--config_file_key_ref))
-- `field_ref` (Attributes) FieldRef selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs. (see [below for nested schema](#nestedatt--types--envs--value_from--field_ref))
-
-<a id="nestedatt--types--envs--value_from--config_file_key_ref"></a>
-### Nested Schema for `types.envs.value_from.config_file_key_ref`
-
-Required:
-
-- `name` (String) Name is the name of the configuration file.
-
-
-<a id="nestedatt--types--envs--value_from--field_ref"></a>
-### Nested Schema for `types.envs.value_from.field_ref`
-
-Required:
-
-- `api_version` (String)
-- `field_path` (String)
+- `config_file` (String) ConfigFile select the configuration file.
+- `field_path` (String) FieldPath selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.
 
 ## Import
 

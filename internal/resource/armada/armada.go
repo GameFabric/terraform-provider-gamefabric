@@ -12,10 +12,11 @@ import (
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
-	armada2 "github.com/gamefabric/terraform-provider-gamefabric/internal/schema/armada"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -49,7 +50,7 @@ func (r *armada) Metadata(_ context.Context, req resource.MetadataRequest, resp 
 }
 
 // Schema defines the schema for this data source.
-func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) { //nolint:maintidx // Keep the schema together.
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -104,6 +105,21 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 					validators.AnnotationsValidator{},
 				},
 			},
+			"autoscaling": schema.SingleNestedAttribute{
+				Description:         "Autoscaling configuration for the game servers.",
+				MarkdownDescription: "Autoscaling configuration for the game servers.",
+				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"fixed_interval_seconds": schema.Int32Attribute{
+						Description:         "Seconds defines how often the auto-scaler will re-evaluate the number of game servers.",
+						MarkdownDescription: "Seconds defines how often the auto-scaler will re-evaluate the number of game servers.",
+						Optional:            true,
+						Validators: []validator.Int32{
+							int32validator.AtLeast(1),
+						},
+					},
+				},
+			},
 			"region": schema.StringAttribute{
 				Description:         "Region defines the region the game servers are distributed to.",
 				MarkdownDescription: "Region defines the region the game servers are distributed to.",
@@ -132,6 +148,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 							Required:            true,
 							Validators: []validator.Int32{
 								int32validator.AtLeast(0),
+								int32validator.AtLeastSumOf(path.MatchRelative().AtParent().AtName("buffer_size")),
 							},
 						},
 						"max_replicas": schema.Int32Attribute{
@@ -192,11 +209,17 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 									Description:         "Name is the name of the image.",
 									MarkdownDescription: "Name is the name of the image.",
 									Required:            true,
+									Validators: []validator.String{
+										validators.NameValidator{},
+									},
 								},
 								"branch": schema.StringAttribute{
 									Description:         "Branch is the branch of the image.",
 									MarkdownDescription: "Branch is the branch of the image.",
 									Required:            true,
+									Validators: []validator.String{
+										validators.NameValidator{},
+									},
 								},
 							},
 						},
@@ -216,9 +239,6 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 							Description:         "Resources describes the compute resource requirements.",
 							MarkdownDescription: "Resources describes the compute resource requirements.",
 							Optional:            true,
-							Validators:          []validator.Object{
-								// TODO check requests <= limits
-							},
 							Attributes: map[string]schema.Attribute{
 								"limits": schema.SingleNestedAttribute{
 									Description:         "Limits describes the maximum amount of compute resources allowed.",
@@ -269,11 +289,11 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 							},
 						},
 						"envs": schema.ListNestedAttribute{
-							Description:         "Env is a list of environment variables to set on all containers in this Armada.",
-							MarkdownDescription: "Env is a list of environment variables to set on all containers in this Armada.",
+							Description:         "Envs is a list of environment variables to set on all containers in this Armada.",
+							MarkdownDescription: "Envs is a list of environment variables to set on all containers in this Armada.",
 							Optional:            true,
 							NestedObject: schema.NestedAttributeObject{
-								Attributes: armada2.EnvVarAttributes(),
+								Attributes: core.EnvVarAttributes(),
 							},
 						},
 						"ports": schema.ListNestedAttribute{
@@ -286,13 +306,15 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 										Description:         "Name is the name of the port.",
 										MarkdownDescription: "Name is the name of the port.",
 										Required:            true,
+										Validators: []validator.String{
+											validators.NameValidator{},
+										},
 									},
 									"policy": schema.StringAttribute{
 										Description:         "Policy defines the policy for how the HostPort is populated.",
 										MarkdownDescription: "Policy defines the policy for how the HostPort is populated.",
 										Required:            true,
 										Validators: []validator.String{
-											// See
 											stringvalidator.OneOf("Static", "Dynamic", "Passthrough", "None"),
 										},
 									},
@@ -301,7 +323,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 										MarkdownDescription: "ContainerPort is the port that is being opened on the specified container&#39;s process.",
 										Optional:            true,
 										Validators: []validator.Int32{
-											int32validator.Between(1, 65535),
+											int32validator.Between(1, 65536),
 										},
 									},
 									"protocol": schema.StringAttribute{
@@ -347,7 +369,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 										MarkdownDescription: "Path within the volume from which the container's volume should be mounted.",
 										Optional:            true,
 										Validators: []validator.String{
-											stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("sub_path_expr")),
+											stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("sub_path_expr")),
 										},
 									},
 									"sub_path_expr": schema.StringAttribute{
@@ -355,7 +377,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 										MarkdownDescription: "Expanded path within the volume from which the container's volume should be mounted.",
 										Optional:            true,
 										Validators: []validator.String{
-											stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("sub_path")),
+											stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("sub_path")),
 										},
 									},
 								},
@@ -379,6 +401,99 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 									},
 								},
 							},
+						},
+					},
+				},
+			},
+			"health_checks": schema.SingleNestedAttribute{
+				Description:         "HealthChecks is the health checking configuration for Agones game servers.",
+				MarkdownDescription: "HealthChecks is the health checking configuration for Agones game servers.",
+				Optional:            true,
+
+				Attributes: map[string]schema.Attribute{
+					"disabled": schema.BoolAttribute{
+						Description:         "Disabled indicates whether Agones health checks are disabled.",
+						MarkdownDescription: "Disabled indicates whether Agones health checks are disabled.",
+						Optional:            true,
+					},
+					"period_seconds": schema.Int32Attribute{
+						Description:         "PeriodSeconds is the number of seconds between checks.",
+						MarkdownDescription: "PeriodSeconds is the number of seconds between checks.",
+						Optional:            true,
+						Validators: []validator.Int32{
+							int32validator.AtLeast(1),
+						},
+					},
+					"failure_threshold": schema.Int32Attribute{
+						Description:         "FailureThreshold is the number of consecutive failures before the game server is marked unhealthy.",
+						MarkdownDescription: "FailureThreshold is the number of consecutive failures before the game server is marked unhealthy.",
+						Optional:            true,
+						Validators: []validator.Int32{
+							int32validator.AtLeast(1),
+						},
+					},
+					"initial_delay_seconds": schema.Int32Attribute{
+						Description:         "InitialDelaySeconds is the number of seconds to wait before performing the first check.",
+						MarkdownDescription: "InitialDelaySeconds is the number of seconds to wait before performing the first check.",
+						Optional:            true,
+						Validators: []validator.Int32{
+							int32validator.AtLeast(0),
+						},
+					},
+				},
+			},
+			"termination_configuration": schema.SingleNestedAttribute{
+				Description:         "TerminationConfiguration defines the termination grace period for game servers.",
+				MarkdownDescription: "TerminationConfiguration defines the termination grace period for game servers.",
+				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"grace_period_seconds": schema.Int64Attribute{
+						Description:         "GracePeriodSeconds is the duration in seconds the game server needs to terminate gracefully.",
+						MarkdownDescription: "GracePeriodSeconds is the duration in seconds the game server needs to terminate gracefully.",
+						Optional:            true,
+						Validators: []validator.Int64{
+							int64validator.AtLeast(0),
+						},
+					},
+				},
+			},
+			"strategy": schema.SingleNestedAttribute{
+				Description:         "Strategy defines the rollout strategy for updating game servers.",
+				MarkdownDescription: "Strategy defines the rollout strategy for updating game servers.",
+				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"rolling_update": schema.SingleNestedAttribute{
+						Description:         "RollingUpdate defines the rolling update strategy.",
+						MarkdownDescription: "RollingUpdate defines the rolling update strategy.",
+						Optional:            true,
+						Validators: []validator.Object{
+							objectvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("recreate")),
+						},
+						Attributes: map[string]schema.Attribute{
+							"max_surge": schema.StringAttribute{
+								Description:         "MaxSurge is the maximum number of game servers that can be created over the desired number of game servers during an update.",
+								MarkdownDescription: "MaxSurge is the maximum number of game servers that can be created over the desired number of game servers during an update.",
+								Optional:            true,
+								Validators: []validator.String{
+									stringvalidator.RegexMatches(regexp.MustCompile(`^(\d{1,2}%|100%|\d+)$`), "must be a positive integer or percentage"),
+								},
+							},
+							"max_unavailable": schema.StringAttribute{
+								Description:         "MaxUnavailable is the maximum number of game servers that can be unavailable during an update.",
+								MarkdownDescription: "MaxUnavailable is the maximum number of game servers that can be unavailable during an update.",
+								Optional:            true,
+								Validators: []validator.String{
+									stringvalidator.RegexMatches(regexp.MustCompile(`^(\d{1,2}%|100%|\d+)$`), "must be a positive integer or percentage"),
+								},
+							},
+						},
+					},
+					"recreate": schema.SingleNestedAttribute{
+						Description:         "Recreate defines the recreate strategy.",
+						MarkdownDescription: "Recreate defines the recreate strategy.",
+						Optional:            true,
+						Validators: []validator.Object{
+							objectvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("rolling_update")),
 						},
 					},
 				},
@@ -421,6 +536,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Optional:            true,
 				ElementType:         types.StringType,
 				Validators: []validator.List{
+					validators.NameValidator{},
 					listvalidator.UniqueValues(),
 				},
 			},
@@ -448,110 +564,6 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 						Description:         "Environment is the environment of the image updater target.",
 						MarkdownDescription: "Environment is the environment of the image updater target.",
 						Computed:            true,
-					},
-				},
-			},
-		},
-		Blocks: map[string]schema.Block{
-			"autoscaling": schema.SingleNestedBlock{
-				Description:         "AutoscalingInterval defines the autoscaling strategy.",
-				MarkdownDescription: "AutoscalingInterval defines the autoscaling strategy.",
-				Attributes: map[string]schema.Attribute{
-					"fixed_interval_seconds": schema.Int32Attribute{
-						Description:         "Seconds defines how often the auto-scaler will re-evaluate the number of game servers.",
-						MarkdownDescription: "Seconds defines how often the auto-scaler will re-evaluate the number of game servers.",
-						Optional:            true,
-						Validators: []validator.Int32{
-							int32validator.AtLeast(1),
-						},
-					},
-				},
-			},
-			"health_checks": schema.SingleNestedBlock{
-				Description:         "HealthChecks is the health checking configuration for Agones game servers.",
-				MarkdownDescription: "HealthChecks is the health checking configuration for Agones game servers.",
-				Attributes: map[string]schema.Attribute{
-					"disabled": schema.BoolAttribute{
-						Description:         "Disabled indicates whether Agones health checks are disabled.",
-						MarkdownDescription: "Disabled indicates whether Agones health checks are disabled.",
-						Optional:            true,
-					},
-					"period_seconds": schema.Int32Attribute{
-						Description:         "PeriodSeconds is the number of seconds between checks.",
-						MarkdownDescription: "PeriodSeconds is the number of seconds between checks.",
-						Optional:            true,
-						Validators: []validator.Int32{
-							int32validator.AtLeast(1),
-						},
-					},
-					"failure_threshold": schema.Int32Attribute{
-						Description:         "FailureThreshold is the number of consecutive failures before the game server is marked unhealthy.",
-						MarkdownDescription: "FailureThreshold is the number of consecutive failures before the game server is marked unhealthy.",
-						Optional:            true,
-						Validators: []validator.Int32{
-							int32validator.AtLeast(1),
-						},
-					},
-					"initial_delay_seconds": schema.Int32Attribute{
-						Description:         "InitialDelaySeconds is the number of seconds to wait before performing the first check.",
-						MarkdownDescription: "InitialDelaySeconds is the number of seconds to wait before performing the first check.",
-						Optional:            true,
-						Validators: []validator.Int32{
-							int32validator.AtLeast(0),
-						},
-					},
-				},
-			},
-			"termination_configuration": schema.SingleNestedBlock{
-				Description:         "TerminationConfiguration defines the termination grace period for game servers.",
-				MarkdownDescription: "TerminationConfiguration defines the termination grace period for game servers.",
-				Attributes: map[string]schema.Attribute{
-					"grace_period_seconds": schema.Int32Attribute{
-						Description:         "GracePeriodSeconds is the duration in seconds the game server needs to terminate gracefully.",
-						MarkdownDescription: "GracePeriodSeconds is the duration in seconds the game server needs to terminate gracefully.",
-						Optional:            true,
-						Validators: []validator.Int32{
-							int32validator.AtLeast(0),
-						},
-					},
-				},
-			},
-			"strategy": schema.SingleNestedBlock{
-				Description:         "Strategy defines the rollout strategy for updating game servers.",
-				MarkdownDescription: "Strategy defines the rollout strategy for updating game servers.",
-
-				Blocks: map[string]schema.Block{
-					"rolling_update": schema.SingleNestedBlock{
-						Description:         "RollingUpdate defines the rolling update strategy.",
-						MarkdownDescription: "RollingUpdate defines the rolling update strategy.",
-						Validators: []validator.Object{
-							objectvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("recreate")),
-						},
-						Attributes: map[string]schema.Attribute{
-							"max_surge": schema.StringAttribute{
-								Description:         "MaxSurge is the maximum number of game servers that can be created over the desired number of game servers during an update.",
-								MarkdownDescription: "MaxSurge is the maximum number of game servers that can be created over the desired number of game servers during an update.",
-								Optional:            true,
-								Validators: []validator.String{
-									stringvalidator.RegexMatches(regexp.MustCompile(`^(\d{1,2}%|100%|\d+)$`), "must be a positive integer or percentage"),
-								},
-							},
-							"max_unavailable": schema.StringAttribute{
-								Description:         "MaxUnavailable is the maximum number of game servers that can be unavailable during an update.",
-								MarkdownDescription: "MaxUnavailable is the maximum number of game servers that can be unavailable during an update.",
-								Optional:            true,
-								Validators: []validator.String{
-									stringvalidator.RegexMatches(regexp.MustCompile(`^(\d{1,2}%|100%|\d+)$`), "must be a positive integer or percentage"),
-								},
-							},
-						},
-					},
-					"recreate": schema.SingleNestedBlock{
-						Description:         "Recreate defines the recreate strategy.",
-						MarkdownDescription: "Recreate defines the recreate strategy.",
-						Validators: []validator.Object{
-							objectvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("rolling_update")),
-						},
 					},
 				},
 			},
@@ -585,7 +597,7 @@ func (r *armada) Create(ctx context.Context, req resource.CreateRequest, resp *r
 	}
 
 	obj := plan.ToObject()
-	_, err := r.clientSet.ArmadaV1().Armadas(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.ArmadaV1().Armadas(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Armada",
@@ -594,7 +606,7 @@ func (r *armada) Create(ctx context.Context, req resource.CreateRequest, resp *r
 		return
 	}
 
-	plan.ID = types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String())
+	plan = newArmadaModel(outObj)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -629,6 +641,7 @@ func (r *armada) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -646,7 +659,8 @@ func (r *armada) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	if _, err = r.clientSet.ArmadaV1().Armadas(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
+	outObj, err := r.clientSet.ArmadaV1().Armadas(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Armada",
 			fmt.Sprintf("Could not patch for Armada: %v", err),
@@ -654,7 +668,7 @@ func (r *armada) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	plan.ID = types.StringValue(cache.NewObjectName(newObj.Environment, newObj.Name).String())
+	plan = newArmadaModel(outObj)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

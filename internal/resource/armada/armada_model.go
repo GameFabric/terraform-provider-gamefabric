@@ -1,13 +1,16 @@
 package armada
 
 import (
+	"maps"
 	"strconv"
 
 	agonesv1 "agones.dev/agones/pkg/apis/agones/v1"
+	"github.com/gamefabric/gf-apiclient/tools/cache"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	armadav1 "github.com/gamefabric/gf-core/pkg/api/armada/v1"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	appsv1 "k8s.io/api/apps/v1"
@@ -19,53 +22,73 @@ import (
 const profilingAnnotation = "g8c.io/profiling"
 
 type armadaModel struct {
-	ID                    types.String            `tfsdk:"id"`
-	Name                  types.String            `tfsdk:"name"`
-	Environment           types.String            `tfsdk:"environment"`
-	Description           types.String            `tfsdk:"description"`
-	Labels                map[string]types.String `tfsdk:"labels"`
-	Annotations           map[string]types.String `tfsdk:"annotations"`
-	Autoscaling           *Autoscaling            `tfsdk:"autoscaling"`
-	Region                types.String            `tfsdk:"region"`
-	Replicas              []Replica               `tfsdk:"replicas"`
-	GameServerLabels      map[string]types.String `tfsdk:"gameserver_labels"`
-	GameServerAnnotations map[string]types.String `tfsdk:"gameserver_annotations"`
-	Containers            []Container             `tfsdk:"containers"`
-	HealthChecks          HealthChecks            `tfsdk:"health_checks"`
-	TerminationConfig     TerminationConfig       `tfsdk:"termination_configuration"`
-	Strategy              Strategy                `tfsdk:"strategy"`
-	Volumes               []Volume                `tfsdk:"volumes"`
-	GatewayPolicies       []types.String          `tfsdk:"gateway_policies"`
-	ProfilingEnabled      types.Bool              `tfsdk:"profiling_enabled"`
-	ImageUpdaterTarget    ImageUpdaterTarget      `tfsdk:"image_updater_target"`
+	ID                    types.String                       `tfsdk:"id"`
+	Name                  types.String                       `tfsdk:"name"`
+	Environment           types.String                       `tfsdk:"environment"`
+	Description           types.String                       `tfsdk:"description"`
+	Labels                map[string]types.String            `tfsdk:"labels"`
+	Annotations           map[string]types.String            `tfsdk:"annotations"`
+	Autoscaling           *autoscalingModel                  `tfsdk:"autoscaling"`
+	Region                types.String                       `tfsdk:"region"`
+	Replicas              []replicaModel                     `tfsdk:"replicas"`
+	GameServerLabels      map[string]types.String            `tfsdk:"gameserver_labels"`
+	GameServerAnnotations map[string]types.String            `tfsdk:"gameserver_annotations"`
+	Containers            []containerModel                   `tfsdk:"containers"`
+	HealthChecks          *healthChecksModel                 `tfsdk:"health_checks"`
+	TerminationConfig     *terminationConfigModel            `tfsdk:"termination_configuration"`
+	Strategy              *strategyModel                     `tfsdk:"strategy"`
+	Volumes               []volumeModel                      `tfsdk:"volumes"`
+	GatewayPolicies       []types.String                     `tfsdk:"gateway_policies"`
+	ProfilingEnabled      types.Bool                         `tfsdk:"profiling_enabled"`
+	ImageUpdaterTarget    *container.ImageUpdaterTargetModel `tfsdk:"image_updater_target"`
 }
 
 func newArmadaModel(obj *armadav1.Armada) armadaModel {
+	annots := conv.ForEachMapItem(obj.Annotations, types.StringValue)
+	delete(annots, profilingAnnotation)
+
 	return armadaModel{
+		ID:                    types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String()),
 		Name:                  types.StringValue(obj.Name),
 		Environment:           types.StringValue(obj.Environment),
-		Description:           types.StringValue(obj.Spec.Description),
+		Description:           conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
 		Labels:                conv.ForEachMapItem(obj.Labels, types.StringValue),
-		Annotations:           conv.ForEachMapItem(obj.Annotations, types.StringValue),
+		Annotations:           annots,
 		Autoscaling:           newAutoscalingModel(obj.Spec.Autoscaling),
 		Region:                types.StringValue(obj.Spec.Region),
 		Replicas:              conv.ForEachSliceItem(obj.Spec.Distribution, newReplicas),
 		GameServerLabels:      conv.ForEachMapItem(obj.Spec.Template.Labels, types.StringValue),
 		GameServerAnnotations: conv.ForEachMapItem(obj.Spec.Template.Annotations, types.StringValue),
 		Containers:            conv.ForEachSliceItem(obj.Spec.Template.Spec.Containers, newContainer),
-		HealthChecks: HealthChecks{
-			Disabled:            types.BoolValue(obj.Spec.Template.Spec.Health.Disabled),
-			InitialDelaySeconds: types.Int32Value(obj.Spec.Template.Spec.Health.InitialDelaySeconds),
-			PeriodSeconds:       types.Int32Value(obj.Spec.Template.Spec.Health.PeriodSeconds),
-			FailureThreshold:    types.Int32Value(obj.Spec.Template.Spec.Health.FailureThreshold),
-		},
-		TerminationConfig: TerminationConfig{
-			GracePeriodSeconds: conv.OptionalFunc(*obj.Spec.Template.Spec.TerminationGracePeriodSeconds, types.Int64Value, types.Int64Null),
-		},
-		Strategy:         newStrategy(obj.Spec.Template.Spec.Strategy),
-		Volumes:          conv.ForEachSliceItem(obj.Spec.Template.Spec.Volumes, newVolume),
-		GatewayPolicies:  conv.ForEachSliceItem(obj.Spec.Template.Spec.GatewayPolicies, types.StringValue),
-		ProfilingEnabled: newProfilingEnabled(obj.Annotations),
+		HealthChecks:          newHealthChecks(obj.Spec.Template.Spec.Health),
+		TerminationConfig:     newTerminationConfig(obj.Spec.Template.Spec.TerminationGracePeriodSeconds),
+		Strategy:              newStrategyModel(obj.Spec.Template.Spec.Strategy),
+		Volumes:               conv.ForEachSliceItem(obj.Spec.Template.Spec.Volumes, newVolumeModel),
+		GatewayPolicies:       conv.ForEachSliceItem(obj.Spec.Template.Spec.GatewayPolicies, types.StringValue),
+		ProfilingEnabled:      newProfilingEnabled(obj.Annotations),
+		ImageUpdaterTarget:    container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeArmada, obj.Name, obj.Environment),
+	}
+}
+
+func newTerminationConfig(seconds *int64) *terminationConfigModel {
+	if seconds == nil {
+		return nil
+	}
+	return &terminationConfigModel{
+		GracePeriodSeconds: conv.OptionalFunc(*seconds, types.Int64Value, types.Int64Null),
+	}
+}
+
+func newHealthChecks(obj agonesv1.Health) *healthChecksModel {
+	if obj == (agonesv1.Health{}) {
+		return nil
+	}
+
+	return &healthChecksModel{
+		Disabled:            types.BoolValue(obj.Disabled),
+		InitialDelaySeconds: types.Int32Value(obj.InitialDelaySeconds),
+		PeriodSeconds:       types.Int32Value(obj.PeriodSeconds),
+		FailureThreshold:    types.Int32Value(obj.FailureThreshold),
 	}
 }
 
@@ -75,12 +98,15 @@ func (m armadaModel) ToObject() *armadav1.Armada {
 			Name:        m.Name.ValueString(),
 			Environment: m.Environment.ValueString(),
 			Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
-			Annotations: conv.ForEachMapItem(m.Annotations, func(v types.String) string { return v.ValueString() }),
+			Annotations: conv.ForEachMapItem(
+				toAnnotations(m.Annotations, m.ProfilingEnabled),
+				func(v types.String) string { return v.ValueString() },
+			),
 		},
 		Spec: armadav1.ArmadaSpec{
 			Description: m.Description.ValueString(),
 			Region:      m.Region.ValueString(),
-			Distribution: conv.ForEachSliceItem(m.Replicas, func(r Replica) armadav1.ArmadaRegionType {
+			Distribution: conv.ForEachSliceItem(m.Replicas, func(r replicaModel) armadav1.ArmadaRegionType {
 				return armadav1.ArmadaRegionType{
 					Name:        r.RegionType.ValueString(),
 					MinReplicas: r.MinReplicas.ValueInt32(),
@@ -89,15 +115,19 @@ func (m armadaModel) ToObject() *armadav1.Armada {
 				}
 			}),
 			Autoscaling: armadav1.ArmadaAutoscaling{
-				FixedInterval: toFixedInterval(m.Autoscaling.FixedIntervalSeconds),
+				FixedInterval: toFixedInterval(m.Autoscaling),
 			},
 			Template: armadav1.FleetTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels:      conv.ForEachMapItem(m.GameServerLabels, func(v types.String) string { return v.ValueString() }),
+					Annotations: conv.ForEachMapItem(m.GameServerAnnotations, func(v types.String) string { return v.ValueString() }),
+				},
 				Spec: armadav1.FleetSpec{
 					GatewayPolicies:               conv.ForEachSliceItem(m.GatewayPolicies, func(v types.String) string { return v.ValueString() }),
 					Strategy:                      toDeploymentStrategy(m.Strategy),
 					Health:                        toHealthChecks(m.HealthChecks),
 					Containers:                    conv.ForEachSliceItem(m.Containers, toContainer),
-					TerminationGracePeriodSeconds: toTerminationGracePeriodSeconds(m.TerminationConfig.GracePeriodSeconds),
+					TerminationGracePeriodSeconds: toTerminationGracePeriodSeconds(m.TerminationConfig),
 					Volumes:                       conv.ForEachSliceItem(m.Volumes, toVolume),
 				},
 			},
@@ -105,7 +135,16 @@ func (m armadaModel) ToObject() *armadav1.Armada {
 	}
 }
 
-func toVolume(vol Volume) armadav1.Volume {
+func toAnnotations(annots map[string]types.String, profilingEnabled types.Bool) map[string]types.String {
+	if conv.IsKnown(profilingEnabled) {
+		res := maps.Clone(annots)
+		res[profilingAnnotation] = types.StringValue(strconv.FormatBool(profilingEnabled.ValueBool()))
+		return res
+	}
+	return annots
+}
+
+func toVolume(vol volumeModel) armadav1.Volume {
 	res := armadav1.Volume{
 		Name: vol.Name.ValueString(),
 	}
@@ -116,7 +155,7 @@ func toVolume(vol Volume) armadav1.Volume {
 	return res
 }
 
-func toContainer(ctr Container) armadav1.Container {
+func toContainer(ctr containerModel) armadav1.Container {
 	return armadav1.Container{
 		Name:         ctr.Name.ValueString(),
 		Image:        ctr.Image.Name.ValueString(),
@@ -131,14 +170,14 @@ func toContainer(ctr Container) armadav1.Container {
 	}
 }
 
-func toConfigFile(file ConfigFile) armadav1.ConfigFileMount {
+func toConfigFile(file configFileModel) armadav1.ConfigFileMount {
 	return armadav1.ConfigFileMount{
 		Name:      file.Name.ValueString(),
 		MountPath: file.MountPath.ValueString(),
 	}
 }
 
-func toVolumeMount(mount VolumeMount) kcorev1.VolumeMount {
+func toVolumeMount(mount volumeMountModel) kcorev1.VolumeMount {
 	return kcorev1.VolumeMount{
 		Name:        mount.Name.ValueString(),
 		MountPath:   mount.MountPath.ValueString(),
@@ -147,28 +186,35 @@ func toVolumeMount(mount VolumeMount) kcorev1.VolumeMount {
 	}
 }
 
-func toPort(p Port) armadav1.Port {
+func toPort(p portModel) armadav1.Port {
 	return armadav1.Port{
 		Name:               p.Name.ValueString(),
 		Policy:             agonesv1.PortPolicy(p.Policy.ValueString()),
-		ContainerPort:      uint16(p.ContainerPort.ValueInt32()),
+		ContainerPort:      uint16(p.ContainerPort.ValueInt32()), //nolint:gosec
 		Protocol:           kcorev1.Protocol(p.Protocol.ValueString()),
 		ProtectionProtocol: p.ProtectionProtocol.ValueStringPointer(),
 	}
 }
 
-func toResourceRequirements(res *Resources) kcorev1.ResourceRequirements {
-	if res == nil {
-		return kcorev1.ResourceRequirements{}
+func toResourceRequirements(res *resourcesModel) kcorev1.ResourceRequirements {
+	limits := toResourceList(res.Limits)
+	requests := toResourceList(res.Requests)
+
+	req := kcorev1.ResourceRequirements{}
+	if len(limits) > 0 {
+		req.Limits = limits
 	}
-	return kcorev1.ResourceRequirements{
-		Limits:   toResourceList(res.Limits),
-		Requests: toResourceList(res.Requests),
+	if len(requests) > 0 {
+		req.Requests = requests
 	}
+	return req
 }
 
-func toResourceList(spec ResourceSpec) kcorev1.ResourceList {
+func toResourceList(spec *resourceSpecModel) kcorev1.ResourceList {
 	res := kcorev1.ResourceList{}
+	if spec == nil {
+		return res
+	}
 	if q := toQuantity(spec.CPU); !q.IsZero() {
 		res[kcorev1.ResourceCPU] = q
 	}
@@ -179,20 +225,23 @@ func toResourceList(spec ResourceSpec) kcorev1.ResourceList {
 }
 
 func toQuantity(val types.String) resource.Quantity {
-	if val.IsNull() || val.IsUnknown() {
+	if !conv.IsKnown(val) {
 		return resource.Quantity{}
 	}
 	return resource.MustParse(val.ValueString()) // Pre-validation required.
 }
 
-func toTerminationGracePeriodSeconds(seconds types.Int64) *int64 {
-	if seconds.IsNull() || seconds.IsUnknown() {
+func toTerminationGracePeriodSeconds(cfg *terminationConfigModel) *int64 {
+	if cfg == nil || !conv.IsKnown(cfg.GracePeriodSeconds) {
 		return nil
 	}
-	return seconds.ValueInt64Pointer()
+	return cfg.GracePeriodSeconds.ValueInt64Pointer()
 }
 
-func toHealthChecks(hc HealthChecks) agonesv1.Health {
+func toHealthChecks(hc *healthChecksModel) agonesv1.Health {
+	if hc == nil {
+		return agonesv1.Health{}
+	}
 	return agonesv1.Health{
 		Disabled:            hc.Disabled.ValueBool(),
 		InitialDelaySeconds: hc.InitialDelaySeconds.ValueInt32(),
@@ -201,8 +250,18 @@ func toHealthChecks(hc HealthChecks) agonesv1.Health {
 	}
 }
 
-func toDeploymentStrategy(strat Strategy) appsv1.DeploymentStrategy {
-	if strat.RollingUpdate != nil {
+func toDeploymentStrategy(strat *strategyModel) appsv1.DeploymentStrategy {
+	switch {
+	case strat != nil && conv.IsKnown(strat.Recreate):
+		return appsv1.DeploymentStrategy{
+			Type: appsv1.RecreateDeploymentStrategyType,
+		}
+	case strat == nil:
+		return appsv1.DeploymentStrategy{
+			Type:          appsv1.RollingUpdateDeploymentStrategyType,
+			RollingUpdate: &appsv1.RollingUpdateDeployment{},
+		}
+	default:
 		return appsv1.DeploymentStrategy{
 			Type: appsv1.RollingUpdateDeploymentStrategyType,
 			RollingUpdate: &appsv1.RollingUpdateDeployment{
@@ -211,25 +270,22 @@ func toDeploymentStrategy(strat Strategy) appsv1.DeploymentStrategy {
 			},
 		}
 	}
-	return appsv1.DeploymentStrategy{
-		Type: appsv1.RecreateDeploymentStrategyType,
-	}
 }
 
 func toIntOrString(val types.String) *intstr.IntOrString {
-	if val.IsNull() || val.IsUnknown() {
+	if !conv.IsKnown(val) {
 		return nil
 	}
 	is := intstr.Parse(val.ValueString())
 	return &is
 }
 
-func toFixedInterval(val types.Int32) *armadav1.ArmadaFixInterval {
-	if val.IsNull() || val.IsUnknown() {
+func toFixedInterval(scaling *autoscalingModel) *armadav1.ArmadaFixInterval {
+	if scaling == nil || !conv.IsKnown(scaling.FixedIntervalSeconds) {
 		return &armadav1.ArmadaFixInterval{}
 	}
 	return &armadav1.ArmadaFixInterval{
-		Seconds: val.ValueInt32(),
+		Seconds: scaling.FixedIntervalSeconds.ValueInt32(),
 	}
 }
 
@@ -245,28 +301,28 @@ func newProfilingEnabled(annots map[string]string) types.Bool {
 	return types.BoolValue(val == "true")
 }
 
-type Autoscaling struct {
+type autoscalingModel struct {
 	FixedIntervalSeconds types.Int32 `tfsdk:"fixed_interval_seconds"`
 }
 
-func newAutoscalingModel(obj armadav1.ArmadaAutoscaling) *Autoscaling {
-	if obj.FixedInterval == nil {
+func newAutoscalingModel(obj armadav1.ArmadaAutoscaling) *autoscalingModel {
+	if obj.FixedInterval == nil || obj.FixedInterval.Seconds == 0 {
 		return nil
 	}
-	return &Autoscaling{
+	return &autoscalingModel{
 		FixedIntervalSeconds: types.Int32Value(obj.FixedInterval.Seconds),
 	}
 }
 
-type Replica struct {
+type replicaModel struct {
 	RegionType  types.String `tfsdk:"region_type"`
 	MinReplicas types.Int32  `tfsdk:"min_replicas"`
 	MaxReplicas types.Int32  `tfsdk:"max_replicas"`
 	BufferSize  types.Int32  `tfsdk:"buffer_size"`
 }
 
-func newReplicas(obj armadav1.ArmadaRegionType) Replica {
-	return Replica{
+func newReplicas(obj armadav1.ArmadaRegionType) replicaModel {
+	return replicaModel{
 		RegionType:  types.StringValue(obj.Name),
 		MinReplicas: types.Int32Value(obj.MinReplicas),
 		MaxReplicas: types.Int32Value(obj.MaxReplicas),
@@ -274,73 +330,73 @@ func newReplicas(obj armadav1.ArmadaRegionType) Replica {
 	}
 }
 
-type Container struct {
+type containerModel struct {
 	Name         types.String       `tfsdk:"name"`
-	Image        Image              `tfsdk:"image"`
+	Image        imageModel         `tfsdk:"image"`
 	Command      []types.String     `tfsdk:"command"`
 	Args         []types.String     `tfsdk:"args"`
-	Resources    *Resources         `tfsdk:"resources"`
+	Resources    *resourcesModel    `tfsdk:"resources"`
 	Envs         []core.EnvVarModel `tfsdk:"envs"`
-	Ports        []Port             `tfsdk:"ports"`
-	VolumeMounts []VolumeMount      `tfsdk:"volume_mounts"`
-	ConfigFiles  []ConfigFile       `tfsdk:"config_files"`
+	Ports        []portModel        `tfsdk:"ports"`
+	VolumeMounts []volumeMountModel `tfsdk:"volume_mounts"`
+	ConfigFiles  []configFileModel  `tfsdk:"config_files"`
 }
 
-func newContainer(obj armadav1.Container) Container {
-	return Container{
+func newContainer(obj armadav1.Container) containerModel {
+	return containerModel{
 		Name: types.StringValue(obj.Name),
-		Image: Image{
+		Image: imageModel{
 			Name:   types.StringValue(obj.Image),
 			Branch: types.StringValue(obj.Branch),
 		},
 		Command:      conv.ForEachSliceItem(obj.Command, types.StringValue),
 		Args:         conv.ForEachSliceItem(obj.Args, types.StringValue),
-		Resources:    newResources(obj.Resources),
+		Resources:    newResourcesModel(obj.Resources),
 		Envs:         conv.ForEachSliceItem(obj.Env, core.NewEnvVarModel),
-		Ports:        conv.ForEachSliceItem(obj.Ports, newPort),
-		VolumeMounts: conv.ForEachSliceItem(obj.VolumeMounts, newVolumeMounts),
-		ConfigFiles:  conv.ForEachSliceItem(obj.ConfigFiles, newConfigFiles),
+		Ports:        conv.ForEachSliceItem(obj.Ports, newPortModel),
+		VolumeMounts: conv.ForEachSliceItem(obj.VolumeMounts, newVolumeMountModel),
+		ConfigFiles:  conv.ForEachSliceItem(obj.ConfigFiles, newConfigFileModel),
 	}
 }
 
-type Image struct {
+type imageModel struct {
 	Name   types.String `tfsdk:"name"`
 	Branch types.String `tfsdk:"branch"`
 }
 
-type Resources struct {
-	Limits   ResourceSpec `tfsdk:"limits"`
-	Requests ResourceSpec `tfsdk:"requests"`
+type resourcesModel struct {
+	Limits   *resourceSpecModel `tfsdk:"limits"`
+	Requests *resourceSpecModel `tfsdk:"requests"`
 }
 
-func newResources(obj kcorev1.ResourceRequirements) *Resources {
-	res := &Resources{}
+func newResourcesModel(obj kcorev1.ResourceRequirements) *resourcesModel {
+	res := &resourcesModel{}
 	if obj.Limits != nil {
-		res.Limits = newResourceSpec(obj.Limits)
+		res.Limits = newResourceSpecModel(obj.Limits)
 	}
 	if obj.Requests != nil {
-		res.Requests = newResourceSpec(obj.Requests)
+		res.Requests = newResourceSpecModel(obj.Requests)
 	}
 	return res
 }
 
-func newResourceSpec(obj kcorev1.ResourceList) ResourceSpec {
-	res := ResourceSpec{}
+type resourceSpecModel struct {
+	CPU    types.String `tfsdk:"cpu"`
+	Memory types.String `tfsdk:"memory"`
+}
+
+func newResourceSpecModel(obj kcorev1.ResourceList) *resourceSpecModel {
+	res := resourceSpecModel{}
 	if obj.Cpu() != nil {
 		res.CPU = types.StringValue(obj.Cpu().String())
 	}
 	if obj.Memory() != nil {
 		res.Memory = types.StringValue(obj.Memory().String())
 	}
-	return res
+	return &res
 }
 
-type ResourceSpec struct {
-	CPU    types.String `tfsdk:"cpu"`
-	Memory types.String `tfsdk:"memory"`
-}
-
-type Port struct {
+type portModel struct {
 	Name               types.String `tfsdk:"name"`
 	Protocol           types.String `tfsdk:"protocol"`
 	ContainerPort      types.Int32  `tfsdk:"container_port"`
@@ -348,8 +404,8 @@ type Port struct {
 	ProtectionProtocol types.String `tfsdk:"protection_protocol"`
 }
 
-func newPort(obj armadav1.Port) Port {
-	return Port{
+func newPortModel(obj armadav1.Port) portModel {
+	return portModel{
 		Name:               types.StringValue(obj.Name),
 		Protocol:           types.StringValue(string(obj.Protocol)),
 		ContainerPort:      types.Int32Value(int32(obj.ContainerPort)),
@@ -358,15 +414,15 @@ func newPort(obj armadav1.Port) Port {
 	}
 }
 
-type VolumeMount struct {
+type volumeMountModel struct {
 	Name        types.String `tfsdk:"name"`
 	MountPath   types.String `tfsdk:"mount_path"`
 	SubPath     types.String `tfsdk:"sub_path"`
 	SubPathExpr types.String `tfsdk:"sub_path_expr"`
 }
 
-func newVolumeMounts(obj kcorev1.VolumeMount) VolumeMount {
-	return VolumeMount{
+func newVolumeMountModel(obj kcorev1.VolumeMount) volumeMountModel {
+	return volumeMountModel{
 		Name:        types.StringValue(obj.Name),
 		MountPath:   types.StringValue(obj.MountPath),
 		SubPath:     conv.OptionalFunc(obj.SubPath, types.StringValue, types.StringNull),
@@ -374,96 +430,75 @@ func newVolumeMounts(obj kcorev1.VolumeMount) VolumeMount {
 	}
 }
 
-type ConfigFile struct {
+type configFileModel struct {
 	Name      types.String `tfsdk:"name"`
 	MountPath types.String `tfsdk:"mount_path"`
 }
 
-func newConfigFiles(obj armadav1.ConfigFileMount) ConfigFile {
-	return ConfigFile{
+func newConfigFileModel(obj armadav1.ConfigFileMount) configFileModel {
+	return configFileModel{
 		Name:      types.StringValue(obj.Name),
 		MountPath: types.StringValue(obj.MountPath),
 	}
 }
 
-type HealthChecks struct {
+type healthChecksModel struct {
 	Disabled            types.Bool  `tfsdk:"disabled"`
 	InitialDelaySeconds types.Int32 `tfsdk:"initial_delay_seconds"`
 	PeriodSeconds       types.Int32 `tfsdk:"period_seconds"`
 	FailureThreshold    types.Int32 `tfsdk:"failure_threshold"`
 }
 
-type TerminationConfig struct {
-	GracePeriodSeconds   types.Int64 `tfsdk:"grace_period_seconds"`
-	MaintenanceSeconds   types.Int32 `tfsdk:"maintenance_seconds"`
-	SpecChangeSeconds    types.Int32 `tfsdk:"spec_change_seconds"`
-	UserInitiatedSeconds types.Int32 `tfsdk:"user_initiated_seconds"`
+type terminationConfigModel struct {
+	GracePeriodSeconds types.Int64 `tfsdk:"grace_period_seconds"`
 }
 
-type Strategy struct {
-	RollingUpdate *RollingUpdate `tfsdk:"rolling_update"`
-	Recreate      types.Object   `tfsdk:"recreate"`
+type strategyModel struct {
+	RollingUpdate *rollingUpdateModel `tfsdk:"rolling_update"`
+	Recreate      types.Object        `tfsdk:"recreate"`
 }
 
-func newStrategy(obj appsv1.DeploymentStrategy) Strategy {
+func newStrategyModel(obj appsv1.DeploymentStrategy) *strategyModel {
 	switch obj.Type {
 	case appsv1.RollingUpdateDeploymentStrategyType:
-		if obj.RollingUpdate == nil {
-			return Strategy{
-				RollingUpdate: &RollingUpdate{},
-			}
+		if obj.RollingUpdate == nil || (obj.RollingUpdate.MaxSurge == nil && obj.RollingUpdate.MaxUnavailable == nil) {
+			return nil
 		}
-		return Strategy{
-			RollingUpdate: &RollingUpdate{
-				MaxSurge:       newIntOrString(obj.RollingUpdate.MaxSurge),
-				MaxUnavailable: newIntOrString(obj.RollingUpdate.MaxUnavailable),
+		return &strategyModel{
+			RollingUpdate: &rollingUpdateModel{
+				MaxSurge:       conv.FromIntOrString(obj.RollingUpdate.MaxSurge),
+				MaxUnavailable: conv.FromIntOrString(obj.RollingUpdate.MaxUnavailable),
 			},
 		}
 	default:
-		return Strategy{
+		return &strategyModel{
 			Recreate: types.Object{},
 		}
 	}
 }
 
-func newIntOrString(val *intstr.IntOrString) types.String {
-	if val == nil {
-		return types.StringNull()
-	}
-	if val.Type == intstr.Int {
-		return types.StringValue(strconv.Itoa(int(val.IntVal)))
-	}
-	return types.StringValue(val.StrVal)
-}
-
-type RollingUpdate struct {
+type rollingUpdateModel struct {
 	MaxSurge       types.String `tfsdk:"max_surge"`
 	MaxUnavailable types.String `tfsdk:"max_unavailable"`
 }
 
-type Volume struct {
-	Name     types.String `tfsdk:"name"`
-	EmptyDir *EmptyDir    `tfsdk:"empty_dir"`
+type volumeModel struct {
+	Name     types.String   `tfsdk:"name"`
+	EmptyDir *emptyDirModel `tfsdk:"empty_dir"`
 }
 
-func newVolume(obj armadav1.Volume) Volume {
-	vol := Volume{
+func newVolumeModel(obj armadav1.Volume) volumeModel {
+	vol := volumeModel{
 		Name: types.StringValue(obj.Name),
 	}
-	if vol.EmptyDir != nil {
-		vol.EmptyDir = &EmptyDir{
+	if obj.SizeLimit != nil && !obj.SizeLimit.IsZero() {
+		vol.EmptyDir = &emptyDirModel{
 			SizeLimit: conv.OptionalFunc(obj.SizeLimit.String(), types.StringValue, types.StringNull),
 		}
 	}
 	return vol
 }
 
-type EmptyDir struct {
+type emptyDirModel struct {
 	SizeLimit types.String `tfsdk:"size_limit"`
-}
-
-type ImageUpdaterTarget struct {
-	Name        types.String `tfsdk:"name"`
-	Type        types.String `tfsdk:"type"`
-	Environment types.String `tfsdk:"environment"`
 }
