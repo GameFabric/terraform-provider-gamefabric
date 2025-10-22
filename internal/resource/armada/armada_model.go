@@ -472,7 +472,7 @@ func newStrategyModel(obj appsv1.DeploymentStrategy) *strategyModel {
 		}
 	default:
 		return &strategyModel{
-			Recreate: types.Object{},
+			Recreate: types.ObjectValueMust(nil, nil),
 		}
 	}
 }

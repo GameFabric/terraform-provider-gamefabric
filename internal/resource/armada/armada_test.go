@@ -130,6 +130,50 @@ func TestResourceArmada(t *testing.T) {
 	})
 }
 
+func TestResourceArmadaConfigBasic(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckArmadasDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				Config: testResourceArmadaConfigBasic(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "name", "my-armada"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "environment", "test"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "description", "My New Armada Description"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "region", "eu"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.#", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.name", "example-container"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.image.name", "gameserver-asoda0s"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.image.branch", "prod"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.resources.requests.cpu", "250m"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.resources.requests.memory", "256Mi"),
+
+					resource.TestCheckNoResourceAttr("gamefabric_armada.test", "strategy"),
+				),
+			},
+			{
+				ResourceName:      "gamefabric_armada.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			}, {
+				Config: testResourceArmadaConfigBasic("strategy = {\nrecreate = {}\n}\n"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "name", "my-armada"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "environment", "test"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "description", "My New Armada Description"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "strategy.recreate.%", "0"),
+				),
+			},
+		},
+	})
+}
+
 func TestResourceArmada_Validates(t *testing.T) {
 	tests := []struct {
 		name        string
