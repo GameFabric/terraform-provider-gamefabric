@@ -18,8 +18,8 @@ description: |-
 ### Required
 
 - `branch` (String) The branch that contains the image.
-- `image` (String) Description is the optional description of the region.
-- `target` (Attributes) Types defines the types on infrastructure available in the region. (see [below for nested schema](#nestedatt--target))
+- `image` (String) The name of the image to update.
+- `target` (Attributes) Target configuration specifying the resource to update. (see [below for nested schema](#nestedatt--target))
 
 ### Read-Only
 
@@ -30,6 +30,6 @@ description: |-
 
 Required:
 
-- `environment` (String) Description is the optional description of the region.
-- `name` (String) Description is the optional description of the region.
-- `type` (String) DisplayName is the user-friendly name of a region.
+- `environment` (String) The environment in which the target resource operates.
+- `name` (String) The name of the target resource.
+- `type` (String) The type of the target resource.

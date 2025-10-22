@@ -58,17 +58,17 @@ func (r *imageUpdater) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 			},
 			"image": schema.StringAttribute{
 				Description:         "The name of the image to update.",
-				MarkdownDescription: "Description is the optional description of the region.",
+				MarkdownDescription: "The name of the image to update.",
 				Required:            true,
 			},
 			"target": schema.SingleNestedAttribute{
-				Description:         "Types defines the types on infrastructure available in the region.",
-				MarkdownDescription: "Types defines the types on infrastructure available in the region.",
+				Description:         "Target configuration specifying the resource to update.",
+				MarkdownDescription: "Target configuration specifying the resource to update.",
 				Required:            true,
 				Attributes: map[string]schema.Attribute{
 					"type": schema.StringAttribute{
-						Description:         "DisplayName is the user-friendly name of a region.",
-						MarkdownDescription: "DisplayName is the user-friendly name of a region.",
+						Description:         "The type of the target resource.",
+						MarkdownDescription: "The type of the target resource.",
 						Required:            true,
 						Validators: []validator.String{
 							stringvalidator.OneOf(
@@ -77,16 +77,16 @@ func (r *imageUpdater) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 						},
 					},
 					"name": schema.StringAttribute{
-						Description:         "Description is the optional description of the region.",
-						MarkdownDescription: "Description is the optional description of the region.",
+						Description:         "The name of the target resource.",
+						MarkdownDescription: "The name of the target resource.",
 						Required:            true,
 						Validators: []validator.String{
 							validators.NameValidator{},
 						},
 					},
 					"environment": schema.StringAttribute{
-						Description:         "Description is the optional description of the region.",
-						MarkdownDescription: "Description is the optional description of the region.",
+						Description:         "The environment in which the target resource operates.",
+						MarkdownDescription: "The environment in which the target resource operates.",
 						Required:            true,
 						Validators: []validator.String{
 							validators.EnvironmentValidator{},
