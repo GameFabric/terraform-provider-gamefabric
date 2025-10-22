@@ -197,7 +197,7 @@ func (r *configFile) Update(ctx context.Context, req resource.UpdateRequest, res
 	if _, err = r.clientSet.CoreV1().ConfigFiles(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Config File",
-			fmt.Sprintf("Could not patch for ConfigFile: %v", err),
+			fmt.Sprintf("Could not patch ConfigFile: %v", err),
 		)
 		return
 	}
