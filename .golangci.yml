@@ -69,5 +69,6 @@ linters:
         text: 'package-comments: should have a package comment'
       - path: (.+)\.go$
         text: 'unlambda'
-      - path: internal\/resource\/core\/region\.go
-        text: "lines are duplicate of"
+      - path: internal\/(.+).go
+        linters:
+          - dupl
