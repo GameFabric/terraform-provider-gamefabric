@@ -23,4 +23,12 @@ description: |-
 
 ### Read-Only
 
+- `image_target` (Attributes) (see [below for nested schema](#nestedatt--image_target))
+
+<a id="nestedatt--image_target"></a>
+### Nested Schema for `image_target`
+
+Read-Only:
+
+- `branch` (String) The branch in which to find the image.
 - `name` (String) The unique image name within its branch.

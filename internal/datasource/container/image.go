@@ -38,11 +38,6 @@ func (r *image) Metadata(_ context.Context, req datasource.MetadataRequest, resp
 func (r *image) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"name": schema.StringAttribute{
-				Description:         "The unique image name within its branch.",
-				MarkdownDescription: "The unique image name within its branch.",
-				Computed:            true,
-			},
 			"branch": schema.StringAttribute{
 				Description:         "The branch in which to find the image.",
 				MarkdownDescription: "The branch in which to find the image.",
@@ -60,6 +55,23 @@ func (r *image) Schema(_ context.Context, _ datasource.SchemaRequest, resp *data
 				Description:         "The tag or version of the container image.",
 				MarkdownDescription: "The tag or version of the container image.",
 				Required:            true,
+			},
+			"image_target": schema.SingleNestedAttribute{
+				Description:         "",
+				MarkdownDescription: "",
+				Computed:            true,
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						Description:         "The unique image name within its branch.",
+						MarkdownDescription: "The unique image name within its branch.",
+						Computed:            true,
+					},
+					"branch": schema.StringAttribute{
+						Description:         "The branch in which to find the image.",
+						MarkdownDescription: "The branch in which to find the image.",
+						Computed:            true,
+					},
+				},
 			},
 		},
 	}
@@ -126,5 +138,8 @@ func (r *image) Read(ctx context.Context, req datasource.ReadRequest, resp *data
 	})
 
 	state := newImageModel(latestImg)
+	state.Branch = config.Branch
+	state.Image = config.Image
+	state.Tag = config.Tag
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
