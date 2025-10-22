@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// Image updater target types.
 const (
 	ImageUpdaterTargetTypeArmadaSet = "armadaset"
 	ImageUpdaterTargetTypeArmada    = "armada"
