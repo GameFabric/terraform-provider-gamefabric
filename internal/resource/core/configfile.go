@@ -217,7 +217,7 @@ func (r *configFile) Delete(ctx context.Context, req resource.DeleteRequest, res
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting Config File",
-			fmt.Sprintf("Could not delete for ConfigFile: %v", err),
+			fmt.Sprintf("Could not delete ConfigFile: %v", err),
 		)
 		return
 	}
