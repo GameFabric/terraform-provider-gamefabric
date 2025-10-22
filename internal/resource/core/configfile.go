@@ -42,7 +42,7 @@ func (r *configFile) Metadata(_ context.Context, req resource.MetadataRequest, r
 	resp.TypeName = req.ProviderTypeName + "_configfile"
 }
 
-// Schema defines the schema for this data source.
+// Schema defines the schema for this resource.
 func (r *configFile) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
