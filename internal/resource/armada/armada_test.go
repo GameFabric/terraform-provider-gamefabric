@@ -227,7 +227,7 @@ func TestResourceArmada_Validates(t *testing.T) {
 			expectError: regexp.MustCompile(regexp.QuoteMeta(`Label value for key "example1" is not valid`)),
 		},
 		{
-			name:        "validates game sever label keys",
+			name:        "validates game server label keys",
 			config:      testResourceArmadaConfigFullInvalid(),
 			expectError: regexp.MustCompile(regexp.QuoteMeta(`invalid_gs_label_key!`)),
 		},
