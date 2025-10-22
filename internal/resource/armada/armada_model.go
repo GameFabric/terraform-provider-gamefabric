@@ -190,7 +190,7 @@ func toPort(p portModel) armadav1.Port {
 	return armadav1.Port{
 		Name:               p.Name.ValueString(),
 		Policy:             agonesv1.PortPolicy(p.Policy.ValueString()),
-		ContainerPort:      uint16(p.ContainerPort.ValueInt32()), //nolint:gosec
+		ContainerPort:      uint16(p.ContainerPort.ValueInt32()), //nolint:gosec // Keep it simple.
 		Protocol:           kcorev1.Protocol(p.Protocol.ValueString()),
 		ProtectionProtocol: p.ProtectionProtocol.ValueStringPointer(),
 	}
