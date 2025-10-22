@@ -160,6 +160,7 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 // DataSources defines the data sources implemented in the provider.
 func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		dscore.NewConfigFile,
 		dscore.NewEnvironment,
 		dscore.NewEnvironments,
 		dscore.NewLocation,
