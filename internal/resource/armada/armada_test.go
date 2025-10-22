@@ -101,16 +101,16 @@ func TestResourceArmada(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "strategy.rolling_update.max_surge", "25%"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "strategy.rolling_update.max_unavailable", "5"),
 
-					// Volumes
+					// Volumes.
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "volumes.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "volumes.0.name", "example-volume"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "volumes.0.empty_dir.size_limit", "1Gi"),
 
-					// Gateway policies
+					// Gateway policies.
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "gateway_policies.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "gateway_policies.0", "test-policy"),
 
-					// Profiling enabled
+					// Profiling enabled.
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "profiling_enabled", "true"),
 				),
 			},
