@@ -69,7 +69,7 @@ func TestImage_Latest(t *testing.T) {
 		ImageObjectMeta: containerv1.ImageObjectMeta{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:             "test-image2",
-				CreatedTimestamp: before,
+				CreatedTimestamp: now,
 			},
 			Branch: "test-branch",
 		},
