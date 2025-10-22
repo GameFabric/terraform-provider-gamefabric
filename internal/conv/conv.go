@@ -47,8 +47,8 @@ func OptionalFunc[T comparable, K attr.Value](v T, valFn func(T) K, defFn func()
 	return valFn(v)
 }
 
-// RequiredFunc returns an empty slice if the input slice is nil, otherwise it returns the input slice.
-func RequiredFunc[T any](v []T) []T {
+// EmptyIfNil returns an empty slice if the input slice is nil, otherwise it returns the input slice.
+func EmptyIfNil[T any](v []T) []T {
 	if v == nil {
 		return make([]T, 0)
 	}

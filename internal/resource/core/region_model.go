@@ -36,7 +36,7 @@ func newRegionModel(obj *corev1.Region) regionModel {
 	for _, typ := range obj.Spec.Types {
 		template := cmp.Or(typ.Template, &corev1.RegionTemplate{})
 		model.Types[typ.Name] = regionTypeModel{
-			Locations:  conv.RequiredFunc(conv.ForEachSliceItem(typ.Locations, types.StringValue)),
+			Locations:  conv.EmptyIfNil(conv.ForEachSliceItem(typ.Locations, types.StringValue)),
 			Envs:       conv.ForEachSliceItem(template.Env, NewEnvVarModel),
 			Scheduling: conv.OptionalFunc(string(template.Scheduling), types.StringValue, types.StringNull),
 		}
