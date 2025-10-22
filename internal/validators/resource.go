@@ -14,7 +14,7 @@ type QuantityValidator struct{}
 
 // Description provides a description of the validator.
 func (v QuantityValidator) Description(_ context.Context) string {
-	return "Validates that the attribute value is a valid resource identifier."
+	return "Validates that the attribute value is a valid resource quantity."
 }
 
 // MarkdownDescription provides a markdown formatted description of the validator.
