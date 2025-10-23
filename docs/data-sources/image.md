@@ -23,4 +23,12 @@ description: |-
 
 ### Read-Only
 
+- `image_target` (Attributes) Provides information about the resolved image target, such as its unique name within the branch and the branch in which it is found. (see [below for nested schema](#nestedatt--image_target))
+
+<a id="nestedatt--image_target"></a>
+### Nested Schema for `image_target`
+
+Read-Only:
+
+- `branch` (String) The branch in which to find the image.
 - `name` (String) The unique image name within its branch.
