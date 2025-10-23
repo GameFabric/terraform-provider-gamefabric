@@ -178,7 +178,7 @@ In Terraform v1.5.0 and later, the [`import` block](https://developer.hashicorp.
 
 ```terraform
 import {
-  id = "{{ environment }}/regions/{{ name }}"
+  id = "{{ environment }}/{{ name }}"
   to = gamefabric_region.europe
 }
 ```
@@ -186,5 +186,5 @@ import {
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import gamefabric_region.europe "{{ environment }}/regions/{{ name }}"
+terraform import gamefabric_region.europe "{{ environment }}/{{ name }}"
 ```

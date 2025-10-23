@@ -1,0 +1,52 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+An Armada manages your game server deployments within a Region. It handles the distribution and scaling of your game servers, whether you're running on a single node or across multiple locations with mixed baremetal and cloud infrastructure.
+
+When you update an Armada, it creates a new revision. This versioning system allows you to safely roll back to a previous configuration if needed, or run multiple versions simultaneously during gradual rollouts to minimize disruption to your players.
+
+For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/getting-started/glossary#armada">GameFabric documentation</a>.
+
+
+## Example Usage - Simple Armada
+
+This example sets up an minimal armada in a single region for europe which uses baremetal and cloud locations.
+
+{{ tffile "examples/resources/gamefabric_armada/simple_armada.tf" }}
+
+## Example Usage - Armada for All Regions
+
+This example sets up an armada in all available regions, it uses the result of the `gamefabric_regions` data source to create an armada in each region within the environment..
+It also calculates the minimum, maximum and buffer sizes based on available CPU/Memory resources within a region type.
+
+This allows by simply changing the game_cpu_request and game_memory_request locals to adjust the armada replicas accordingly.
+
+{{ tffile "examples/resources/gamefabric_armada/armada_for_all_regions.tf" }}
+
+
+{{ .SchemaMarkdown | trimspace }}
+{{- if or .HasImport .HasImportIDConfig .HasImportIdentityConfig }}
+
+## Import
+
+Import is supported using the following syntax:
+{{- end }}
+
+{{- if .HasImportIDConfig }}
+
+In Terraform v1.5.0 and later, the [`import` block](https://developer.hashicorp.com/terraform/language/import) can be used with the `id` attribute, for example:
+
+{{tffile .ImportIDConfigFile }}
+{{- end }}
+{{- if .HasImport }}
+
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
+{{codefile "shell" .ImportFile }}
+{{- end }}
