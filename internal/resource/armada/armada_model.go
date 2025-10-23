@@ -41,16 +41,13 @@ type armadaModel struct {
 }
 
 func newArmadaModel(obj *armadav1.Armada) armadaModel {
-	annots := conv.ForEachMapItem(obj.Annotations, types.StringValue)
-	delete(annots, profilingAnnotation)
-
 	return armadaModel{
 		ID:                    types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String()),
 		Name:                  types.StringValue(obj.Name),
 		Environment:           types.StringValue(obj.Environment),
 		Description:           conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
 		Labels:                conv.ForEachMapItem(obj.Labels, types.StringValue),
-		Annotations:           annots,
+		Annotations:           newAnnotations(obj.Annotations),
 		Autoscaling:           newAutoscalingModel(obj.Spec.Autoscaling),
 		Region:                types.StringValue(obj.Spec.Region),
 		Replicas:              conv.ForEachSliceItem(obj.Spec.Distribution, newReplicas),
@@ -120,12 +117,16 @@ func newTerminationConfig(seconds *int64) *terminationConfigModel {
 }
 
 func toAnnotations(annots map[string]types.String, profilingEnabled types.Bool) map[string]types.String {
-	if conv.IsKnown(profilingEnabled) {
-		res := maps.Clone(annots)
-		res[profilingAnnotation] = types.StringValue(strconv.FormatBool(profilingEnabled.ValueBool()))
-		return res
+	if !conv.IsKnown(profilingEnabled) {
+		return annots
 	}
-	return annots
+
+	res := maps.Clone(annots)
+	if res == nil {
+		res = make(map[string]types.String)
+	}
+	res[profilingAnnotation] = types.StringValue(strconv.FormatBool(profilingEnabled.ValueBool()))
+	return res
 }
 
 func toStrategy(strat *strategyModel) appsv1.DeploymentStrategy {
@@ -177,6 +178,20 @@ func newProfilingEnabled(annots map[string]string) types.Bool {
 		return types.BoolNull()
 	}
 	return types.BoolValue(val == "true")
+}
+
+func newAnnotations(annots map[string]string) map[string]types.String {
+	if len(annots) == 0 {
+		return conv.ForEachMapItem(annots, types.StringValue)
+	}
+
+	annots = maps.Clone(annots)
+	delete(annots, profilingAnnotation)
+	if len(annots) == 0 {
+		return nil
+	}
+
+	return conv.ForEachMapItem(annots, types.StringValue)
 }
 
 type autoscalingModel struct {

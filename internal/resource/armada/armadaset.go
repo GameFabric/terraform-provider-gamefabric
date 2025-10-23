@@ -472,16 +472,16 @@ func (r *armadaSet) Delete(ctx context.Context, req resource.DeleteRequest, resp
 	err := r.clientSet.ArmadaV1().ArmadaSets(state.Environment.ValueString()).Delete(ctx, state.Name.ValueString(), metav1.DeleteOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Deleting Armada",
-			fmt.Sprintf("Could not delete for Armada: %v", err),
+			"Error Deleting ArmadaSet",
+			fmt.Sprintf("Could not delete for ArmadaSet: %v", err),
 		)
 		return
 	}
 
 	if err = wait.PollUntilNotFound(ctx, r.clientSet.ArmadaV1().Armadas(state.Environment.ValueString()), state.Name.ValueString()); err != nil {
 		resp.Diagnostics.AddError(
-			"Error Waiting for Armada Deletion",
-			fmt.Sprintf("Timed out waiting for deletion of Armada: %v", err),
+			"Error Waiting for ArmadaSet Deletion",
+			fmt.Sprintf("Timed out waiting for deletion of ArmadaSet: %v", err),
 		)
 		return
 	}

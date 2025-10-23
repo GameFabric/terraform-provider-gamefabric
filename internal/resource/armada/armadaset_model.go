@@ -37,16 +37,13 @@ type armadaSetModel struct {
 }
 
 func newArmadaSetModel(obj *armadav1.ArmadaSet) armadaSetModel {
-	annots := conv.ForEachMapItem(obj.Annotations, types.StringValue)
-	delete(annots, profilingAnnotation)
-
 	return armadaSetModel{
 		ID:                    types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String()),
 		Name:                  types.StringValue(obj.Name),
 		Environment:           types.StringValue(obj.Environment),
 		Description:           conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
 		Labels:                conv.ForEachMapItem(obj.Labels, types.StringValue),
-		Annotations:           annots,
+		Annotations:           newAnnotations(obj.Annotations),
 		Autoscaling:           newAutoscalingModel(obj.Spec.Autoscaling),
 		Regions:               newRegionModels(obj.Spec),
 		GameServerLabels:      conv.ForEachMapItem(obj.Spec.Template.Labels, types.StringValue),
