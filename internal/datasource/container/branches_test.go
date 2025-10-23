@@ -10,8 +10,6 @@ import (
 )
 
 func TestBranches(t *testing.T) {
-	t.Parallel()
-
 	branch := &containerv1.Branch{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test-branch-1",
@@ -64,8 +62,6 @@ func TestBranches(t *testing.T) {
 }
 
 func TestBranches_AllowsGettingAll(t *testing.T) {
-	t.Parallel()
-
 	branch1 := &containerv1.Branch{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test-branch-1",

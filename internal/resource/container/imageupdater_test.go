@@ -13,8 +13,6 @@ import (
 )
 
 func TestImageUpdater(t *testing.T) {
-	t.Parallel()
-
 	pf, cs := providertest.ProtoV6ProviderFactories(t)
 
 	resource.Test(t, resource.TestCase{

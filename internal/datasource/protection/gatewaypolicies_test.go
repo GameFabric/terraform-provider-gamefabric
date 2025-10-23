@@ -10,8 +10,6 @@ import (
 )
 
 func TestGatewayPolicies(t *testing.T) {
-	t.Parallel()
-
 	pol := &protectionv1.GatewayPolicy{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test-policy",
@@ -45,8 +43,6 @@ func TestGatewayPolicies(t *testing.T) {
 }
 
 func TestEnvironments_AllowsGettingAll(t *testing.T) {
-	t.Parallel()
-
 	pol := &protectionv1.GatewayPolicy{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test-policy",

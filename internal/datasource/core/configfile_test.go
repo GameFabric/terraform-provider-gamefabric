@@ -10,8 +10,6 @@ import (
 )
 
 func TestConfigFile(t *testing.T) {
-	t.Parallel()
-
 	cfgFile := &corev1.ConfigFile{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        "test-config-file",

@@ -11,8 +11,6 @@ import (
 )
 
 func TestEnvironment(t *testing.T) {
-	t.Parallel()
-
 	env := &corev1.Environment{
 		ObjectMeta: metav1.ObjectMeta{Name: "dflt"},
 		Spec: corev1.EnvironmentSpec{
@@ -54,8 +52,6 @@ func TestEnvironment(t *testing.T) {
 }
 
 func TestEnvironment_HandlesMultipleMatches(t *testing.T) {
-	t.Parallel()
-
 	env := &corev1.Environment{
 		ObjectMeta: metav1.ObjectMeta{Name: "dflt"},
 		Spec: corev1.EnvironmentSpec{
@@ -89,8 +85,6 @@ func TestEnvironment_HandlesMultipleMatches(t *testing.T) {
 }
 
 func TestEnvironment_HandlesMultipleSelectors(t *testing.T) {
-	t.Parallel()
-
 	env := &corev1.Environment{
 		ObjectMeta: metav1.ObjectMeta{Name: "dflt"},
 		Spec: corev1.EnvironmentSpec{

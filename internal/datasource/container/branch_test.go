@@ -11,8 +11,6 @@ import (
 )
 
 func TestBranch(t *testing.T) {
-	t.Parallel()
-
 	branch := &containerv1.Branch{
 		ObjectMeta: metav1.ObjectMeta{Name: "test-branch"},
 		Spec: containerv1.BranchSpec{
@@ -72,8 +70,6 @@ func TestBranch(t *testing.T) {
 }
 
 func TestBranch_HandlesMultipleMatches(t *testing.T) {
-	t.Parallel()
-
 	branch := &containerv1.Branch{
 		ObjectMeta: metav1.ObjectMeta{Name: "test-branch"},
 		Spec: containerv1.BranchSpec{
@@ -105,8 +101,6 @@ func TestBranch_HandlesMultipleMatches(t *testing.T) {
 }
 
 func TestBranch_HandlesMultipleSelectors(t *testing.T) {
-	t.Parallel()
-
 	pf, _ := providertest.ProtoV6ProviderFactories(t)
 
 	resource.Test(t, resource.TestCase{

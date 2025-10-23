@@ -10,8 +10,6 @@ import (
 )
 
 func TestLocations(t *testing.T) {
-	t.Parallel()
-
 	loc1 := &corev1.Location{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "loc-1",

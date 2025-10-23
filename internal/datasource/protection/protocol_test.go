@@ -11,8 +11,6 @@ import (
 )
 
 func TestProtocol(t *testing.T) {
-	t.Parallel()
-
 	proto := &protectionv1.Protocol{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test-protocol",
@@ -59,8 +57,6 @@ func TestProtocol(t *testing.T) {
 }
 
 func TestProtocol_HandlesMultipleMatches(t *testing.T) {
-	t.Parallel()
-
 	proto := &protectionv1.Protocol{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test-protocol",
@@ -96,8 +92,6 @@ func TestProtocol_HandlesMultipleMatches(t *testing.T) {
 }
 
 func TestProtocol_HandlesMultipleSelectors(t *testing.T) {
-	t.Parallel()
-
 	pf, _ := providertest.ProtoV6ProviderFactories(t)
 
 	resource.Test(t, resource.TestCase{

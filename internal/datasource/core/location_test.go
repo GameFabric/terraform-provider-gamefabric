@@ -10,8 +10,6 @@ import (
 )
 
 func TestLocation(t *testing.T) {
-	t.Parallel()
-
 	loc := &corev1.Location{
 		ObjectMeta: metav1.ObjectMeta{Name: "test-location"},
 		Spec: corev1.LocationSpec{

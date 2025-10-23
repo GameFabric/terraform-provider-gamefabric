@@ -14,8 +14,6 @@ import (
 )
 
 func TestResourceArmada(t *testing.T) {
-	t.Parallel()
-
 	pf, cs := providertest.ProtoV6ProviderFactories(t)
 
 	resource.Test(t, resource.TestCase{
@@ -131,8 +129,6 @@ func TestResourceArmada(t *testing.T) {
 }
 
 func TestResourceArmadaConfigBasic(t *testing.T) {
-	t.Parallel()
-
 	pf, cs := providertest.ProtoV6ProviderFactories(t)
 
 	resource.Test(t, resource.TestCase{
@@ -360,8 +356,6 @@ func TestResourceArmada_Validates(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			t.Parallel()
-
 			pf, cs := providertest.ProtoV6ProviderFactories(t)
 
 			resource.Test(t, resource.TestCase{

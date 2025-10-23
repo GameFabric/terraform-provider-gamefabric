@@ -13,8 +13,6 @@ import (
 )
 
 func TestConfigFile(t *testing.T) {
-	t.Parallel()
-
 	name := "test-config-file"
 	pf, cs := providertest.ProtoV6ProviderFactories(t)
 

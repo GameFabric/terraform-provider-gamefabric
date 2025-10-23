@@ -11,8 +11,6 @@ import (
 )
 
 func TestGatewayPolicy(t *testing.T) {
-	t.Parallel()
-
 	pol := &protectionv1.GatewayPolicy{
 		ObjectMeta: metav1.ObjectMeta{Name: "test-gateway-policy"},
 		Spec: protectionv1.GatewayPolicySpec{
@@ -59,8 +57,6 @@ func TestGatewayPolicy(t *testing.T) {
 }
 
 func TestGatewayPolicy_HandlesMultipleMatches(t *testing.T) {
-	t.Parallel()
-
 	pol := &protectionv1.GatewayPolicy{
 		ObjectMeta: metav1.ObjectMeta{Name: "test-gateway-policy"},
 		Spec: protectionv1.GatewayPolicySpec{
@@ -92,8 +88,6 @@ func TestGatewayPolicy_HandlesMultipleMatches(t *testing.T) {
 }
 
 func TestGatewayPolicy_HandlesMultipleSelectors(t *testing.T) {
-	t.Parallel()
-
 	pf, _ := providertest.ProtoV6ProviderFactories(t)
 
 	resource.Test(t, resource.TestCase{

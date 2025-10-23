@@ -10,8 +10,6 @@ import (
 )
 
 func TestProtocols(t *testing.T) {
-	t.Parallel()
-
 	proto1 := &protectionv1.Protocol{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test-protocol1",

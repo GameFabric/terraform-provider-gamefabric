@@ -12,8 +12,6 @@ import (
 )
 
 func TestEnvironment(t *testing.T) {
-	t.Parallel()
-
 	name := "dflt"
 	pf, cs := providertest.ProtoV6ProviderFactories(t)
 

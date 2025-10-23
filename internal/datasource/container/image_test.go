@@ -11,8 +11,6 @@ import (
 )
 
 func TestImage(t *testing.T) {
-	t.Parallel()
-
 	img := &containerv1.Image{
 		ImageObjectMeta: containerv1.ImageObjectMeta{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-image"},
@@ -47,8 +45,6 @@ func TestImage(t *testing.T) {
 }
 
 func TestImage_Latest(t *testing.T) {
-	t.Parallel()
-
 	now := time.Now()
 	before := now.Add(-1 * time.Hour)
 

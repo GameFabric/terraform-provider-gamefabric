@@ -14,8 +14,6 @@ import (
 )
 
 func TestPollUntilNotFound_Gone(t *testing.T) {
-	t.Parallel()
-
 	cs, err := fake.New()
 	require.NoError(t, err)
 
@@ -24,8 +22,6 @@ func TestPollUntilNotFound_Gone(t *testing.T) {
 }
 
 func TestPollUntilNotFound_NotGone(t *testing.T) {
-	t.Parallel()
-
 	synctest.Test(t, func(t *testing.T) {
 		cs, err := fake.New(&v1.Environment{
 			ObjectMeta: metav1.ObjectMeta{
@@ -46,8 +42,6 @@ func TestPollUntilNotFound_NotGone(t *testing.T) {
 }
 
 func TestPollUntilNotFound_GoneLater(t *testing.T) {
-	t.Parallel()
-
 	synctest.Test(t, func(t *testing.T) {
 		cs, err := fake.New(&v1.Environment{
 			ObjectMeta: metav1.ObjectMeta{

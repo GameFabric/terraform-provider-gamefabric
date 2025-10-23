@@ -12,8 +12,6 @@ import (
 )
 
 func TestRegion(t *testing.T) {
-	t.Parallel()
-
 	region := &corev1.Region{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        "test-region",
@@ -77,8 +75,6 @@ func TestRegion(t *testing.T) {
 }
 
 func TestRegion_HandlesMultipleMatches(t *testing.T) {
-	t.Parallel()
-
 	region := &corev1.Region{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        "test-region",
@@ -117,8 +113,6 @@ func TestRegion_HandlesMultipleMatches(t *testing.T) {
 }
 
 func TestRegion_HandlesMultipleSelectors(t *testing.T) {
-	t.Parallel()
-
 	region := &corev1.Region{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        "test-region",
