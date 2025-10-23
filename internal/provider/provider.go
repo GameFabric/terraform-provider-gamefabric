@@ -12,6 +12,7 @@ import (
 	dscontainer "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/container"
 	dscore "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/core"
 	dsprotection "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/protection"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/functions"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/armada"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
@@ -19,6 +20,7 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/protection"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -190,6 +192,22 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		container.NewBranch,
 		container.NewImageUpdater,
 		protection.NewGatewayPolicy,
+	}
+}
+
+func (p *Provider) Functions(_ context.Context) []func() function.Function {
+	return []func() function.Function{
+		functions.NewCoresFunction,
+		functions.NewMilliCoresFunction,
+		functions.NewBytesFunction,
+		functions.NewKiloBytesFunction,
+		functions.NewMegaBytesFunction,
+		functions.NewGigaBytesFunction,
+		functions.NewTeraBytesFunction,
+		functions.NewKibiBytesFunction,
+		functions.NewMebiBytesFunction,
+		functions.NewGibiBytesFunction,
+		functions.NewTebiBytesFunction,
 	}
 }
 
