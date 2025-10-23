@@ -57,8 +57,8 @@ func (r *image) Schema(_ context.Context, _ datasource.SchemaRequest, resp *data
 				Required:            true,
 			},
 			"image_target": schema.SingleNestedAttribute{
-				Description:         "",
-				MarkdownDescription: "",
+				Description:         "Provides information about the resolved image target, such as its unique name within the branch and the branch in which it is found.",
+				MarkdownDescription: "Provides information about the resolved image target, such as its unique name within the branch and the branch in which it is found.",
 				Computed:            true,
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
