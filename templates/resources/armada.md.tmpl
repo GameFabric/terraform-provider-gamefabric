@@ -20,7 +20,7 @@ This example sets up an minimal armada in a single region for europe which uses 
 
 {{ tffile "examples/resources/gamefabric_armada/simple_armada.tf" }}
 
-## Example Usage - Armada for All Regions
+## Example Advanced Usage - Armada for All Regions with Dynamic Sizing
 
 This example sets up an armada in all available regions, it uses the result of the `gamefabric_regions` data source to create an armada in each region within the environment..
 It also calculates the minimum, maximum and buffer sizes based on available CPU/Memory resources within a region type.

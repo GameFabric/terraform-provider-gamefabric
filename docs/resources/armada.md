@@ -92,7 +92,7 @@ resource "gamefabric_armada" "this" {
 }
 ```
 
-## Example Advanced Usage - Armada for All Regions
+## Example Advanced Usage - Armada for All Regions with Dynamic Sizing
 
 This example sets up an armada in all available regions, it uses the result of the `gamefabric_regions` data source to create an armada in each region within the environment..
 It also calculates the minimum, maximum and buffer sizes based on available CPU/Memory resources within a region type.
