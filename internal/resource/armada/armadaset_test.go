@@ -124,7 +124,8 @@ func TestResourceArmadaSet(t *testing.T) {
 				ResourceName:      "gamefabric_armadaset.test",
 				ImportState:       true,
 				ImportStateVerify: true,
-			}, {
+			},
+			{
 				Config: testResourceArmadaSetConfigBasic(),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "name", "my-armadaset"),
@@ -160,7 +161,8 @@ func TestResourceArmadaConfigSetBasic(t *testing.T) {
 				ResourceName:      "gamefabric_armadaset.test",
 				ImportState:       true,
 				ImportStateVerify: true,
-			}, {
+			},
+			{
 				Config: testResourceArmadaSetConfigBasic("strategy = {\nrecreate = {}\n}\n"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "name", "my-armadaset"),
@@ -366,7 +368,7 @@ func TestResourceArmadaSet_Validates(t *testing.T) {
 			resource.Test(t, resource.TestCase{
 				IsUnitTest:               true,
 				ProtoV6ProviderFactories: pf,
-				CheckDestroy:             testCheckArmadasDestroy(t, cs),
+				CheckDestroy:             testCheckArmadaSetDestroy(t, cs),
 				Steps: []resource.TestStep{
 					{
 						Config:      test.config,
