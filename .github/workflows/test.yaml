@@ -12,7 +12,7 @@ on:
 
 jobs:
   Test:
-    runs-on: ubuntu-latest
+    runs-on: linux_public_8_core
     env:
       GOPROXY: https://${{ secrets.GOPROXY }},direct
       GONOSUMDB: ${{ secrets.GONOSUMDB }}
@@ -68,7 +68,7 @@ jobs:
       - name: Run Linter
         uses: golangci/golangci-lint-action@v8
         with:
-          version: ${{ inputs.GOLANGCI_LINT_VERSION }}
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
 
       - name: Setup gotestsum
         uses: gertd/action-gotestsum@v3.0.0
@@ -76,15 +76,7 @@ jobs:
           gotestsum_version: v1.13.0
 
       - name: Run Tests
-        env:
-          TEST_DIR: ${{ inputs.TEST_DIR }}
-        run: |
-          GOTESTSUM_FLAGS="--junitfile tests.xml --format pkgname -- -cover -race"
-          if [ -z "$TEST_DIR" ]; then
-            gotestsum $GOTESTSUM_FLAGS ./...
-          else
-            gotestsum $GOTESTSUM_FLAGS ./$TEST_DIR/...
-          fi
+        run: gotestsum --junitfile tests.xml --format pkgname -- -cover -race -timeout=20m ./...
 
       - name: Test Summary
         uses: test-summary/action@v2
