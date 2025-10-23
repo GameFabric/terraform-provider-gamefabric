@@ -12,7 +12,6 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -284,9 +283,8 @@ func toVolume(vol volumeModel) armadav1.Volume {
 	res := armadav1.Volume{
 		Name: vol.Name.ValueString(),
 	}
-	if vol.EmptyDir != nil && conv.IsKnown(vol.EmptyDir.SizeLimit) {
-		q := resource.MustParse(vol.EmptyDir.SizeLimit.ValueString()) // Expected to have a validation ran before-hand.
-		res.SizeLimit = &q
+	if vol.EmptyDir != nil {
+		res.SizeLimit = conv.Quantity(vol.EmptyDir.SizeLimit)
 	}
 	return res
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	kcorev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 // ContainerModel is the terraform model for a container.
@@ -117,11 +116,11 @@ func toResourceList(spec *resourceSpecModel) kcorev1.ResourceList {
 	if spec == nil {
 		return res
 	}
-	if q := resource.MustParse(spec.CPU.ValueString()); !q.IsZero() {
-		res[kcorev1.ResourceCPU] = q
+	if q := conv.Quantity(spec.CPU); q != nil && !q.IsZero() {
+		res[kcorev1.ResourceCPU] = *q
 	}
-	if q := resource.MustParse(spec.Memory.ValueString()); !q.IsZero() {
-		res[kcorev1.ResourceMemory] = q
+	if q := conv.Quantity(spec.Memory); q != nil && !q.IsZero() {
+		res[kcorev1.ResourceMemory] = *q
 	}
 	return res
 }
