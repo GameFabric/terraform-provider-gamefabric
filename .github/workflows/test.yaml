@@ -68,7 +68,12 @@ jobs:
       - name: Run Linter
         uses: golangci/golangci-lint-action@v8
         with:
-          version: ${{ inputs.GOLANGCI_LINT_VERSION }}
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
 
       - name: Setup gotestsum
         uses: gertd/action-gotestsum@v3.0.0
@@ -78,13 +83,7 @@ jobs:
       - name: Run Tests
         env:
           TEST_DIR: ${{ inputs.TEST_DIR }}
-        run: |
-          GOTESTSUM_FLAGS="--junitfile tests.xml --format pkgname -- -cover -race"
-          if [ -z "$TEST_DIR" ]; then
-            gotestsum $GOTESTSUM_FLAGS ./...
-          else
-            gotestsum $GOTESTSUM_FLAGS ./$TEST_DIR/...
-          fi
+        run: gotestsum --junitfile tests.xml --format pkgname -- -cover -race ./...
 
       - name: Test Summary
         uses: test-summary/action@v2
