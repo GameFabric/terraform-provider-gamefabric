@@ -12,6 +12,7 @@ import (
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
@@ -30,27 +31,27 @@ import (
 )
 
 var (
-	_ resource.Resource                = &armada{}
-	_ resource.ResourceWithConfigure   = &armada{}
-	_ resource.ResourceWithImportState = &armada{}
+	_ resource.Resource                = &armadaSet{}
+	_ resource.ResourceWithConfigure   = &armadaSet{}
+	_ resource.ResourceWithImportState = &armadaSet{}
 )
 
-type armada struct {
+type armadaSet struct {
 	clientSet clientset.Interface
 }
 
-// NewArmada returns a new instance of the Armada resource.
-func NewArmada() resource.Resource {
-	return &armada{}
+// NewArmadaSet returns a new instance of the ArmadaSet resource.
+func NewArmadaSet() resource.Resource {
+	return &armadaSet{}
 }
 
-// Metadata defines the resource type name.
-func (r *armada) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_armada"
+// Metadata returns the resource type name.
+func (r *armadaSet) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_armadaset"
 }
 
-// Schema defines the schema for this data source.
-func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) { //nolint:maintidx // Keep schema in one place.
+// Schema defines the schema for the resource.
+func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) { //nolint:maintidx // Keep schema in one place.
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -67,7 +68,6 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"environment": schema.StringAttribute{
@@ -83,8 +83,8 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				},
 			},
 			"description": schema.StringAttribute{
-				Description:         "Description is the optional description of the armada.",
-				MarkdownDescription: "Description is the optional description of the armada.",
+				Description:         "Description of the ArmadaSet.",
+				MarkdownDescription: "Description of the ArmadaSet.",
 				Optional:            true,
 			},
 			"labels": schema.MapAttribute{
@@ -111,8 +111,8 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"fixed_interval_seconds": schema.Int32Attribute{
-						Description:         "Seconds defines how often the auto-scaler will re-evaluate the number of game servers.",
-						MarkdownDescription: "Seconds defines how often the auto-scaler will re-evaluate the number of game servers.",
+						Description:         "Interval in seconds for fixed autoscaling.",
+						MarkdownDescription: "Interval in seconds for fixed autoscaling.",
 						Optional:            true,
 						Validators: []validator.Int32{
 							int32validator.AtLeast(1),
@@ -120,59 +120,88 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 					},
 				},
 			},
-			"region": schema.StringAttribute{
-				Description:         "Region defines the region the game servers are distributed to.",
-				MarkdownDescription: "Region defines the region the game servers are distributed to.",
+			"regions": schema.ListNestedAttribute{
+				Description:         "List of regions for the ArmadaSet.",
+				MarkdownDescription: "List of regions for the ArmadaSet.",
 				Required:            true,
-				Validators: []validator.String{
-					validators.NameValidator{},
+				Validators: []validator.List{
+					listvalidator.SizeAtLeast(1),
 				},
-			},
-			"replicas": schema.ListNestedAttribute{
-				Description:         "A replicas specifies the distribution of game servers across the available types of capacity in the selected region type.",
-				MarkdownDescription: "A replicas specifies the distribution of game servers across the available types of capacity in the selected region type.",
-				Optional:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"region_type": schema.StringAttribute{
-							Description:         "RegionType is the name of the region type.",
-							MarkdownDescription: "RegionType is the name of the region type.",
+						"name": schema.StringAttribute{
+							Description:         "Region name.",
+							MarkdownDescription: "Region name.",
 							Required:            true,
 							Validators: []validator.String{
 								validators.NameValidator{},
 							},
 						},
-						"min_replicas": schema.Int32Attribute{
-							Description:         "MinReplicas is the minimum number of replicas in the region type.",
-							MarkdownDescription: "MinReplicas is the minimum number of replicas in the region type.",
-							Required:            true,
-							Validators: []validator.Int32{
-								int32validator.AtLeast(0),
-								int32validator.AtLeastSumOf(path.MatchRelative().AtParent().AtName("buffer_size")),
+						"replicas": schema.ListNestedAttribute{
+							Description:         "A replicas specifies the distribution of game servers across the available types of capacity in the selected region type.",
+							MarkdownDescription: "A replicas specifies the distribution of game servers across the available types of capacity in the selected region type.",
+							Optional:            true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"region_type": schema.StringAttribute{
+										Description:         "RegionType is the name of the region type.",
+										MarkdownDescription: "RegionType is the name of the region type.",
+										Required:            true,
+										Validators: []validator.String{
+											validators.NameValidator{},
+										},
+									},
+									"min_replicas": schema.Int32Attribute{
+										Description:         "MinReplicas is the minimum number of replicas in the region type.",
+										MarkdownDescription: "MinReplicas is the minimum number of replicas in the region type.",
+										Required:            true,
+										Validators: []validator.Int32{
+											int32validator.AtLeast(0),
+											int32validator.AtLeastSumOf(path.MatchRelative().AtParent().AtName("buffer_size")),
+										},
+									},
+									"max_replicas": schema.Int32Attribute{
+										Description:         "MaxReplicas is the maximum number of replicas in the region type.",
+										MarkdownDescription: "MaxReplicas is the maximum number of replicas in the region type.",
+										Required:            true,
+										Validators: []validator.Int32{
+											int32validator.AtLeast(0),
+										},
+									},
+									"buffer_size": schema.Int32Attribute{
+										Description:         "BufferSize is the number of replicas to have ready all the time.",
+										MarkdownDescription: "BufferSize is the number of replicas to have ready all the time.",
+										Required:            true,
+										Validators: []validator.Int32{
+											int32validator.AtLeast(0),
+										},
+									},
+								},
 							},
 						},
-						"max_replicas": schema.Int32Attribute{
-							Description:         "MaxReplicas is the maximum number of replicas in the region type.",
-							MarkdownDescription: "MaxReplicas is the maximum number of replicas in the region type.",
-							Required:            true,
-							Validators: []validator.Int32{
-								int32validator.AtLeast(0),
+						"envs": schema.ListNestedAttribute{
+							Description:         "Environment variables for the region.",
+							MarkdownDescription: "Environment variables for the region.",
+							Optional:            true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: core.EnvVarAttributes(),
 							},
 						},
-						"buffer_size": schema.Int32Attribute{
-							Description:         "BufferSize is the number of replicas to have ready all the time.",
-							MarkdownDescription: "BufferSize is the number of replicas to have ready all the time.",
-							Required:            true,
-							Validators: []validator.Int32{
-								int32validator.AtLeast(0),
+						"labels": schema.MapAttribute{
+							Description:         "Labels for the region.",
+							MarkdownDescription: "Labels for the region.",
+							Optional:            true,
+							ElementType:         types.StringType,
+							Validators: []validator.Map{
+								validators.LabelsValidator{},
 							},
 						},
 					},
 				},
 			},
 			"gameserver_labels": schema.MapAttribute{
-				Description:         "A map of keys and values that can be used to organize and categorize objects.",
-				MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
+				Description:         "Labels for the game server pods.",
+				MarkdownDescription: "Labels for the game server pods.",
 				Optional:            true,
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
@@ -180,8 +209,8 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				},
 			},
 			"gameserver_annotations": schema.MapAttribute{
-				Description:         "Annotations is an unstructured map of keys and values stored on an object.",
-				MarkdownDescription: "Annotations is an unstructured map of keys and values stored on an object.",
+				Description:         "Annotations for the game server pods.",
+				MarkdownDescription: "Annotations for the game server pods.",
 				Optional:            true,
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
@@ -189,8 +218,8 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				},
 			},
 			"containers": schema.ListNestedAttribute{
-				Description:         "Containers is a list of containers belonging to the game server.",
-				MarkdownDescription: "Containers is a list of containers belonging to the game server.",
+				Description:         "Containers belonging to the game server.",
+				MarkdownDescription: "Containers belonging to the game server.",
 				Required:            true,
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
@@ -201,37 +230,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "HealthChecks is the health checking configuration for Agones game servers.",
 				MarkdownDescription: "HealthChecks is the health checking configuration for Agones game servers.",
 				Optional:            true,
-				Attributes: map[string]schema.Attribute{
-					"disabled": schema.BoolAttribute{
-						Description:         "Disabled indicates whether Agones health checks are disabled.",
-						MarkdownDescription: "Disabled indicates whether Agones health checks are disabled.",
-						Optional:            true,
-					},
-					"period_seconds": schema.Int32Attribute{
-						Description:         "PeriodSeconds is the number of seconds between checks.",
-						MarkdownDescription: "PeriodSeconds is the number of seconds between checks.",
-						Optional:            true,
-						Validators: []validator.Int32{
-							int32validator.AtLeast(1),
-						},
-					},
-					"failure_threshold": schema.Int32Attribute{
-						Description:         "FailureThreshold is the number of consecutive failures before the game server is marked unhealthy.",
-						MarkdownDescription: "FailureThreshold is the number of consecutive failures before the game server is marked unhealthy.",
-						Optional:            true,
-						Validators: []validator.Int32{
-							int32validator.AtLeast(1),
-						},
-					},
-					"initial_delay_seconds": schema.Int32Attribute{
-						Description:         "InitialDelaySeconds is the number of seconds to wait before performing the first check.",
-						MarkdownDescription: "InitialDelaySeconds is the number of seconds to wait before performing the first check.",
-						Optional:            true,
-						Validators: []validator.Int32{
-							int32validator.AtLeast(0),
-						},
-					},
-				},
+				Attributes:          mps.HealthCheckAttributes(),
 			},
 			"termination_configuration": schema.SingleNestedAttribute{
 				Description:         "TerminationConfiguration defines the termination grace period for game servers.",
@@ -363,7 +362,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 }
 
 // Configure prepares the struct.
-func (r *armada) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *armadaSet) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -380,54 +379,54 @@ func (r *armada) Configure(_ context.Context, req resource.ConfigureRequest, res
 	r.clientSet = procCtx.ClientSet
 }
 
-func (r *armada) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan armadaModel
+func (r *armadaSet) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan armadaSetModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	obj := plan.ToObject()
-	outObj, err := r.clientSet.ArmadaV1().Armadas(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.ArmadaV1().ArmadaSets(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Creating Armada",
-			fmt.Sprintf("Could not create Armada: %v", err),
+			"Error Creating ArmadaSet",
+			fmt.Sprintf("Could not create ArmadaSet: %v", err),
 		)
 		return
 	}
 
-	plan = newArmadaModel(outObj)
+	plan = newArmadaSetModel(outObj)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *armada) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state armadaModel
+func (r *armadaSet) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state armadaSetModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	outObj, err := r.clientSet.ArmadaV1().Armadas(state.Environment.ValueString()).Get(ctx, state.Name.ValueString(), metav1.GetOptions{})
+	outObj, err := r.clientSet.ArmadaV1().ArmadaSets(state.Environment.ValueString()).Get(ctx, state.Name.ValueString(), metav1.GetOptions{})
 	if err != nil {
 		switch {
 		case apierrors.IsNotFound(err):
 			resp.State.RemoveResource(ctx)
 		default:
 			resp.Diagnostics.AddError(
-				"Error Reading Armada",
-				fmt.Sprintf("Could not read Armada %q: %v", state.Name.ValueString(), err),
+				"Error Reading ArmadaSet",
+				fmt.Sprintf("Could not read ArmadaSet %q: %v", state.Name.ValueString(), err),
 			)
 		}
 		return
 	}
 
-	state = newArmadaModel(outObj)
+	state = newArmadaSetModel(outObj)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-func (r *armada) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state armadaModel
+func (r *armadaSet) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state armadaSetModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -444,33 +443,33 @@ func (r *armada) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 	pb, err := patch.Create(oldObj, newObj)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Creating Armada Patch",
-			fmt.Sprintf("Could not create patch for Armada: %v", err),
+			"Error Creating ArmadaSet Patch",
+			fmt.Sprintf("Could not create patch for ArmadaSet: %v", err),
 		)
 		return
 	}
 
-	outObj, err := r.clientSet.ArmadaV1().Armadas(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
+	outObj, err := r.clientSet.ArmadaV1().ArmadaSets(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Patching Armada",
-			fmt.Sprintf("Could not patch for Armada: %v", err),
+			"Error Patching ArmadaSet",
+			fmt.Sprintf("Could not patch for ArmadaSet: %v", err),
 		)
 		return
 	}
 
-	plan = newArmadaModel(outObj)
+	plan = newArmadaSetModel(outObj)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *armada) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state armadaModel
+func (r *armadaSet) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state armadaSetModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	err := r.clientSet.ArmadaV1().Armadas(state.Environment.ValueString()).Delete(ctx, state.Name.ValueString(), metav1.DeleteOptions{})
+	err := r.clientSet.ArmadaV1().ArmadaSets(state.Environment.ValueString()).Delete(ctx, state.Name.ValueString(), metav1.DeleteOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting Armada",
@@ -488,7 +487,7 @@ func (r *armada) Delete(ctx context.Context, req resource.DeleteRequest, resp *r
 	}
 }
 
-func (r *armada) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *armadaSet) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	if req.ID == "" {
 		return
 	}
