@@ -131,6 +131,9 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Validators: []validator.String{
 					validators.NameValidator{},
 				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(), // Region is immutable.
+				},
 			},
 			"replicas": schema.ListNestedAttribute{
 				Description:         "A replicas specifies the distribution of game servers across the available types of capacity in the selected region type.",
