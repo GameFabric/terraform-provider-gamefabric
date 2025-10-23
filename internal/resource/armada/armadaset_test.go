@@ -144,7 +144,7 @@ func TestResourceArmadaConfigSetBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		IsUnitTest:               true,
 		ProtoV6ProviderFactories: pf,
-		CheckDestroy:             testCheckArmadasDestroy(t, cs),
+		CheckDestroy:             testCheckArmadaSetDestroy(t, cs),
 		Steps: []resource.TestStep{
 			{
 				Config: testResourceArmadaSetConfigBasic(),
