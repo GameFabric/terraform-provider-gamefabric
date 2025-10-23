@@ -70,6 +70,10 @@ jobs:
         with:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
 
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
       - name: Setup gotestsum
         uses: gertd/action-gotestsum@v3.0.0
         with:
