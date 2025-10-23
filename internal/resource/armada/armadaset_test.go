@@ -340,7 +340,7 @@ func TestResourceArmadaSet_Validates(t *testing.T) {
 		},
 		{
 			name:        "validates either recreate or rolling_update, but not both",
-			config:      testResourceArmadaConfigBasic("strategy = {\nrolling_update = {}\nrecreate = {}\n}\n"),
+			config:      testResourceArmadaSetConfigBasic("strategy = {\nrolling_update = {}\nrecreate = {}\n}\n"),
 			expectError: regexp.MustCompile(`(?s)strategy\.recreate.*strategy\.rolling_update`),
 		},
 		// Volumes.
