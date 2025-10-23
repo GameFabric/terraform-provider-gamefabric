@@ -182,7 +182,7 @@ func newProfilingEnabled(annots map[string]string) types.Bool {
 
 func newAnnotations(annots map[string]string) map[string]types.String {
 	if len(annots) == 0 {
-		return conv.ForEachMapItem(annots, types.StringValue)
+		return nil
 	}
 
 	annots = maps.Clone(annots)

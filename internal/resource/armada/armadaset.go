@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -58,6 +59,9 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Description:         "The unique Terraform identifier.",
 				MarkdownDescription: "The unique Terraform identifier.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"name": schema.StringAttribute{
 				Description:         "The unique object name within its scope.",
@@ -339,6 +343,9 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Description:         "ImageUpdaterTarget is the reference that an image updater can target to match the Armada.",
 				MarkdownDescription: "ImageUpdaterTarget is the reference that an image updater can target to match the Armada.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 				Attributes: map[string]schema.Attribute{
 					"type": schema.StringAttribute{
 						Description:         "Type is the type of the image updater target.",
@@ -478,7 +485,7 @@ func (r *armadaSet) Delete(ctx context.Context, req resource.DeleteRequest, resp
 		return
 	}
 
-	if err = wait.PollUntilNotFound(ctx, r.clientSet.ArmadaV1().Armadas(state.Environment.ValueString()), state.Name.ValueString()); err != nil {
+	if err = wait.PollUntilNotFound(ctx, r.clientSet.ArmadaV1().ArmadaSets(state.Environment.ValueString()), state.Name.ValueString()); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Waiting for ArmadaSet Deletion",
 			fmt.Sprintf("Timed out waiting for deletion of ArmadaSet: %v", err),
