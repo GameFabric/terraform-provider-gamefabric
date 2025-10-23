@@ -11,7 +11,7 @@ on:
 
 jobs:
   Build:
-    runs-on: ubuntu-latest
+    runs-on: linux_public_8_core
     env:
       GOPROXY: https://${{ secrets.GOPROXY }},direct
       GONOSUMDB: ${{ secrets.GONOSUMDB }}
