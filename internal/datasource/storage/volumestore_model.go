@@ -14,7 +14,7 @@ type volumeStoreModel struct {
 
 func newVolumeStoreModel(obj *storagev1.VolumeStore) volumeStoreModel {
 	return volumeStoreModel{
-		Name:          conv.OptionalFunc(obj.Name, types.StringValue, types.StringNull),
+		Name:          types.StringValue(obj.Name),
 		Region:        types.StringValue(obj.Spec.Region),
 		MaxVolumeSize: conv.OptionalFunc(obj.Spec.MaxVolumeSize.String(), types.StringValue, types.StringNull),
 	}
