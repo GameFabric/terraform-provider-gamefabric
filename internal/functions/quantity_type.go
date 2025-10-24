@@ -94,6 +94,8 @@ func convertToMemoryQuantity(ctx context.Context, req function.RunRequest, forma
 		mul = 3
 	case resource.Tera:
 		mul = 4
+	default:
+		return "", function.NewFuncError(fmt.Sprintf("Unsupported scale: %v", scale))
 	}
 	var divisor float64
 	switch format {
@@ -101,11 +103,16 @@ func convertToMemoryQuantity(ctx context.Context, req function.RunRequest, forma
 		divisor = 1024.0
 	case resource.DecimalSI:
 		divisor = 1000.0
+	default:
+		return "", function.NewFuncError(fmt.Sprintf("Unsupported format: %v", format))
 	}
 	for i := 0; i < mul; i++ {
+		// round up in each step to mimic behaviour of k8s.io/apimachinery/pkg/api/resource.Quantity
 		bytes = int64(math.Ceil(float64(bytes) / divisor))
 	}
 	if bytes == 0 {
+		// if we ended up scaling to something below 1, set to 1, e.g.
+		// 500 bytes -> 0.5 KB -> 1 KB
 		bytes = 1 // round up to at least 1 unit
 	}
 

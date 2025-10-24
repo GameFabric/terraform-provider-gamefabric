@@ -26,8 +26,8 @@ func (f MegaBytesFunction) Metadata(ctx context.Context, req function.MetadataRe
 
 func (f MegaBytesFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
 	resp.Definition = function.Definition{
-		Summary:     "Returns the number of bytes in MiB.",
-		Description: "Takes either a unitless number of bytes or a string with a unit suffix, and converts it to a quantity in MiB",
+		Summary:     "Returns the number of bytes in MB.",
+		Description: "Takes either a unitless number of bytes or a string with a unit suffix, and converts it to a quantity in MB",
 		Parameters: []function.Parameter{
 			function.DynamicParameter{
 				Name:               "quantity",

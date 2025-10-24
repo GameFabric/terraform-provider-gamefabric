@@ -15,7 +15,7 @@ import (
 var _ function.Function = &MilliCoresFunction{}
 
 func NewMilliCoresFunction() function.Function {
-	return &CoresFunction{
+	return &MilliCoresFunction{
 		name: "millicores",
 	}
 }
