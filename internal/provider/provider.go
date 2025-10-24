@@ -12,6 +12,7 @@ import (
 	dscontainer "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/container"
 	dscore "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/core"
 	dsprotection "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/protection"
+	dsstorage "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/storage"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/armada"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
@@ -176,6 +177,7 @@ func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource
 		dsprotection.NewGatewayPolicies,
 		dsprotection.NewProtocol,
 		dsprotection.NewProtocols,
+		dsstorage.NewVolumeStore,
 	}
 }
 
