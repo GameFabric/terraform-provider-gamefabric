@@ -1,0 +1,50 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+Configuring an image is identical on all resources which support specifying a container image like armadas, armadasets, vessels or formations.
+
+## Example Usage - Specific Image Tag
+
+Setting up an armada using a specific image tag from the GameFabric container registry.
+Only if you change the specified tag in the {{.Name}} data source the armada will be updated to use the new image tag.
+
+{{ tffile "examples/data-sources/gamefabric_image/specific-image-tag.tf" }}
+
+
+## Example Usage - Latest Image Tag
+
+Setting up an armada using the latest image tag from the GameFabric container registry for the specified image.
+Whenever a new image tag is pushed to the specified image, the armada will be updated to use the new image tag when you run terraform apply.
+However if you want to automatically update the image without running terraform apply you should use the `gamefabric_imageupdater` resource in addition.
+
+{{ tffile "examples/data-sources/gamefabric_image/latest-image-tag.tf" }}
+
+
+{{ .SchemaMarkdown | trimspace }}
+{{- if or .HasImport .HasImportIDConfig .HasImportIdentityConfig }}
+
+## Import
+
+Import is supported using the following syntax:
+{{- end }}
+
+{{- if .HasImportIDConfig }}
+
+In Terraform v1.5.0 and later, the [`import` block](https://developer.hashicorp.com/terraform/language/import) can be used with the `id` attribute, for example:
+
+{{tffile .ImportIDConfigFile }}
+{{- end }}
+{{- if .HasImport }}
+
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
+{{codefile "shell" .ImportFile }}
+{{- end }}
