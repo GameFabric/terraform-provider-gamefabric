@@ -26,12 +26,10 @@ type volumeStores struct {
 // NewVolumeStores creates a new volumestores data source.
 func NewVolumeStores() datasource.DataSource { return &volumeStores{} }
 
-// Metadata defines the data source type name.
 func (r *volumeStores) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_volumestores"
 }
 
-// Schema defines the schema for this data source.
 func (r *volumeStores) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -63,7 +61,6 @@ func (r *volumeStores) Schema(_ context.Context, _ datasource.SchemaRequest, res
 	}
 }
 
-// Configure prepares the struct.
 func (r *volumeStores) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
@@ -81,10 +78,7 @@ func (r *volumeStores) Configure(_ context.Context, req datasource.ConfigureRequ
 	r.clientSet = procCtx.ClientSet
 }
 
-// Read retrieves all volumestores and sets the state.
 func (r *volumeStores) Read(ctx context.Context, _ datasource.ReadRequest, resp *datasource.ReadResponse) {
-	// no config expected for this data source
-
 	list, err := r.clientSet.StorageV1Beta1().VolumeStore().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(

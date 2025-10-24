@@ -30,12 +30,10 @@ type volumeStore struct {
 // NewVolumeStore creates a new volumestore data source.
 func NewVolumeStore() datasource.DataSource { return &volumeStore{} }
 
-// Metadata defines the data source type name.
 func (r *volumeStore) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_volumestore"
 }
 
-// Schema defines the schema for this data source.
 func (r *volumeStore) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -66,7 +64,6 @@ func (r *volumeStore) Schema(_ context.Context, _ datasource.SchemaRequest, resp
 	}
 }
 
-// Configure prepares the struct.
 func (r *volumeStore) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
@@ -84,7 +81,6 @@ func (r *volumeStore) Configure(_ context.Context, req datasource.ConfigureReque
 	r.clientSet = procCtx.ClientSet
 }
 
-// Read retrieves the volumestore and sets the state.
 func (r *volumeStore) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var config volumeStoreModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
