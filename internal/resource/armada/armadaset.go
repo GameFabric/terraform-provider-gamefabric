@@ -234,6 +234,8 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Description:         "HealthChecks is the health checking configuration for Agones game servers.",
 				MarkdownDescription: "HealthChecks is the health checking configuration for Agones game servers.",
 				Optional:            true,
+				Computed:            true,
+				Default:             mps.HealthChecksModel{}.Default(),
 				Attributes:          mps.HealthCheckAttributes(),
 			},
 			"termination_configuration": schema.SingleNestedAttribute{
