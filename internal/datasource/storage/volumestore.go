@@ -130,7 +130,7 @@ func (r *volumeStore) Read(ctx context.Context, req datasource.ReadRequest, resp
 			if obj != nil {
 				resp.Diagnostics.AddError(
 					"Multiple VolumeStores Found",
-					fmt.Sprintf("Multiple volumestores found in region %q", config.Region.ValueString()),
+					fmt.Sprintf("Multiple VolumeStores found in region %q", config.Region.ValueString()),
 				)
 				return
 			}
