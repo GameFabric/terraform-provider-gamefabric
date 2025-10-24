@@ -85,7 +85,6 @@ func (r *volumeStore) Read(ctx context.Context, req datasource.ReadRequest, resp
 		return
 	}
 
-	// VolumeStore is a global resource; fetch by name using the storage client.
 	obj, err := r.clientSet.StorageV1Beta1().VolumeStore().Get(ctx, config.Name.ValueString(), metav1.GetOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
