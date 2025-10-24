@@ -310,10 +310,13 @@ Optional:
 <a id="nestedatt--containers--volume_mounts"></a>
 ### Nested Schema for `containers.volume_mounts`
 
-Optional:
+Required:
 
 - `mount_path` (String) Path within the container at which the volume should be mounted.
 - `name` (String) Name is the name of the volume.
+
+Optional:
+
 - `sub_path` (String) Path within the volume from which the container's volume should be mounted.
 - `sub_path_expr` (String) Expanded path within the volume from which the container's volume should be mounted.
 
@@ -412,7 +415,7 @@ Optional:
 
 Optional:
 
-- `grace_period_seconds` (Number) GracePeriodSeconds is the duration in seconds the game server needs to terminate gracefully.
+- `grace_period_seconds` (Number) GracePeriod is the duration in seconds the game server needs to terminate gracefully.
 
 
 <a id="nestedatt--volumes"></a>

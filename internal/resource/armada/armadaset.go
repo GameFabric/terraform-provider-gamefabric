@@ -262,8 +262,8 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"grace_period_seconds": schema.Int64Attribute{
-						Description:         "GracePeriodSeconds is the duration in seconds the game server needs to terminate gracefully.",
-						MarkdownDescription: "GracePeriodSeconds is the duration in seconds the game server needs to terminate gracefully.",
+						Description:         "GracePeriod is the duration in seconds the game server needs to terminate gracefully.",
+						MarkdownDescription: "GracePeriod is the duration in seconds the game server needs to terminate gracefully.",
 						Optional:            true,
 						Validators: []validator.Int64{
 							int64validator.AtLeast(0),

@@ -16,6 +16,7 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/armada"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/formation"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/protection"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -189,6 +190,7 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		core.NewRegion,
 		container.NewBranch,
 		container.NewImageUpdater,
+		formation.NewVessel,
 		protection.NewGatewayPolicy,
 	}
 }
