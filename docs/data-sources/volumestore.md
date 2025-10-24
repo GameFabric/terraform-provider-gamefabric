@@ -14,8 +14,7 @@ description: |-
 ```terraform
 # Get a specific volumestore by its unique name.
 data "gamefabric_volumestore" "fast_storage" {
-  name   = "fast-storage"
-  region = "us-west-1" # The name of the region the volumestore belongs to.
+  name = "fast-storage"
 }
 ```
 
