@@ -112,12 +112,15 @@ func newTerminationConfig(gracePeriod *int64, periods *formationv1.VesselTermina
 		return nil
 	}
 
-	return &terminationConfigModel{
-		GracePeriod:   conv.OptionalFunc(gracePeriod, types.Int64PointerValue, types.Int64Null),
-		Maintenance:   conv.OptionalFunc(periods.Maintenance, types.Int64PointerValue, types.Int64Null),
-		SpecChange:    conv.OptionalFunc(periods.SpecChange, types.Int64PointerValue, types.Int64Null),
-		UserInitiated: conv.OptionalFunc(periods.UserInitiated, types.Int64PointerValue, types.Int64Null),
+	term := &terminationConfigModel{
+		GracePeriod: conv.OptionalFunc(gracePeriod, types.Int64PointerValue, types.Int64Null),
 	}
+	if periods != nil {
+		term.Maintenance = conv.OptionalFunc(periods.Maintenance, types.Int64PointerValue, types.Int64Null)
+		term.SpecChange = conv.OptionalFunc(periods.SpecChange, types.Int64PointerValue, types.Int64Null)
+		term.UserInitiated = conv.OptionalFunc(periods.UserInitiated, types.Int64PointerValue, types.Int64Null)
+	}
+	return term
 }
 
 type volumeModel struct {
