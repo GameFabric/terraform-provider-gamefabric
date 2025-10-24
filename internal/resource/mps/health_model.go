@@ -2,12 +2,10 @@ package mps
 
 import (
 	agonesv1 "agones.dev/agones/pkg/apis/agones/v1"
-	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // HealthChecksModel is the terraform model for Agones health checks.
@@ -21,10 +19,10 @@ type HealthChecksModel struct {
 // NewHealthChecks converts the backend resource into the terraform model.
 func NewHealthChecks(obj agonesv1.Health) *HealthChecksModel {
 	return &HealthChecksModel{
-		Disabled:            conv.OptionalFunc(obj.Disabled, types.BoolValue, func() basetypes.BoolValue { return types.BoolValue(false) }),
-		InitialDelaySeconds: conv.OptionalFunc(obj.InitialDelaySeconds, types.Int32Value, func() basetypes.Int32Value { return types.Int32Value(0) }),
-		PeriodSeconds:       conv.OptionalFunc(obj.PeriodSeconds, types.Int32Value, func() basetypes.Int32Value { return types.Int32Value(0) }),
-		FailureThreshold:    conv.OptionalFunc(obj.FailureThreshold, types.Int32Value, func() basetypes.Int32Value { return types.Int32Value(0) }),
+		Disabled:            types.BoolValue(obj.Disabled),
+		InitialDelaySeconds: types.Int32Value(obj.InitialDelaySeconds),
+		PeriodSeconds:       types.Int32Value(obj.PeriodSeconds),
+		FailureThreshold:    types.Int32Value(obj.FailureThreshold),
 	}
 }
 
