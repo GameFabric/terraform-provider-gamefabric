@@ -24,7 +24,7 @@ func HealthCheckAttributes() map[string]schema.Attribute {
 			Optional:            true,
 			Computed:            true,
 			Validators: []validator.Int32{
-				int32validator.AtLeast(1),
+				int32validator.AtLeast(0),
 			},
 			Default: int32default.StaticInt32(0),
 		},
@@ -34,7 +34,7 @@ func HealthCheckAttributes() map[string]schema.Attribute {
 			Optional:            true,
 			Computed:            true,
 			Validators: []validator.Int32{
-				int32validator.AtLeast(1),
+				int32validator.AtLeast(0),
 			},
 			Default: int32default.StaticInt32(0),
 		},
