@@ -28,6 +28,7 @@ func NewHealthChecks(obj agonesv1.Health) *HealthChecksModel {
 	}
 }
 
+// Default returns the default values for HealthChecksModel.
 func (m HealthChecksModel) Default() defaults.Object {
 	return objectdefault.StaticValue(types.ObjectValueMust(map[string]attr.Type{
 		"disabled":              types.BoolType,
