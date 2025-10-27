@@ -182,7 +182,7 @@ resource "gamefabric_armadaset" "this" {
 
 ### Required
 
-- `containers` (Attributes List) Containers belonging to the game server. (see [below for nested schema](#nestedatt--containers))
+- `containers` (Attributes List) Containers is a list of containers belonging to the game server. (see [below for nested schema](#nestedatt--containers))
 - `environment` (String) The name of the environment the resource belongs to.
 - `name` (String) The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.
 - `regions` (Attributes List) List of regions for the ArmadaSet. (see [below for nested schema](#nestedatt--regions))
@@ -198,7 +198,7 @@ resource "gamefabric_armadaset" "this" {
 - `health_checks` (Attributes) HealthChecks is the health checking configuration for Agones game servers. (see [below for nested schema](#nestedatt--health_checks))
 - `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
 - `profiling_enabled` (Boolean) ProfilingEnabled indicates whether profiling is enabled for the Armada.
-- `strategy` (Attributes) Strategy defines the rollout strategy for updating game servers. (see [below for nested schema](#nestedatt--strategy))
+- `strategy` (Attributes) Strategy defines the rollout strategy for updating game servers. The default is RollingUpdate. (see [below for nested schema](#nestedatt--strategy))
 - `termination_configuration` (Attributes) TerminationConfiguration defines the termination grace period for game servers. (see [below for nested schema](#nestedatt--termination_configuration))
 - `volumes` (Attributes List) Volumes is a list of volumes that can be mounted by containers belonging to the game server. (see [below for nested schema](#nestedatt--volumes))
 
@@ -371,7 +371,7 @@ Required:
 
 Optional:
 
-- `fixed_interval_seconds` (Number) Interval in seconds for fixed autoscaling.
+- `fixed_interval_seconds` (Number) Seconds defines how often the auto-scaler will re-evaluate the number of game servers.
 
 
 <a id="nestedatt--health_checks"></a>
@@ -390,8 +390,8 @@ Optional:
 
 Optional:
 
-- `recreate` (Attributes) Recreate defines the recreate strategy. (see [below for nested schema](#nestedatt--strategy--recreate))
-- `rolling_update` (Attributes) RollingUpdate defines the rolling update strategy. (see [below for nested schema](#nestedatt--strategy--rolling_update))
+- `recreate` (Attributes) Recreate defines the recreate strategy which will recreate all unallocated gameservers at once on updates. This should only be used for development workloads or where downtime is acceptable. (see [below for nested schema](#nestedatt--strategy--recreate))
+- `rolling_update` (Attributes) RollingUpdate defines the rolling update strategy. Which gradually replaces game servers with new ones. (see [below for nested schema](#nestedatt--strategy--rolling_update))
 
 <a id="nestedatt--strategy--recreate"></a>
 ### Nested Schema for `strategy.recreate`

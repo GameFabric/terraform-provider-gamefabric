@@ -264,14 +264,14 @@ resource "gamefabric_armada" "this" {
 - `annotations` (Map of String) Annotations is an unstructured map of keys and values stored on an object.
 - `autoscaling` (Attributes) Autoscaling configuration for the game servers. (see [below for nested schema](#nestedatt--autoscaling))
 - `description` (String) Description is the optional description of the armada.
-- `gameserver_annotations` (Map of String) Annotations is an unstructured map of keys and values stored on an object.
-- `gameserver_labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
+- `gameserver_annotations` (Map of String) Annotations for the game server pods.
+- `gameserver_labels` (Map of String) Labels for the game server pods.
 - `gateway_policies` (List of String) GatewayPolicies is a list of gateway policies to apply to the Armada.
 - `health_checks` (Attributes) HealthChecks is the health checking configuration for Agones game servers. (see [below for nested schema](#nestedatt--health_checks))
 - `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
 - `profiling_enabled` (Boolean) ProfilingEnabled indicates whether profiling is enabled for the Armada.
 - `replicas` (Attributes List) A replicas specifies the distribution of game servers across the available types of capacity in the selected region type. (see [below for nested schema](#nestedatt--replicas))
-- `strategy` (Attributes) Strategy defines the rollout strategy for updating game servers. (see [below for nested schema](#nestedatt--strategy))
+- `strategy` (Attributes) Strategy defines the rollout strategy for updating game servers. The default is RollingUpdate. (see [below for nested schema](#nestedatt--strategy))
 - `termination_configuration` (Attributes) TerminationConfiguration defines the termination grace period for game servers. (see [below for nested schema](#nestedatt--termination_configuration))
 - `volumes` (Attributes List) Volumes is a list of volumes that can be mounted by containers belonging to the game server. (see [below for nested schema](#nestedatt--volumes))
 
@@ -427,8 +427,8 @@ Required:
 
 Optional:
 
-- `recreate` (Attributes) Recreate defines the recreate strategy. (see [below for nested schema](#nestedatt--strategy--recreate))
-- `rolling_update` (Attributes) RollingUpdate defines the rolling update strategy. (see [below for nested schema](#nestedatt--strategy--rolling_update))
+- `recreate` (Attributes) Recreate defines the recreate strategy which will recreate all unallocated gameservers at once on updates. This should only be used for development workloads or where downtime is acceptable. (see [below for nested schema](#nestedatt--strategy--recreate))
+- `rolling_update` (Attributes) RollingUpdate defines the rolling update strategy. Which gradually replaces game servers with new ones. (see [below for nested schema](#nestedatt--strategy--rolling_update))
 
 <a id="nestedatt--strategy--recreate"></a>
 ### Nested Schema for `strategy.recreate`
