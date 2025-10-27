@@ -50,8 +50,8 @@ func (r *regions) Schema(_ context.Context, _ datasource.SchemaRequest, resp *da
 				},
 			},
 			"label_filter": schema.MapAttribute{
-				Description:         "A map of keys and values that is used to filter regions.",
-				MarkdownDescription: "A map of keys and values that is used to filter regions.",
+				Description:         "A map of keys and values that is used to filter regions. Only items with all specified labels (exact matches) will be returned.",
+				MarkdownDescription: "A map of keys and values that is used to filter regions. Only items with all specified labels (exact matches) will be returned.",
 				Optional:            true,
 				ElementType:         types.StringType,
 			},

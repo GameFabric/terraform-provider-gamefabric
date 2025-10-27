@@ -50,8 +50,8 @@ func (r *configFiles) Schema(_ context.Context, _ datasource.SchemaRequest, resp
 				},
 			},
 			"label_filter": schema.MapAttribute{
-				Description:         "A map of keys and values that is used to filter config files.",
-				MarkdownDescription: "A map of keys and values that is used to filter config files.",
+				Description:         "A map of keys and values that is used to filter config files. Only items with all specified labels (exact matches) will be returned.",
+				MarkdownDescription: "A map of keys and values that is used to filter config files. Only items with all specified labels (exact matches) will be returned.",
 				Optional:            true,
 				ElementType:         types.StringType,
 			},

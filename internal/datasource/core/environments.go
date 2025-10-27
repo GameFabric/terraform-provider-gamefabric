@@ -39,8 +39,8 @@ func (r *environments) Schema(_ context.Context, _ datasource.SchemaRequest, res
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"label_filter": schema.MapAttribute{
-				Description:         "A map of keys and values that is used to filter environments.",
-				MarkdownDescription: "A map of keys and values that is used to filter environments.",
+				Description:         "A map of keys and values that is used to filter environments. Only items with all specified labels (exact matches) will be returned.",
+				MarkdownDescription: "A map of keys and values that is used to filter environments. Only items with all specified labels (exact matches) will be returned.",
 				Optional:            true,
 				ElementType:         types.StringType,
 			},

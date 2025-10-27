@@ -40,8 +40,8 @@ func (r *branches) Schema(_ context.Context, _ datasource.SchemaRequest, resp *d
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"label_filter": schema.MapAttribute{
-				Description:         "A map of keys and values that is used to filter branches (exact matches of all provided labels).",
-				MarkdownDescription: "A map of keys and values that is used to filter branches (exact matches of all provided labels).",
+				Description:         "A map of keys and values that is used to filter branches. Only items with all specified labels (exact matches) will be returned.",
+				MarkdownDescription: "A map of keys and values that is used to filter branches. Only items with all specified labels (exact matches) will be returned.",
 				Optional:            true,
 				ElementType:         types.StringType,
 			},
