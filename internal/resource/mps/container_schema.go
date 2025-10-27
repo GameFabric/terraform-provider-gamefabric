@@ -129,11 +129,11 @@ func ContainersAttributes() schema.NestedAttributeObject {
 							},
 						},
 						"policy": schema.StringAttribute{
-							Description:         "Policy defines the policy for how the HostPort is populated.",
-							MarkdownDescription: "Policy defines the policy for how the HostPort is populated.",
+							Description:         "Policy defines how the host port is populated. Dynamic (default) allocates a free host port and maps it to the container_port (required). The gameserver must report the external port (obtained via Agones SDK) to backends for client connections. Passthrough dynamically allocates a host port and sets container_port to match it. The gameserver must discover this port via Agones SDK and listen on it.",
+							MarkdownDescription: "Policy defines how the host port is populated. `Dynamic` (default) allocates a free host port and maps it to the `container_port` (required). The gameserver must report the external port (obtained via Agones SDK) to backends for client connections. `Passthrough` dynamically allocates a host port and sets `container_port` to match it. The gameserver must discover this port via Agones SDK and listen on it.",
 							Required:            true,
 							Validators: []validator.String{
-								stringvalidator.OneOf("Static", "Dynamic", "Passthrough", "None"),
+								stringvalidator.OneOf("Dynamic", "Passthrough"),
 							},
 						},
 						"container_port": schema.Int32Attribute{

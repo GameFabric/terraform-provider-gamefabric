@@ -106,7 +106,7 @@ Optional:
 Required:
 
 - `name` (String) Name is the name of the port.
-- `policy` (String) Policy defines the policy for how the HostPort is populated.
+- `policy` (String) Policy defines how the host port is populated. `Dynamic` (default) allocates a free host port and maps it to the `container_port` (required). The gameserver must report the external port (obtained via Agones SDK) to backends for client connections. `Passthrough` dynamically allocates a host port and sets `container_port` to match it. The gameserver must discover this port via Agones SDK and listen on it.
 
 Optional:
 
