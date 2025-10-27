@@ -300,7 +300,7 @@ Optional:
 
 Optional:
 
-- `grace_period_seconds` (Number) GracePeriod is the duration in seconds the game server needs to terminate gracefully.
+- `grace_period_seconds` (Number) GracePeriodSeconds is the duration in seconds the game server needs to terminate gracefully.
 
 
 <a id="nestedatt--volumes"></a>
