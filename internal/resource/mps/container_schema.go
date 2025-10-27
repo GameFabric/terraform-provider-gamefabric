@@ -16,24 +16,25 @@ func ContainersAttributes() schema.NestedAttributeObject {
 	return schema.NestedAttributeObject{
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
-				Description:         "Name is the name of the container.",
-				MarkdownDescription: "Name is the name of the container.",
+				Description:         "Name is the name of the container. The primary gameserver container should be named `default`",
+				MarkdownDescription: "Name is the name of the container. The primary gameserver container should be named `default`",
 				Required:            true,
 			},
 			"image": schema.SingleNestedAttribute{
-				Required: true,
+				Description: "Image is the GameFabric container image to run. You can use the `image_target` attribute of the `gamefabric_image` datasource to set this.",
+				Required:    true,
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
-						Description:         "Name is the name of the image.",
-						MarkdownDescription: "Name is the name of the image.",
+						Description:         "Name is the name of the GameFabric image.",
+						MarkdownDescription: "Name is the name of the GameFabric image.",
 						Required:            true,
 						Validators: []validator.String{
 							validators.NameValidator{},
 						},
 					},
 					"branch": schema.StringAttribute{
-						Description:         "Branch is the branch of the image.",
-						MarkdownDescription: "Branch is the branch of the image.",
+						Description:         "Branch of the GameFabric image.",
+						MarkdownDescription: "Branch of the GameFabric image.",
 						Required:            true,
 						Validators: []validator.String{
 							validators.NameValidator{},
@@ -55,7 +56,7 @@ func ContainersAttributes() schema.NestedAttributeObject {
 			},
 			"resources": schema.SingleNestedAttribute{
 				Description:         "Resources describes the compute resource requirements.",
-				MarkdownDescription: "Resources describes the compute resource requirements.",
+				MarkdownDescription: "Resources describes the compute resource requirements. See the <a href=\"https://docs.gamefabric.com/multiplayer-servers/multiplayer-services/resource-management\">GameFabric documentation</a> for more details on how to configure resource requests and limits.",
 				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"limits": schema.SingleNestedAttribute{

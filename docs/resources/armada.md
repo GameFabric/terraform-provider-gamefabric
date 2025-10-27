@@ -285,8 +285,8 @@ resource "gamefabric_armada" "this" {
 
 Required:
 
-- `image` (Attributes) (see [below for nested schema](#nestedatt--containers--image))
-- `name` (String) Name is the name of the container.
+- `image` (Attributes) Image is the GameFabric container image to run. You can use the `image_target` attribute of the `gamefabric_image` datasource to set this. (see [below for nested schema](#nestedatt--containers--image))
+- `name` (String) Name is the name of the container. The primary gameserver container should be named `default`
 
 Optional:
 
@@ -295,7 +295,7 @@ Optional:
 - `config_files` (Attributes List) ConfigFiles is a list of configuration files to mount into the containers filesystem. (see [below for nested schema](#nestedatt--containers--config_files))
 - `envs` (Attributes List) Envs is a list of environment variables to set on all containers in this Armada. (see [below for nested schema](#nestedatt--containers--envs))
 - `ports` (Attributes List) Ports are the ports to expose from the container. (see [below for nested schema](#nestedatt--containers--ports))
-- `resources` (Attributes) Resources describes the compute resource requirements. (see [below for nested schema](#nestedatt--containers--resources))
+- `resources` (Attributes) Resources describes the compute resource requirements. See the <a href="https://docs.gamefabric.com/multiplayer-servers/multiplayer-services/resource-management">GameFabric documentation</a> for more details on how to configure resource requests and limits. (see [below for nested schema](#nestedatt--containers--resources))
 - `volume_mounts` (Attributes List) VolumeMounts are the volumes to mount into the container&#39;s filesystem. (see [below for nested schema](#nestedatt--containers--volume_mounts))
 
 <a id="nestedatt--containers--image"></a>
@@ -303,8 +303,8 @@ Optional:
 
 Required:
 
-- `branch` (String) Branch is the branch of the image.
-- `name` (String) Name is the name of the image.
+- `branch` (String) Branch of the GameFabric image.
+- `name` (String) Name is the name of the GameFabric image.
 
 
 <a id="nestedatt--containers--config_files"></a>
