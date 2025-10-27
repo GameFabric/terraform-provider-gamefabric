@@ -59,8 +59,8 @@ func (r *region) Schema(_ context.Context, _ datasource.SchemaRequest, resp *dat
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description:         "DisplayName is the user-friendly name of a region.",
-				MarkdownDescription: "DisplayName is the user-friendly name of a region.",
+				Description:         "The user-friendly name of the region.",
+				MarkdownDescription: "The user-friendly name of the region.",
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("name")),

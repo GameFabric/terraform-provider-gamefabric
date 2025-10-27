@@ -49,7 +49,7 @@ data "gamefabric_regions" "eu" {
 
 Read-Only:
 
-- `display_name` (String) The display name of the region.
+- `display_name` (String) The user-friendly name of the region.
 - `environment` (String) The name of the environment the resource belongs to.
 - `name` (String) The unique region name within its environment.
 - `types` (Attributes Map) Types defines the types on infrastructure available in the region. (see [below for nested schema](#nestedatt--regions--types))

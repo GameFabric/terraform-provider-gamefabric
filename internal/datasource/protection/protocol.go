@@ -51,8 +51,8 @@ func (r *protocol) Schema(_ context.Context, _ datasource.SchemaRequest, resp *d
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description:         "DisplayName is the user-friendly name of a protection protocol.",
-				MarkdownDescription: "DisplayName is the user-friendly name of a protection protocol.",
+				Description:         "The user-friendly name of the protection protocol.",
+				MarkdownDescription: "The user-friendly name of the protection protocol.",
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("name")),

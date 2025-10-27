@@ -48,8 +48,8 @@ func (r *protocols) Schema(_ context.Context, _ datasource.SchemaRequest, resp *
 							Computed:            true,
 						},
 						"display_name": schema.StringAttribute{
-							Description:         "DisplayName is the user-friendly name of a protection protocol.",
-							MarkdownDescription: "DisplayName is the user-friendly name of a protection protocol.",
+							Description:         "The user-friendly name of the protection protocol.",
+							MarkdownDescription: "The user-friendly name of the protection protocol.",
 							Computed:            true,
 						},
 						"description": schema.StringAttribute{

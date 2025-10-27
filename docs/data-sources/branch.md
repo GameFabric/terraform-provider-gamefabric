@@ -32,7 +32,7 @@ data "gamefabric_branch" "production" {
 
 ### Optional
 
-- `display_name` (String) DisplayName is friendly name of the branch.
+- `display_name` (String) The user-friendly name of the branch.
 - `name` (String) The unique branch object name.
 
 ### Read-Only

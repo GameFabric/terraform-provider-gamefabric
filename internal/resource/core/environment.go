@@ -83,8 +83,8 @@ func (r *environment) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description:         "DisplayName is the name of the environment shown in GameFabric.",
-				MarkdownDescription: "DisplayName is the name of the environment shown in GameFabric.",
+				Description:         "The user-friendly name of the environment.",
+				MarkdownDescription: "The user-friendly name of the environment.",
 				Required:            true,
 			},
 			"description": schema.StringAttribute{

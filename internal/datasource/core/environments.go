@@ -56,8 +56,8 @@ func (r *environments) Schema(_ context.Context, _ datasource.SchemaRequest, res
 							Computed:            true,
 						},
 						"display_name": schema.StringAttribute{
-							Description:         "DisplayName is friendly name of the environment.",
-							MarkdownDescription: "DisplayName is friendly name of the environment.",
+							Description:         "The user-friendly name of the environment.",
+							MarkdownDescription: "The user-friendly name of the environment.",
 							Computed:            true,
 						},
 						"labels": schema.MapAttribute{

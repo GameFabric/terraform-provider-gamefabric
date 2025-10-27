@@ -67,8 +67,8 @@ func (r *regions) Schema(_ context.Context, _ datasource.SchemaRequest, resp *da
 							Computed:            true,
 						},
 						"display_name": schema.StringAttribute{
-							Description:         "The display name of the region.",
-							MarkdownDescription: "The display name of the region.",
+							Description:         "The user-friendly name of the region.",
+							MarkdownDescription: "The user-friendly name of the region.",
 							Computed:            true,
 						},
 						"environment": schema.StringAttribute{

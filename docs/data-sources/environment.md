@@ -32,7 +32,7 @@ data "gamefabric_environment" "prod" {
 
 ### Optional
 
-- `display_name` (String) A user-friendly name for the environment, shown in GameFabric. Unlike the technical 'name' field, this can be freely chosen and does not have strict constraints.
+- `display_name` (String) The user-friendly name of the environment.
 - `name` (String) The unique environment object name.
 
 ### Read-Only

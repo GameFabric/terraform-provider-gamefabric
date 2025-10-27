@@ -65,8 +65,8 @@ func (r *branch) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description:         "DisplayName is the display name of the branch.",
-				MarkdownDescription: "DisplayName is the display name of the branch.",
+				Description:         "The user-friendly name of the branch.",
+				MarkdownDescription: "The user-friendly name of the branch.",
 				Optional:            true,
 			},
 			"labels": schema.MapAttribute{

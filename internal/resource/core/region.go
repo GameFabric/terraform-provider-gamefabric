@@ -96,8 +96,8 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description:         "DisplayName is the user-friendly name of a region.",
-				MarkdownDescription: "DisplayName is the user-friendly name of a region.",
+				Description:         "The user-friendly name of the region.",
+				MarkdownDescription: "The user-friendly name of the region.",
 				Required:            true,
 			},
 			"description": schema.StringAttribute{

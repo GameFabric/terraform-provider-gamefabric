@@ -38,7 +38,7 @@ data "gamefabric_region" "europe" {
 
 ### Optional
 
-- `display_name` (String) DisplayName is the user-friendly name of a region.
+- `display_name` (String) The user-friendly name of the region.
 - `name` (String) The unique region name within its environment.
 
 ### Read-Only

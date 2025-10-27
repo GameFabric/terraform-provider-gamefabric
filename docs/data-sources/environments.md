@@ -46,6 +46,6 @@ data "gamefabric_environments" "dev_stage" {
 Read-Only:
 
 - `description` (String) Description is the description of the environment.
-- `display_name` (String) DisplayName is friendly name of the environment.
+- `display_name` (String) The user-friendly name of the environment.
 - `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
 - `name` (String) The unique environment object name.
