@@ -152,15 +152,6 @@ func toIntOrString(val types.String) *intstr.IntOrString {
 	return &is
 }
 
-func toFixedInterval(scaling *autoscalingModel) *armadav1.ArmadaFixInterval {
-	if scaling == nil || !conv.IsKnown(scaling.FixedIntervalSeconds) {
-		return &armadav1.ArmadaFixInterval{}
-	}
-	return &armadav1.ArmadaFixInterval{
-		Seconds: scaling.FixedIntervalSeconds.ValueInt32(),
-	}
-}
-
 func newProfilingEnabled(annots map[string]string) types.Bool {
 	if annots == nil {
 		return types.BoolNull()
@@ -192,12 +183,31 @@ type autoscalingModel struct {
 }
 
 func newAutoscalingModel(obj armadav1.ArmadaAutoscaling) *autoscalingModel {
-	if obj.FixedInterval == nil || obj.FixedInterval.Seconds == 0 {
-		return nil
+	var secs int32
+	if obj.FixedInterval != nil {
+		secs = obj.FixedInterval.Seconds
 	}
 	return &autoscalingModel{
-		FixedIntervalSeconds: types.Int32Value(obj.FixedInterval.Seconds),
+		FixedIntervalSeconds: types.Int32Value(secs),
 	}
+}
+
+func toFixedInterval(scaling *autoscalingModel) *armadav1.ArmadaFixInterval {
+	if scaling == nil || scaling.FixedIntervalSeconds.ValueInt32() == 0 {
+		return nil
+	}
+	return &armadav1.ArmadaFixInterval{
+		Seconds: scaling.FixedIntervalSeconds.ValueInt32(),
+	}
+}
+
+// Default returns the default values for autoscalingModel.
+func (m autoscalingModel) Default() defaults.Object {
+	return objectdefault.StaticValue(types.ObjectValueMust(map[string]attr.Type{
+		"fixed_interval_seconds": types.Int32Type,
+	}, map[string]attr.Value{
+		"fixed_interval_seconds": types.Int32Value(0),
+	}))
 }
 
 type replicaModel struct {

@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -114,13 +115,17 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "Autoscaling configuration for the game servers.",
 				MarkdownDescription: "Autoscaling configuration for the game servers.",
 				Optional:            true,
+				Computed:            true,
+				Default:             autoscalingModel{}.Default(),
 				Attributes: map[string]schema.Attribute{
 					"fixed_interval_seconds": schema.Int32Attribute{
-						Description:         "Seconds defines how often the auto-scaler will re-evaluate the number of game servers.",
-						MarkdownDescription: "Seconds defines how often the auto-scaler will re-evaluate the number of game servers.",
+						Description:         "Defines how often the auto-scaler re-evaluates the number of game servers.",
+						MarkdownDescription: "Defines how often the auto-scaler re-evaluates the number of game servers.",
 						Optional:            true,
+						Computed:            true,
+						Default:             int32default.StaticInt32(0),
 						Validators: []validator.Int32{
-							int32validator.AtLeast(1),
+							int32validator.AtLeast(0), // 0 is like omitempty.
 						},
 					},
 				},
