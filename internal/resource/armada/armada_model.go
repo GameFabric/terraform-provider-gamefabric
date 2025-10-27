@@ -10,6 +10,9 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -103,15 +106,6 @@ func (m armadaModel) ToObject() *armadav1.Armada {
 				},
 			},
 		},
-	}
-}
-
-func newTerminationConfig(seconds *int64) *terminationConfigModel {
-	if seconds == nil {
-		return nil
-	}
-	return &terminationConfigModel{
-		GracePeriodSeconds: conv.OptionalFunc(*seconds, types.Int64Value, types.Int64Null),
 	}
 }
 
@@ -224,6 +218,24 @@ func newReplicas(obj armadav1.ArmadaRegionType) replicaModel {
 
 type terminationConfigModel struct {
 	GracePeriodSeconds types.Int64 `tfsdk:"grace_period_seconds"`
+}
+
+func newTerminationConfig(seconds *int64) *terminationConfigModel {
+	var n int64
+	if seconds != nil {
+		n = *seconds
+	}
+	return &terminationConfigModel{
+		GracePeriodSeconds: types.Int64Value(n),
+	}
+}
+
+func (m *terminationConfigModel) Default() defaults.Object {
+	return objectdefault.StaticValue(types.ObjectValueMust(map[string]attr.Type{
+		"grace_period_seconds": types.Int64Type,
+	}, map[string]attr.Value{
+		"grace_period_seconds": types.Int64Value(0),
+	}))
 }
 
 func toTerminationGracePeriodSeconds(cfg *terminationConfigModel) *int64 {

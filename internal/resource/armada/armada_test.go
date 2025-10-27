@@ -185,6 +185,22 @@ func TestResourceArmadaConfigHealthCheckDefaults(t *testing.T) {
 		CheckDestroy:             testCheckArmadaDestroy(t, cs),
 		Steps: []resource.TestStep{
 			{
+				// No block.
+				Config: testResourceArmadaConfigBasic(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.%", "4"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.disabled", "false"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.initial_delay_seconds", "0"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.period_seconds", "0"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.failure_threshold", "0"),
+				),
+			},
+			{
+				ResourceName:      "gamefabric_armada.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				// Empty block.
 				Config: testResourceArmadaConfigBasic("health_checks = {}\n"),
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -225,6 +241,72 @@ func TestResourceArmadaConfigHealthCheckDefaults(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.initial_delay_seconds", "1"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.period_seconds", "2"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.failure_threshold", "3"),
+				),
+			},
+			{
+				ResourceName:      "gamefabric_armada.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestResourceArmadaConfigTerminationConfigDefaults(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckArmadaDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				// No block.
+				Config: testResourceArmadaConfigBasic(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "termination_configuration.%", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "termination_configuration.grace_period_seconds", "0"),
+				),
+			},
+			{
+				ResourceName:      "gamefabric_armada.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				// Empty block.
+				Config: testResourceArmadaConfigBasic("termination_configuration = {}\n"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "termination_configuration.%", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "termination_configuration.grace_period_seconds", "0"),
+				),
+			},
+			{
+				ResourceName:      "gamefabric_armada.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				// Requiring defaults.
+				Config: testResourceArmadaConfigBasic("termination_configuration = {\ngrace_period_seconds = 0\n}\n"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "termination_configuration.%", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "termination_configuration.grace_period_seconds", "0"),
+				),
+			},
+			{
+				ResourceName:      "gamefabric_armada.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				// Complete.
+				Config: testResourceArmadaConfigBasic("termination_configuration = {\ngrace_period_seconds = 1\n}\n"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "termination_configuration.%", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "termination_configuration.grace_period_seconds", "1"),
 				),
 			},
 			{
