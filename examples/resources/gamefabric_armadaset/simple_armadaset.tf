@@ -12,13 +12,8 @@ data "gamefabric_environment" "prod" {
   name = "prod"
 }
 
-data "gamefabric_region" "europe" {
-  name        = "europe"
-  environment = data.gamefabric_environment.prod.name
-}
-
 resource "gamefabric_armadaset" "this" {
-  name        = "myarmada"
+  name        = "myarmadaset"
   environment = data.gamefabric_environment.prod.name
 
   regions = [
@@ -139,18 +134,18 @@ resource "gamefabric_armadaset" "this" {
     }
   ]
 
-  health_checks {
+  health_checks = {
     initial_delay_seconds = 180
     period_seconds        = 5
     failure_threshold     = 3
   }
 
-  termination_configuration {
+  termination_configuration = {
     grace_period_seconds = 30
   }
 
-  strategy {
-    rolling_update {
+  strategy = {
+    rolling_update = {
       max_surge       = "25%"
       max_unavailable = "25%"
     }
