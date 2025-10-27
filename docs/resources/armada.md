@@ -406,7 +406,7 @@ Optional:
 Optional:
 
 - `disabled` (Boolean) Disabled indicates whether Agones health checks are disabled.
-- `failure_threshold` (Number) FailureThreshold is the number of consecutive failures before the game server is marked unhealthy.
+- `failure_threshold` (Number) FailureThreshold is the number of consecutive failures before the game server is marked unhealthy and terminated.
 - `initial_delay_seconds` (Number) InitialDelaySeconds is the number of seconds to wait before performing the first check.
 - `period_seconds` (Number) PeriodSeconds is the number of seconds between checks.
 
