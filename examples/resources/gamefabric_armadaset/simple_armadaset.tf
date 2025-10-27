@@ -52,7 +52,7 @@ resource "gamefabric_armadaset" "this" {
         {
           name = "EXAMPLE_POD_FIELD"
           value_from = {
-            field_path = "metadata.name" # can we somehow define all the allowed keys here? Does this make sense?
+            field_path = "metadata.name"
           }
         }
       ]
