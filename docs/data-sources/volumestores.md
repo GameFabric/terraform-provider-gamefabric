@@ -9,13 +9,6 @@ description: |-
 # gamefabric_volumestores (Data Source)
 
 
-## Example Usage
-
-```terraform
-# Get all volumestores without any filtering.
-data "gamefabric_volumestores" "all" {
-}
-```
 
 
 
