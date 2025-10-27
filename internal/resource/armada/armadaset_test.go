@@ -137,7 +137,7 @@ func TestResourceArmadaSet(t *testing.T) {
 	})
 }
 
-func TestResourceArmadaConfigSetBasic(t *testing.T) {
+func TestResourceArmadaSetConfigSetBasic(t *testing.T) {
 	t.Parallel()
 
 	pf, cs := providertest.ProtoV6ProviderFactories(t)
@@ -175,7 +175,69 @@ func TestResourceArmadaConfigSetBasic(t *testing.T) {
 	})
 }
 
-func TestResourceArmadaSet_Validates(t *testing.T) {
+func TestResourceArmadaSetConfigHealthCheckDefaults(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckArmadaSetDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				// Empty block.
+				Config: testResourceArmadaSetConfigBasic("health_checks = {}\n"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "health_checks.%", "4"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "health_checks.disabled", "false"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "health_checks.initial_delay_seconds", "0"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "health_checks.period_seconds", "0"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "health_checks.failure_threshold", "0"),
+				),
+			},
+			{
+				ResourceName:      "gamefabric_armadaset.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				// Requiring defaults.
+				Config: testResourceArmadaSetConfigBasic("health_checks = {\ndisabled = false\ninitial_delay_seconds = 0\n}\n"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "health_checks.%", "4"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "health_checks.disabled", "false"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "health_checks.initial_delay_seconds", "0"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "health_checks.period_seconds", "0"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "health_checks.failure_threshold", "0"),
+				),
+			},
+			{
+				ResourceName:      "gamefabric_armadaset.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				// Complete.
+				Config: testResourceArmadaSetConfigBasic("health_checks = {\ndisabled = true\ninitial_delay_seconds = 1\nperiod_seconds = 2\nfailure_threshold = 3\n}\n"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "health_checks.%", "4"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "health_checks.disabled", "true"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "health_checks.initial_delay_seconds", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "health_checks.period_seconds", "2"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "health_checks.failure_threshold", "3"),
+				),
+			},
+			{
+				ResourceName:      "gamefabric_armadaset.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestResourceArmadaSetConfigValidates(t *testing.T) {
 	tests := []struct {
 		name        string
 		config      string

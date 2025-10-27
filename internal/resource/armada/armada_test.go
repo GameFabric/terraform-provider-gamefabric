@@ -21,7 +21,7 @@ func TestResourceArmada(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		IsUnitTest:               true,
 		ProtoV6ProviderFactories: pf,
-		CheckDestroy:             testCheckArmadasDestroy(t, cs),
+		CheckDestroy:             testCheckArmadaDestroy(t, cs),
 		Steps: []resource.TestStep{
 			{
 				Config: testResourceArmadaConfigFull(),
@@ -138,7 +138,7 @@ func TestResourceArmadaConfigBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		IsUnitTest:               true,
 		ProtoV6ProviderFactories: pf,
-		CheckDestroy:             testCheckArmadasDestroy(t, cs),
+		CheckDestroy:             testCheckArmadaDestroy(t, cs),
 		Steps: []resource.TestStep{
 			{
 				Config: testResourceArmadaConfigBasic(),
@@ -174,7 +174,69 @@ func TestResourceArmadaConfigBasic(t *testing.T) {
 	})
 }
 
-func TestResourceArmada_Validates(t *testing.T) {
+func TestResourceArmadaConfigHealthCheckDefaults(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckArmadaDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				// Empty block.
+				Config: testResourceArmadaConfigBasic("health_checks = {}\n"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.%", "4"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.disabled", "false"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.initial_delay_seconds", "0"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.period_seconds", "0"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.failure_threshold", "0"),
+				),
+			},
+			{
+				ResourceName:      "gamefabric_armada.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				// Requiring defaults.
+				Config: testResourceArmadaConfigBasic("health_checks = {\ndisabled = false\ninitial_delay_seconds = 0\n}\n"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.%", "4"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.disabled", "false"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.initial_delay_seconds", "0"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.period_seconds", "0"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.failure_threshold", "0"),
+				),
+			},
+			{
+				ResourceName:      "gamefabric_armada.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				// Complete.
+				Config: testResourceArmadaConfigBasic("health_checks = {\ndisabled = true\ninitial_delay_seconds = 1\nperiod_seconds = 2\nfailure_threshold = 3\n}\n"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.%", "4"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.disabled", "true"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.initial_delay_seconds", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.period_seconds", "2"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "health_checks.failure_threshold", "3"),
+				),
+			},
+			{
+				ResourceName:      "gamefabric_armada.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestResourceArmadaConfigValidates(t *testing.T) {
 	tests := []struct {
 		name        string
 		config      string
@@ -367,7 +429,7 @@ func TestResourceArmada_Validates(t *testing.T) {
 			resource.Test(t, resource.TestCase{
 				IsUnitTest:               true,
 				ProtoV6ProviderFactories: pf,
-				CheckDestroy:             testCheckArmadasDestroy(t, cs),
+				CheckDestroy:             testCheckArmadaDestroy(t, cs),
 				Steps: []resource.TestStep{
 					{
 						Config:      test.config,
@@ -641,7 +703,7 @@ func testResourceArmadaConfigFullInvalid() string {
 }`
 }
 
-func testCheckArmadasDestroy(t *testing.T, cs clientset.Interface) func(s *terraform.State) error {
+func testCheckArmadaDestroy(t *testing.T, cs clientset.Interface) func(s *terraform.State) error {
 	return func(s *terraform.State) error {
 		for _, rs := range s.RootModule().Resources {
 			if rs.Type != "gamefabric_armada" {

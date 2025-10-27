@@ -2,7 +2,9 @@ package mps
 
 import (
 	agonesv1 "agones.dev/agones/pkg/apis/agones/v1"
-	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -16,16 +18,27 @@ type HealthChecksModel struct {
 
 // NewHealthChecks converts the backend resource into the terraform model.
 func NewHealthChecks(obj agonesv1.Health) *HealthChecksModel {
-	if obj == (agonesv1.Health{}) {
-		return nil
-	}
-
 	return &HealthChecksModel{
 		Disabled:            types.BoolValue(obj.Disabled),
-		InitialDelaySeconds: conv.OptionalFunc(obj.InitialDelaySeconds, types.Int32Value, types.Int32Null),
-		PeriodSeconds:       conv.OptionalFunc(obj.PeriodSeconds, types.Int32Value, types.Int32Null),
-		FailureThreshold:    conv.OptionalFunc(obj.FailureThreshold, types.Int32Value, types.Int32Null),
+		InitialDelaySeconds: types.Int32Value(obj.InitialDelaySeconds),
+		PeriodSeconds:       types.Int32Value(obj.PeriodSeconds),
+		FailureThreshold:    types.Int32Value(obj.FailureThreshold),
 	}
+}
+
+// Default returns the default values for HealthChecksModel.
+func (m HealthChecksModel) Default() defaults.Object {
+	return objectdefault.StaticValue(types.ObjectValueMust(map[string]attr.Type{
+		"disabled":              types.BoolType,
+		"initial_delay_seconds": types.Int32Type,
+		"period_seconds":        types.Int32Type,
+		"failure_threshold":     types.Int32Type,
+	}, map[string]attr.Value{
+		"disabled":              types.BoolValue(false),
+		"initial_delay_seconds": types.Int32Value(0),
+		"period_seconds":        types.Int32Value(0),
+		"failure_threshold":     types.Int32Value(0),
+	}))
 }
 
 // ToHealthChecks converts the terraform model into the backend resource.
