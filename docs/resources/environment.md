@@ -39,7 +39,7 @@ resource "gamefabric_environment" "prod" {
 ### Optional
 
 - `annotations` (Map of String) Annotations is an unstructured map of keys and values stored on an object.
-- `description` (String) Description is the description of the environment.
+- `description` (String) Description is the optional description of the environment.
 - `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
 
 ### Read-Only

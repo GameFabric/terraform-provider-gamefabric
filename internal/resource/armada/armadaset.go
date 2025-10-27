@@ -88,8 +88,8 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				},
 			},
 			"description": schema.StringAttribute{
-				Description:         "Description of the ArmadaSet.",
-				MarkdownDescription: "Description of the ArmadaSet.",
+				Description:         "Description is the optional description of the armadaset.",
+				MarkdownDescription: "Description is the optional description of the armadaset.",
 				Optional:            true,
 			},
 			"labels": schema.MapAttribute{

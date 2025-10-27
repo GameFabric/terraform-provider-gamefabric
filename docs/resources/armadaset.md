@@ -191,7 +191,7 @@ resource "gamefabric_armadaset" "this" {
 
 - `annotations` (Map of String) Annotations is an unstructured map of keys and values stored on an object.
 - `autoscaling` (Attributes) Autoscaling configuration for the game servers. (see [below for nested schema](#nestedatt--autoscaling))
-- `description` (String) Description of the ArmadaSet.
+- `description` (String) Description is the optional description of the armadaset.
 - `gameserver_annotations` (Map of String) Annotations for the game server pods.
 - `gameserver_labels` (Map of String) Labels for the game server pods.
 - `gateway_policies` (List of String) GatewayPolicies is a list of gateway policies to apply to the Armada.

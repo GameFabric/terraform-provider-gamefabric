@@ -37,5 +37,5 @@ data "gamefabric_environment" "prod" {
 
 ### Read-Only
 
-- `description` (String) Description is the description of the environment.
+- `description` (String) The description of the environment.
 - `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.

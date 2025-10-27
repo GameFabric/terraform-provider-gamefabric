@@ -43,7 +43,7 @@ resource "gamefabric_protection_gatewaypolicy" "game_backend" {
 ### Optional
 
 - `annotations` (Map of String) A map of keys and values that can be used to organize and categorize objects.
-- `description` (String) Description is the description of the gateway policy.
+- `description` (String) Description is the optional description of the gateway policy.
 - `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
 
 ### Read-Only

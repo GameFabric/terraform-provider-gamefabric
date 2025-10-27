@@ -65,8 +65,8 @@ func (r *gatewayPolicy) Schema(_ context.Context, _ datasource.SchemaRequest, re
 				ElementType:         types.StringType,
 			},
 			"description": schema.StringAttribute{
-				Description:         "Description is the description of the gateway policy.",
-				MarkdownDescription: "Description is the description of the gateway policy.",
+				Description:         "The description of the gateway policy.",
+				MarkdownDescription: "The description of the gateway policy.",
 				Computed:            true,
 			},
 			"destination_cidrs": schema.ListAttribute{

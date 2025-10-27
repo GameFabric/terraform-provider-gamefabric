@@ -88,8 +88,8 @@ func (r *environment) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Required:            true,
 			},
 			"description": schema.StringAttribute{
-				Description:         "Description is the description of the environment.",
-				MarkdownDescription: "Description is the description of the environment.",
+				Description:         "Description is the optional description of the environment.",
+				MarkdownDescription: "Description is the optional description of the environment.",
 				Optional:            true,
 			},
 		},

@@ -32,6 +32,6 @@ data "gamefabric_protection_gatewaypolicy" "game_backend_by_displayname" {
 
 ### Read-Only
 
-- `description` (String) Description is the description of the gateway policy.
+- `description` (String) The description of the gateway policy.
 - `destination_cidrs` (List of String) The CIDRs that should use the gateway for outbound traffic, rather than the game server node.
 - `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
