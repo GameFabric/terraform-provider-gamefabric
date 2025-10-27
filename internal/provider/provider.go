@@ -9,6 +9,7 @@ import (
 
 	"github.com/gamefabric/gf-apiclient/rest"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	dsauthentication "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/authentication"
 	dscontainer "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/container"
 	dscore "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/core"
 	dsprotection "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/protection"
@@ -183,6 +184,7 @@ func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource
 		dsstorage.NewVolumes,
 		dsstorage.NewVolumeStore,
 		dsstorage.NewVolumeStores,
+		dsauthentication.NewServiceAccount,
 	}
 }
 
