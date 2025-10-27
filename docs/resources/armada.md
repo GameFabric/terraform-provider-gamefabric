@@ -16,7 +16,7 @@ For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/g
 
 ## Example Usage - Simple Armada
 
-This example sets up an minimal armada in a single region for europe which uses baremetal and cloud locations.
+This example sets up a minimal armada in a single region for europe which uses baremetal and cloud locations.
 
 ```terraform
 data "gamefabric_branch" "prod" {

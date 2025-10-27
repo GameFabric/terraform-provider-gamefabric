@@ -9,10 +9,12 @@ resource "gamefabric_armada" "this" {
   environment = data.gamefabric_environment.prod.name
 
   region = data.gamefabric_region.europe.name
-  replicas = [...]
+  replicas = [
+    # ...
+  ]
   containers = [
     {
-      name  = "default" # the gameserver container should always be named "default"
+      name  = "default"
       image = data.gamefabric_image.gameserver.image_target
     }
   ]

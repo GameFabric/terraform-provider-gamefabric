@@ -14,7 +14,7 @@ resource "gamefabric_armada" "this" {
   ]
   containers = [
     {
-      name  = "default" # The gameserver container should always be named "default".
+      name  = "default"
       image = data.gamefabric_image.gameserver.image_target
     }
   ]

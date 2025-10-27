@@ -4,9 +4,6 @@ data "gamefabric_configfiles" "all_of_environment" {
 }
 
 # Get config files filtered by labels.
-
-# Note:
-# - Only config files that have ALL specified labels with exact matching values are returned.
 data "gamefabric_configfiles" "game_type_alpha_configurations" {
   environment = gamefabric_environment.prod.name
   label_filter = {
