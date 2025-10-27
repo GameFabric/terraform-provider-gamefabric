@@ -149,7 +149,7 @@ func (r *environment) ModifyPlan(ctx context.Context, req resource.ModifyPlanReq
 	}
 
 	var model environmentModel
-	diags := req.Config.Get(ctx, &model)
+	diags := req.Plan.Get(ctx, &model)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

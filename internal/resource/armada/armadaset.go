@@ -427,7 +427,7 @@ func (r *armadaSet) ModifyPlan(ctx context.Context, req resource.ModifyPlanReque
 	}
 
 	var model armadaSetModel
-	diags := req.Config.Get(ctx, &model)
+	diags := req.Plan.Get(ctx, &model)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

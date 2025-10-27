@@ -149,7 +149,7 @@ func (r *imageUpdater) ModifyPlan(ctx context.Context, req resource.ModifyPlanRe
 	}
 
 	var model imageUpdaterModel
-	diags := req.Config.Get(ctx, &model)
+	diags := req.Plan.Get(ctx, &model)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

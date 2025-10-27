@@ -194,7 +194,7 @@ func (r *region) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest,
 	}
 
 	var model regionModel
-	diags := req.Config.Get(ctx, &model)
+	diags := req.Plan.Get(ctx, &model)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

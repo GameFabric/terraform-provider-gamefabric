@@ -161,7 +161,7 @@ func (r *gatewayPolicy) ModifyPlan(ctx context.Context, req resource.ModifyPlanR
 	}
 
 	var model gatewayPolicyModel
-	diags := req.Config.Get(ctx, &model)
+	diags := req.Plan.Get(ctx, &model)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

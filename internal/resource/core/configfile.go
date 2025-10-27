@@ -154,7 +154,7 @@ func (r *configFile) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequ
 	}
 
 	var model configFileModel
-	diags := req.Config.Get(ctx, &model)
+	diags := req.Plan.Get(ctx, &model)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
