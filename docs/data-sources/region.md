@@ -34,7 +34,7 @@ data "gamefabric_region" "europe" {
 
 ### Required
 
-- `environment` (String) The name of the environment the object belongs to.
+- `environment` (String) The name of the environment the resource belongs to.
 
 ### Optional
 

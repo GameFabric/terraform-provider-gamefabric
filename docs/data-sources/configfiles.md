@@ -35,7 +35,7 @@ data "gamefabric_configfiles" "game_type_alpha_configurations" {
 
 ### Required
 
-- `environment` (String) The name of the environment the object belongs to.
+- `environment` (String) The name of the environment the resource belongs to.
 
 ### Optional
 
@@ -51,5 +51,5 @@ data "gamefabric_configfiles" "game_type_alpha_configurations" {
 Read-Only:
 
 - `data` (String) The config file data.
-- `environment` (String) The name of the environment the object belongs to.
+- `environment` (String) The name of the environment the resource belongs to.
 - `name` (String) The unique object name.

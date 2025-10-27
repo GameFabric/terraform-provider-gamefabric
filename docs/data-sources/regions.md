@@ -34,7 +34,7 @@ data "gamefabric_regions" "eu" {
 
 ### Required
 
-- `environment` (String) The name of the environment the object belongs to.
+- `environment` (String) The name of the environment the resource belongs to.
 
 ### Optional
 
@@ -50,7 +50,7 @@ data "gamefabric_regions" "eu" {
 Read-Only:
 
 - `display_name` (String) The display name of the region.
-- `environment` (String) The name of the environment the object belongs to.
+- `environment` (String) The name of the environment the resource belongs to.
 - `name` (String) The unique object name within its scope.
 - `types` (Attributes Map) Types defines the types on infrastructure available in the region. (see [below for nested schema](#nestedatt--regions--types))
 

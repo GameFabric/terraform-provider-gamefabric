@@ -42,8 +42,8 @@ func (r *configFiles) Schema(_ context.Context, _ datasource.SchemaRequest, resp
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"environment": schema.StringAttribute{
-				Description:         "The name of the environment the object belongs to.",
-				MarkdownDescription: "The name of the environment the object belongs to.",
+				Description:         "The name of the environment the resource belongs to.",
+				MarkdownDescription: "The name of the environment the resource belongs to.",
 				Required:            true,
 				Validators: []validator.String{
 					validators.EnvironmentValidator{},
@@ -67,8 +67,8 @@ func (r *configFiles) Schema(_ context.Context, _ datasource.SchemaRequest, resp
 							Computed:            true,
 						},
 						"environment": schema.StringAttribute{
-							Description:         "The name of the environment the object belongs to.",
-							MarkdownDescription: "The name of the environment the object belongs to.",
+							Description:         "The name of the environment the resource belongs to.",
+							MarkdownDescription: "The name of the environment the resource belongs to.",
 							Computed:            true,
 						},
 						"data": schema.StringAttribute{
