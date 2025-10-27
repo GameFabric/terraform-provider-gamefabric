@@ -318,6 +318,56 @@ func TestResourceArmadaConfigTerminationConfigDefaults(t *testing.T) {
 	})
 }
 
+func TestResourceArmadaConfigAutoscaling(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckArmadaDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				Config: testResourceArmadaConfigBasic("autoscaling = {\nfixed_interval_seconds = 0\n}\n"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "autoscaling.%", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "autoscaling.fixed_interval_seconds", "0"),
+				),
+			},
+			{
+				ResourceName:      "gamefabric_armada.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testResourceArmadaConfigBasic("autoscaling = {\nfixed_interval_seconds = 1\n}\n"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "autoscaling.%", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "autoscaling.fixed_interval_seconds", "1"),
+				),
+			},
+			{
+				ResourceName:      "gamefabric_armada.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testResourceArmadaConfigBasic("autoscaling = {}\n"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "autoscaling.%", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "autoscaling.fixed_interval_seconds", "0"),
+				),
+			},
+			{
+				ResourceName:      "gamefabric_armada.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestResourceArmadaConfigValidates(t *testing.T) {
 	tests := []struct {
 		name        string
