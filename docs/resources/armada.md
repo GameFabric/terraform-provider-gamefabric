@@ -97,7 +97,7 @@ resource "gamefabric_armada" "this" {
 This example sets up an armada in all available regions, it uses the result of the `gamefabric_regions` data source to create an armada in each region within the environment..
 It also calculates the minimum, maximum and buffer sizes based on available CPU/Memory resources within a region type.
 
-This allows by simply changing the game_cpu_request and game_memory_request locals to adjust the armada replicas accordingly.
+This allows the armada replicas to be adjusted by simply changing the game_cpu_request and game_memory_request locals.
 
 ```terraform
 data "gamefabric_branch" "prod" {

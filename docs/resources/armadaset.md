@@ -7,7 +7,7 @@ description: |-
 
 # gamefabric_armadaset (Resource)
 
-An ArmadaSet is a templating resource that creates and manages Armadas across multiple Regions with a single configuration. It allows you to define shared common settings while enabling region-specific overrides for environment variables and other configurations.
+An ArmadaSet is a templating resource that creates and manages Armadas across multiple Regions with a single configuration. It allows you to define common settings while enabling region-specific overrides for environment variables and other configurations.
 
 This simplifies multi-region deployments by eliminating the need to duplicate Armada configurations. You define your game server deployment settings once in the ArmadaSet, specify which regions to deploy to, and customize per-region settings where needed.
 
@@ -108,7 +108,7 @@ resource "gamefabric_armadaset" "this" {
         {
           name = "EXAMPLE_POD_FIELD"
           value_from = {
-            field_path = "metadata.name" # can we somehow define all the allowed keys here? Does this make sense?
+            field_path = "metadata.name"
           }
         }
       ]
@@ -329,7 +329,7 @@ Required:
 Optional:
 
 - `envs` (Attributes List) Environment variables for the region. (see [below for nested schema](#nestedatt--regions--envs))
-- `labels` (Map of String) Labels for the region.
+- `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
 - `replicas` (Attributes List) A replicas specifies the distribution of game servers across the available types of capacity in the selected region type. (see [below for nested schema](#nestedatt--regions--replicas))
 
 <a id="nestedatt--regions--envs"></a>

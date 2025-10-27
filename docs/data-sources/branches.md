@@ -32,7 +32,7 @@ data "gamefabric_branches" "production_platform" {
 
 ### Optional
 
-- `label_filter` (Map of String) A map of keys and values that is used to filter branches (exact matches of all provided labels).
+- `label_filter` (Map of String) A map of keys and values that is used to filter branches. Only items with all specified labels (exact matches) will be returned.
 
 ### Read-Only
 

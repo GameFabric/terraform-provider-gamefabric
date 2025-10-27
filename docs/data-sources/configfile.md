@@ -29,4 +29,4 @@ data "gamefabric_configfile" "base_configuration" {
 
 ### Read-Only
 
-- `data` (String) The config file data.
+- `data` (String) The content of the config file.

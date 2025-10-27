@@ -39,7 +39,7 @@ data "gamefabric_configfiles" "game_type_alpha_configurations" {
 
 ### Optional
 
-- `label_filter` (Map of String) A map of keys and values that is used to filter config files.
+- `label_filter` (Map of String) A map of keys and values that is used to filter config files. Only items with all specified labels (exact matches) will be returned.
 
 ### Read-Only
 
@@ -50,6 +50,6 @@ data "gamefabric_configfiles" "game_type_alpha_configurations" {
 
 Read-Only:
 
-- `data` (String) The config file data.
+- `data` (String) The content of the config file.
 - `environment` (String) The name of the environment the resource belongs to.
 - `name` (String) The unique config file name within its environment.

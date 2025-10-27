@@ -31,7 +31,7 @@ data "gamefabric_protection_gatewaypolicies" "by_labels" {
 
 ### Optional
 
-- `label_filter` (Map of String) A map of keys and values that is used to filter gateway policies.
+- `label_filter` (Map of String) A map of keys and values that is used to filter gateway policies. Only items with all specified labels (exact matches) will be returned.
 
 ### Read-Only
 
