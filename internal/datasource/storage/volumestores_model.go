@@ -2,6 +2,7 @@ package storage
 
 import (
 	storagev1 "github.com/gamefabric/gf-core/pkg/api/storage/v1beta1"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 )
 
 type volumeStoresModel struct {
@@ -9,12 +10,9 @@ type volumeStoresModel struct {
 }
 
 func newVolumeStoresModel(objs []storagev1.VolumeStore) volumeStoresModel {
-	model := volumeStoresModel{
-		VolumeStores: make([]volumeStoreModel, 0, len(objs)),
+	return volumeStoresModel{
+		VolumeStores: conv.ForEachSliceItem(objs, func(item storagev1.VolumeStore) volumeStoreModel {
+			return newVolumeStoreModel(&item)
+		}),
 	}
-	for _, item := range objs {
-		m := newVolumeStoreModel(&item)
-		model.VolumeStores = append(model.VolumeStores, m)
-	}
-	return model
 }
