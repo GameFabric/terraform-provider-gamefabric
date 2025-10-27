@@ -46,7 +46,7 @@ resource "gamefabric_configfile" "content_from_file" {
 
 - `data` (String) The content of the config file.
 - `environment` (String) The name of the environment the object belongs to.
-- `name` (String) The unique object name within its scope.
+- `name` (String) The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.
 
 ### Optional
 

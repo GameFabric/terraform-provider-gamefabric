@@ -130,7 +130,7 @@ resource "gamefabric_branch" "feature" {
 - `description` (String) Description is the optional description of the branch.
 - `display_name` (String) DisplayName is the display name of the branch.
 - `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
-- `name` (String) The unique object name within its scope.
+- `name` (String) The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.
 
 ### Read-Only
 

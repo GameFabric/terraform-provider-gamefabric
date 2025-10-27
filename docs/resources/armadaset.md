@@ -19,7 +19,7 @@ description: |-
 
 - `containers` (Attributes List) Containers belonging to the game server. (see [below for nested schema](#nestedatt--containers))
 - `environment` (String) The name of the environment the object belongs to.
-- `name` (String) The unique object name within its scope.
+- `name` (String) The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.
 - `regions` (Attributes List) List of regions for the ArmadaSet. (see [below for nested schema](#nestedatt--regions))
 
 ### Optional
@@ -105,7 +105,7 @@ Optional:
 
 Required:
 
-- `name` (String) Name is the name of the port.
+- `name` (String) Name is the name of the port. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.
 - `policy` (String) Policy defines how the host port is populated. `Dynamic` (default) allocates a free host port and maps it to the `container_port` (required). The gameserver must report the external port (obtained via Agones SDK) to backends for client connections. `Passthrough` dynamically allocates a host port and sets `container_port` to match it. The gameserver must discover this port via Agones SDK and listen on it.
 
 Optional:

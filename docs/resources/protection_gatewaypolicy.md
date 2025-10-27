@@ -38,7 +38,7 @@ resource "gamefabric_protection_gatewaypolicy" "game_backend" {
 
 - `destination_cidrs` (List of String) The CIDRs that should use the gateway for outbound traffic, rather than the game server node.
 - `display_name` (String) Display name is the friendly name of the gateway policy.
-- `name` (String) The unique object name within its scope.
+- `name` (String) The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.
 
 ### Optional
 

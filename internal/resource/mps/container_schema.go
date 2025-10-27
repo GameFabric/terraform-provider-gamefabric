@@ -121,8 +121,8 @@ func ContainersAttributes() schema.NestedAttributeObject {
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
-							Description:         "Name is the name of the port.",
-							MarkdownDescription: "Name is the name of the port.",
+							Description:         "Name is the name of the port. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.",
+							MarkdownDescription: "Name is the name of the port. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.",
 							Required:            true,
 							Validators: []validator.String{
 								validators.NameValidator{},
