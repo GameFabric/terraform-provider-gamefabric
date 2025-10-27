@@ -14,7 +14,6 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
-	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
@@ -159,37 +158,9 @@ func (r *vessel) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "HealthChecks is the health checking configuration for Agones game servers.",
 				MarkdownDescription: "HealthChecks is the health checking configuration for Agones game servers.",
 				Optional:            true,
-				Attributes: map[string]schema.Attribute{
-					"disabled": schema.BoolAttribute{
-						Description:         "Disabled indicates whether Agones health checks are disabled.",
-						MarkdownDescription: "Disabled indicates whether Agones health checks are disabled.",
-						Optional:            true,
-					},
-					"period_seconds": schema.Int32Attribute{
-						Description:         "PeriodSeconds is the number of seconds between checks.",
-						MarkdownDescription: "PeriodSeconds is the number of seconds between checks.",
-						Optional:            true,
-						Validators: []validator.Int32{
-							int32validator.AtLeast(1),
-						},
-					},
-					"failure_threshold": schema.Int32Attribute{
-						Description:         "FailureThreshold is the number of consecutive failures before the game server is marked unhealthy.",
-						MarkdownDescription: "FailureThreshold is the number of consecutive failures before the game server is marked unhealthy.",
-						Optional:            true,
-						Validators: []validator.Int32{
-							int32validator.AtLeast(1),
-						},
-					},
-					"initial_delay_seconds": schema.Int32Attribute{
-						Description:         "InitialDelaySeconds is the number of seconds to wait before performing the first check.",
-						MarkdownDescription: "InitialDelaySeconds is the number of seconds to wait before performing the first check.",
-						Optional:            true,
-						Validators: []validator.Int32{
-							int32validator.AtLeast(0),
-						},
-					},
-				},
+				Computed:            true,
+				Default:             mps.HealthChecksModel{}.Default(),
+				Attributes:          mps.HealthCheckAttributes(),
 			},
 			"termination_configuration": schema.SingleNestedAttribute{
 				Description:         "TerminationConfiguration defines the termination grace period for game servers.",
