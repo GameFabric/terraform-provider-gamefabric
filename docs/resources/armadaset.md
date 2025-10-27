@@ -371,7 +371,7 @@ Required:
 
 Optional:
 
-- `fixed_interval_seconds` (Number) Seconds defines how often the auto-scaler will re-evaluate the number of game servers.
+- `fixed_interval_seconds` (Number) Defines how often the auto-scaler re-evaluates the number of game servers.
 
 
 <a id="nestedatt--health_checks"></a>
