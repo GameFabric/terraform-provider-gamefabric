@@ -62,8 +62,8 @@ func (r *configFiles) Schema(_ context.Context, _ datasource.SchemaRequest, resp
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
-							Description:         "The unique object name.",
-							MarkdownDescription: "The unique object name.",
+							Description:         "The unique config file name within its environment.",
+							MarkdownDescription: "The unique config file name within its environment.",
 							Computed:            true,
 						},
 						"environment": schema.StringAttribute{

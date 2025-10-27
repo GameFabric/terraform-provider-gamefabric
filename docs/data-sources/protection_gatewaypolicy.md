@@ -28,7 +28,7 @@ data "gamefabric_protection_gatewaypolicy" "game_backend_by_displayname" {
 ### Optional
 
 - `display_name` (String) DisplayName is the friendly name of the gateway policy.
-- `name` (String) The unique object name.
+- `name` (String) The unique gateway policy object name.
 
 ### Read-Only
 

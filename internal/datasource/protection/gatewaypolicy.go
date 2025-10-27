@@ -42,8 +42,8 @@ func (r *gatewayPolicy) Schema(_ context.Context, _ datasource.SchemaRequest, re
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
-				Description:         "The unique object name.",
-				MarkdownDescription: "The unique object name.",
+				Description:         "The unique gateway policy object name.",
+				MarkdownDescription: "The unique gateway policy object name.",
 				Optional:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},

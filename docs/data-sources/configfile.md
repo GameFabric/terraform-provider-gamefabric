@@ -25,7 +25,7 @@ data "gamefabric_configfile" "base_configuration" {
 ### Required
 
 - `environment` (String) The name of the environment the resource belongs to.
-- `name` (String) The unique object name.
+- `name` (String) The unique config file name within its environment.
 
 ### Read-Only
 

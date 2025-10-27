@@ -51,8 +51,8 @@ func (r *environments) Schema(_ context.Context, _ datasource.SchemaRequest, res
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
-							Description:         "The unique object name within its scope.",
-							MarkdownDescription: "The unique object name within its scope.",
+							Description:         "The unique environment object name.",
+							MarkdownDescription: "The unique environment object name.",
 							Computed:            true,
 						},
 						"display_name": schema.StringAttribute{

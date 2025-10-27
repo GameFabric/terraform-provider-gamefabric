@@ -38,8 +38,8 @@ func (r *configFile) Schema(_ context.Context, _ datasource.SchemaRequest, resp 
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
-				Description:         "The unique object name.",
-				MarkdownDescription: "The unique object name.",
+				Description:         "The unique config file name within its environment.",
+				MarkdownDescription: "The unique config file name within its environment.",
 				Required:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},

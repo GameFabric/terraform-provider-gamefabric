@@ -51,7 +51,7 @@ Read-Only:
 
 - `display_name` (String) The display name of the region.
 - `environment` (String) The name of the environment the resource belongs to.
-- `name` (String) The unique object name within its scope.
+- `name` (String) The unique region name within its environment.
 - `types` (Attributes Map) Types defines the types on infrastructure available in the region. (see [below for nested schema](#nestedatt--regions--types))
 
 <a id="nestedatt--regions--types"></a>

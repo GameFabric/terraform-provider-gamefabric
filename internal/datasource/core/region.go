@@ -42,8 +42,8 @@ func (r *region) Schema(_ context.Context, _ datasource.SchemaRequest, resp *dat
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
-				Description:         "The unique object name.",
-				MarkdownDescription: "The unique object name.",
+				Description:         "The unique region name within its environment.",
+				MarkdownDescription: "The unique region name within its environment.",
 				Optional:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},

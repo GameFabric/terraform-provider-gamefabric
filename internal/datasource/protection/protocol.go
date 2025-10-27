@@ -42,8 +42,8 @@ func (r *protocol) Schema(_ context.Context, _ datasource.SchemaRequest, resp *d
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
-				Description:         "The unique object name.",
-				MarkdownDescription: "The unique object name.",
+				Description:         "The unique protection protocol object name.",
+				MarkdownDescription: "The unique protection protocol object name.",
 				Optional:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},

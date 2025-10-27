@@ -52,4 +52,4 @@ Read-Only:
 
 - `data` (String) The config file data.
 - `environment` (String) The name of the environment the resource belongs to.
-- `name` (String) The unique object name.
+- `name` (String) The unique config file name within its environment.

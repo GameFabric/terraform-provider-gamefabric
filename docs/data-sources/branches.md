@@ -44,7 +44,7 @@ data "gamefabric_branches" "production_platform" {
 Read-Only:
 
 - `display_name` (String) The display name of the branch.
-- `name` (String) The unique object name within its scope.
+- `name` (String) The unique branch object name.
 - `retention_policy_rules` (Attributes List) RetentionPolicyRules are the rules that define how images are retained. (see [below for nested schema](#nestedatt--branches--retention_policy_rules))
 
 <a id="nestedatt--branches--retention_policy_rules"></a>
