@@ -178,6 +178,7 @@ func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource
 		dsprotection.NewProtocol,
 		dsprotection.NewProtocols,
 		dsauthentication.NewServiceAccount,
+		dsauthentication.NewServiceAccounts,
 	}
 }
 
