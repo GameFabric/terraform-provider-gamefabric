@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -234,17 +235,23 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Description:         "HealthChecks is the health checking configuration for Agones game servers.",
 				MarkdownDescription: "HealthChecks is the health checking configuration for Agones game servers.",
 				Optional:            true,
+				Computed:            true,
+				Default:             mps.HealthChecksModel{}.Default(),
 				Attributes:          mps.HealthCheckAttributes(),
 			},
 			"termination_configuration": schema.SingleNestedAttribute{
 				Description:         "TerminationConfiguration defines the termination grace period for game servers.",
 				MarkdownDescription: "TerminationConfiguration defines the termination grace period for game servers.",
 				Optional:            true,
+				Computed:            true,
+				Default:             (&terminationConfigModel{}).Default(),
 				Attributes: map[string]schema.Attribute{
 					"grace_period_seconds": schema.Int64Attribute{
 						Description:         "GracePeriodSeconds is the duration in seconds the game server needs to terminate gracefully.",
 						MarkdownDescription: "GracePeriodSeconds is the duration in seconds the game server needs to terminate gracefully.",
 						Optional:            true,
+						Computed:            true,
+						Default:             int64default.StaticInt64(0),
 						Validators: []validator.Int64{
 							int64validator.AtLeast(0),
 						},
