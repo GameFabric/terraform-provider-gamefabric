@@ -9,7 +9,12 @@ import (
 	"github.com/gamefabric/gf-apiclient/tools/patch"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-apiserver/registry/generic"
+	"github.com/gamefabric/gf-apiserver/storage/factory"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	configfilereg "github.com/gamefabric/gf-core/pkg/apiserver/registry/core/configfile"
+	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
@@ -26,15 +31,29 @@ var (
 	_ resource.Resource                = &configFile{}
 	_ resource.ResourceWithConfigure   = &configFile{}
 	_ resource.ResourceWithImportState = &configFile{}
+	_ resource.ResourceWithModifyPlan  = &configFile{}
 )
 
 type configFile struct {
 	clientSet clientset.Interface
+	val       storeValidator
 }
 
 // NewConfigFile returns a new instance of the config file resource.
 func NewConfigFile() resource.Resource {
-	return &configFile{}
+	store, _ := configfilereg.New(
+		generic.StoreOptions{
+			Config: generic.Config{
+				StorageConfig:  factory.ConfigForResource{},
+				StorageFactory: registrytest.FakeStorageFactory{},
+				ResourcePrefix: "/core/configfiles",
+			},
+		},
+	)
+
+	return &configFile{
+		val: store.Store.Strategy,
+	}
 }
 
 // Metadata defines the resource type name.
@@ -123,6 +142,33 @@ func (r *configFile) Configure(_ context.Context, req resource.ConfigureRequest,
 	}
 
 	r.clientSet = procCtx.ClientSet
+}
+
+// ModifyPlan is the plan modifier for the resource.
+//
+// It performs validation of the planned object against the ConfigFile store validator.
+// It is preferred over resource.ResourceWithConfigValidators and resource.ResourceWithValidateConfig which both don't have variables resolved.
+func (r *configFile) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	if conv.SkipValidate(req.Plan.Raw) {
+		return
+	}
+
+	var model configFileModel
+	diags := req.Config.Get(ctx, &model)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	obj := model.ToObject()
+	if errs := r.val.Validate(obj); len(errs) > 0 {
+		for _, err := range errs {
+			resp.Diagnostics.AddError(
+				"ConfigFile Validation Error",
+				fmt.Sprintf("The provided ConfigFile %q is invalid: %v", obj.Name, err),
+			)
+		}
+	}
 }
 
 func (r *configFile) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

@@ -9,7 +9,12 @@ import (
 	"github.com/gamefabric/gf-apiclient/tools/patch"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-apiserver/registry/generic"
+	"github.com/gamefabric/gf-apiserver/storage/factory"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	regionreg "github.com/gamefabric/gf-core/pkg/apiserver/registry/core/region"
+	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
@@ -28,15 +33,29 @@ var (
 	_ resource.Resource                = &region{}
 	_ resource.ResourceWithConfigure   = &region{}
 	_ resource.ResourceWithImportState = &region{}
+	_ resource.ResourceWithModifyPlan  = &region{}
 )
 
 type region struct {
 	clientSet clientset.Interface
+	val       storeValidator
 }
 
 // NewRegion returns a new instance of the region resource.
 func NewRegion() resource.Resource {
-	return &region{}
+	store, _ := regionreg.New(
+		generic.StoreOptions{
+			Config: generic.Config{
+				StorageConfig:  factory.ConfigForResource{},
+				StorageFactory: registrytest.FakeStorageFactory{},
+				ResourcePrefix: "/core/regions",
+			},
+		},
+	)
+
+	return &region{
+		val: store.Store.Strategy,
+	}
 }
 
 // Metadata defines the resource type name.
@@ -163,6 +182,33 @@ func (r *region) Configure(_ context.Context, req resource.ConfigureRequest, res
 	}
 
 	r.clientSet = procCtx.ClientSet
+}
+
+// ModifyPlan is the plan modifier for the resource.
+//
+// It performs validation of the planned object against the Region store validator.
+// It is preferred over resource.ResourceWithConfigValidators and resource.ResourceWithValidateConfig which both don't have variables resolved.
+func (r *region) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	if conv.SkipValidate(req.Plan.Raw) {
+		return
+	}
+
+	var model regionModel
+	diags := req.Config.Get(ctx, &model)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	obj := model.ToObject()
+	if errs := r.val.Validate(obj); len(errs) > 0 {
+		for _, err := range errs {
+			resp.Diagnostics.AddError(
+				"Region Validation Error",
+				fmt.Sprintf("The provided Region %q is invalid: %v", obj.Name, err),
+			)
+		}
+	}
 }
 
 func (r *region) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

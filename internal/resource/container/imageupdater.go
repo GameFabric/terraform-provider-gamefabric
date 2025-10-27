@@ -9,7 +9,12 @@ import (
 	"github.com/gamefabric/gf-apiclient/tools/patch"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-apiserver/registry/generic"
+	"github.com/gamefabric/gf-apiserver/storage/factory"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	imageupdatereg "github.com/gamefabric/gf-core/pkg/apiserver/registry/container/imageupdate"
+	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
@@ -24,17 +29,31 @@ import (
 )
 
 var (
-	_ resource.Resource              = &imageUpdater{}
-	_ resource.ResourceWithConfigure = &imageUpdater{}
+	_ resource.Resource               = &imageUpdater{}
+	_ resource.ResourceWithConfigure  = &imageUpdater{}
+	_ resource.ResourceWithModifyPlan = &imageUpdater{}
 )
 
 type imageUpdater struct {
 	clientSet clientset.Interface
+	val       storeValidator
 }
 
 // NewImageUpdater returns a new instance of the image updater resource.
 func NewImageUpdater() resource.Resource {
-	return &imageUpdater{}
+	store, _ := imageupdatereg.New(
+		generic.StoreOptions{
+			Config: generic.Config{
+				StorageConfig:  factory.ConfigForResource{},
+				StorageFactory: registrytest.FakeStorageFactory{},
+				ResourcePrefix: "/container/imageupdates",
+			},
+		},
+	)
+
+	return &imageUpdater{
+		val: store.Store.Strategy,
+	}
 }
 
 // Metadata defines the resource type name.
@@ -118,6 +137,33 @@ func (r *imageUpdater) Configure(_ context.Context, req resource.ConfigureReques
 	}
 
 	r.clientSet = procCtx.ClientSet
+}
+
+// ModifyPlan is the plan modifier for the resource.
+//
+// It performs validation of the planned object against the ImageUpdater store validator.
+// It is preferred over resource.ResourceWithConfigValidators and resource.ResourceWithValidateConfig which both don't have variables resolved.
+func (r *imageUpdater) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	if conv.SkipValidate(req.Plan.Raw) {
+		return
+	}
+
+	var model imageUpdaterModel
+	diags := req.Config.Get(ctx, &model)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	obj := model.ToObject("name")
+	if errs := r.val.Validate(obj); len(errs) > 0 {
+		for _, err := range errs {
+			resp.Diagnostics.AddError(
+				"ImageUpdater Validation Error",
+				fmt.Sprintf("The provided ImageUpdater is invalid: %v", err),
+			)
+		}
+	}
 }
 
 func (r *imageUpdater) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

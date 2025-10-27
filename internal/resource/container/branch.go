@@ -7,8 +7,15 @@ import (
 	"github.com/gamefabric/gf-apiclient/rest"
 	"github.com/gamefabric/gf-apiclient/tools/patch"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
+	"github.com/gamefabric/gf-apicore/api/validation"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-apicore/runtime"
+	"github.com/gamefabric/gf-apiserver/registry/generic"
+	"github.com/gamefabric/gf-apiserver/storage/factory"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	branchreg "github.com/gamefabric/gf-core/pkg/apiserver/registry/container/branch"
+	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
@@ -25,16 +32,35 @@ var (
 	_ resource.Resource                = &branch{}
 	_ resource.ResourceWithConfigure   = &branch{}
 	_ resource.ResourceWithImportState = &branch{}
+	_ resource.ResourceWithModifyPlan  = &branch{}
 )
+
+type storeValidator interface {
+	Validate(obj runtime.Object) validation.Errors
+	ValidateUpdate(newObj, oldObj runtime.Object) validation.Errors
+}
 
 // branch is the branch resource.
 type branch struct {
 	clientSet clientset.Interface
+	val       storeValidator
 }
 
 // NewBranch creates a new branch resource.
 func NewBranch() resource.Resource {
-	return &branch{}
+	store, _ := branchreg.New(
+		generic.StoreOptions{
+			Config: generic.Config{
+				StorageConfig:  factory.ConfigForResource{},
+				StorageFactory: registrytest.FakeStorageFactory{},
+				ResourcePrefix: "/container/branches",
+			},
+		},
+	)
+
+	return &branch{
+		val: store.Store.Strategy,
+	}
 }
 
 // Metadata returns the resource metadata.
@@ -146,6 +172,33 @@ func (r *branch) Configure(_ context.Context, req resource.ConfigureRequest, res
 	}
 
 	r.clientSet = procCtx.ClientSet
+}
+
+// ModifyPlan is the plan modifier for the resource.
+//
+// It performs validation of the planned object against the Branch store validator.
+// It is preferred over resource.ResourceWithConfigValidators and resource.ResourceWithValidateConfig which both don't have variables resolved.
+func (r *branch) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	if conv.SkipValidate(req.Plan.Raw) {
+		return
+	}
+
+	var model branchModel
+	diags := req.Config.Get(ctx, &model)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	obj := model.ToObject()
+	if errs := r.val.Validate(obj); len(errs) > 0 {
+		for _, err := range errs {
+			resp.Diagnostics.AddError(
+				"Branch Validation Error",
+				fmt.Sprintf("The provided Branch %q is invalid: %v", obj.Name, err),
+			)
+		}
+	}
 }
 
 // Create creates the resource and sets the initial Terraform state on success.

@@ -609,15 +609,14 @@ func testResourceArmadaConfigFull() string {
   name        = "my-armada"
   environment = "test"
   description = "My Armada"
-
+  autoscaling = {
+    fixed_interval_seconds = 10
+  }
   labels      = {
     "example1": "armada-label"
   }
   annotations = {
 	"example2": "armada-annotation"
-  }
-  autoscaling = {
-    fixed_interval_seconds = 10
   }
   region = "eu"
   replicas = [

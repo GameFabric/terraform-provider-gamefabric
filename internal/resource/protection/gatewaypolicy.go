@@ -7,8 +7,15 @@ import (
 	"github.com/gamefabric/gf-apiclient/rest"
 	"github.com/gamefabric/gf-apiclient/tools/patch"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
+	"github.com/gamefabric/gf-apicore/api/validation"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-apicore/runtime"
+	"github.com/gamefabric/gf-apiserver/registry/generic"
+	"github.com/gamefabric/gf-apiserver/storage/factory"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	gatewaypolicyreg "github.com/gamefabric/gf-core/pkg/apiserver/registry/protection/gatewaypolicy"
+	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
@@ -26,15 +33,34 @@ var (
 	_ resource.Resource                = &gatewayPolicy{}
 	_ resource.ResourceWithConfigure   = &gatewayPolicy{}
 	_ resource.ResourceWithImportState = &gatewayPolicy{}
+	_ resource.ResourceWithModifyPlan  = &gatewayPolicy{}
 )
+
+type storeValidator interface {
+	Validate(obj runtime.Object) validation.Errors
+	ValidateUpdate(newObj, oldObj runtime.Object) validation.Errors
+}
 
 type gatewayPolicy struct {
 	clientSet clientset.Interface
+	val       storeValidator
 }
 
 // NewGatewayPolicy returns a new instance of the gateway policy resource.
 func NewGatewayPolicy() resource.Resource {
-	return &gatewayPolicy{}
+	store, _ := gatewaypolicyreg.New(
+		generic.StoreOptions{
+			Config: generic.Config{
+				StorageConfig:  factory.ConfigForResource{},
+				StorageFactory: registrytest.FakeStorageFactory{},
+				ResourcePrefix: "/protection/gatewaypolicies",
+			},
+		},
+	)
+
+	return &gatewayPolicy{
+		val: store.Store.Strategy,
+	}
 }
 
 // Metadata defines the resource type name.
@@ -123,6 +149,33 @@ func (r *gatewayPolicy) Configure(_ context.Context, req resource.ConfigureReque
 	}
 
 	r.clientSet = procCtx.ClientSet
+}
+
+// ModifyPlan is the plan modifier for the resource.
+//
+// It performs validation of the planned object against the GatewayPolicy store validator.
+// It is preferred over resource.ResourceWithConfigValidators and resource.ResourceWithValidateConfig which both don't have variables resolved.
+func (r *gatewayPolicy) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	if conv.SkipValidate(req.Plan.Raw) {
+		return
+	}
+
+	var model gatewayPolicyModel
+	diags := req.Config.Get(ctx, &model)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	obj := model.ToObject()
+	if errs := r.val.Validate(obj); len(errs) > 0 {
+		for _, err := range errs {
+			resp.Diagnostics.AddError(
+				"GatewayPolicy Validation Error",
+				fmt.Sprintf("The provided GatewayPolicy %q is invalid: %v", obj.Name, err),
+			)
+		}
+	}
 }
 
 func (r *gatewayPolicy) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

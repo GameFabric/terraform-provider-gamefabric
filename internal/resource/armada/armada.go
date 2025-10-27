@@ -9,8 +9,15 @@ import (
 	"github.com/gamefabric/gf-apiclient/tools/cache"
 	"github.com/gamefabric/gf-apiclient/tools/patch"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
+	"github.com/gamefabric/gf-apicore/api/validation"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-apicore/runtime"
+	"github.com/gamefabric/gf-apiserver/registry/generic"
+	"github.com/gamefabric/gf-apiserver/storage/factory"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	armadareg "github.com/gamefabric/gf-core/pkg/apiserver/registry/armada/armada"
+	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
@@ -36,15 +43,34 @@ var (
 	_ resource.Resource                = &armada{}
 	_ resource.ResourceWithConfigure   = &armada{}
 	_ resource.ResourceWithImportState = &armada{}
+	_ resource.ResourceWithModifyPlan  = &armada{}
 )
+
+type storeValidator interface {
+	Validate(obj runtime.Object) validation.Errors
+	ValidateUpdate(newObj, oldObj runtime.Object) validation.Errors
+}
 
 type armada struct {
 	clientSet clientset.Interface
+	val       storeValidator
 }
 
 // NewArmada returns a new instance of the Armada resource.
 func NewArmada() resource.Resource {
-	return &armada{}
+	store, _ := armadareg.New(
+		generic.StoreOptions{
+			Config: generic.Config{
+				StorageConfig:  factory.ConfigForResource{},
+				StorageFactory: registrytest.FakeStorageFactory{},
+				ResourcePrefix: "/armada/armadas",
+			},
+		},
+	)
+
+	return &armada{
+		val: store.Store.Strategy,
+	}
 }
 
 // Metadata defines the resource type name.
@@ -370,6 +396,33 @@ func (r *armada) Configure(_ context.Context, req resource.ConfigureRequest, res
 	}
 
 	r.clientSet = procCtx.ClientSet
+}
+
+// ModifyPlan is the plan modifier for the resource.
+//
+// It performs validation of the planned object against the Armada store validator.
+// It is preferred over resource.ResourceWithConfigValidators and resource.ResourceWithValidateConfig which both don't have variables resolved.
+func (r *armada) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	if conv.SkipValidate(req.Plan.Raw) {
+		return
+	}
+
+	var model armadaModel
+	diags := req.Plan.Get(ctx, &model)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	obj := model.ToObject()
+	if errs := r.val.Validate(obj); len(errs) > 0 {
+		for _, err := range errs {
+			resp.Diagnostics.AddError(
+				"Armada Validation Error",
+				fmt.Sprintf("The provided Armada %q is invalid: %v", obj.Name, err),
+			)
+		}
+	}
 }
 
 func (r *armada) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

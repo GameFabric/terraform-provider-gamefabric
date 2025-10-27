@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -35,6 +36,12 @@ func ForEachMapItem[T, K any](m map[string]T, fn func(item T) K) map[string]K {
 // IsKnown checks if the value is neither null nor unknown.
 func IsKnown(v attr.Value) bool {
 	return !v.IsNull() && !v.IsUnknown()
+}
+
+// SkipValidate checks if the validation should be skipped for the given plan value.
+func SkipValidate(plan tftypes.Value) bool {
+	return !plan.IsFullyKnown() ||
+		plan.IsNull() // Terraform 1.3 and later supports resource destroy planning, in which this will contain a null value.
 }
 
 // OptionalFunc checks if the value is empty and returns a default value, from defFn, if it is,
