@@ -67,8 +67,8 @@ func (r *environments) Schema(_ context.Context, _ datasource.SchemaRequest, res
 							ElementType:         types.StringType,
 						},
 						"description": schema.StringAttribute{
-							Description:         "Description is the description of the environment.",
-							MarkdownDescription: "Description is the description of the environment.",
+							Description:         "The description of the environment.",
+							MarkdownDescription: "The description of the environment.",
 							Computed:            true,
 						},
 					},

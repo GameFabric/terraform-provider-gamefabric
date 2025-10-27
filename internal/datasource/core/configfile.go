@@ -54,8 +54,8 @@ func (r *configFile) Schema(_ context.Context, _ datasource.SchemaRequest, resp 
 				},
 			},
 			"data": schema.StringAttribute{
-				Description:         "The config file data.",
-				MarkdownDescription: "The config file data.",
+				Description:         "The content of the config file.",
+				MarkdownDescription: "The content of the config file.",
 				Computed:            true,
 			},
 		},
