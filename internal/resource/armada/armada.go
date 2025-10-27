@@ -119,8 +119,8 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Default:             autoscalingModel{}.Default(),
 				Attributes: map[string]schema.Attribute{
 					"fixed_interval_seconds": schema.Int32Attribute{
-						Description:         "Seconds defines how often the auto-scaler will re-evaluate the number of game servers.",
-						MarkdownDescription: "Seconds defines how often the auto-scaler will re-evaluate the number of game servers.",
+						Description:         "Defines how often the auto-scaler re-evaluates the number of game servers.",
+						MarkdownDescription: "Defines how often the auto-scaler re-evaluates the number of game servers.",
 						Optional:            true,
 						Computed:            true,
 						Default:             int32default.StaticInt32(0),
