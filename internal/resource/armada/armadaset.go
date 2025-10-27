@@ -193,8 +193,8 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 							},
 						},
 						"labels": schema.MapAttribute{
-							Description:         "Labels for the region.",
-							MarkdownDescription: "Labels for the region.",
+							Description:         "A map of keys and values that can be used to organize and categorize objects.",
+							MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
 							Optional:            true,
 							ElementType:         types.StringType,
 							Validators: []validator.Map{
