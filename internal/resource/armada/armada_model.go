@@ -154,7 +154,7 @@ func toIntOrString(val types.String) *intstr.IntOrString {
 
 func toFixedInterval(scaling *autoscalingModel) *armadav1.ArmadaFixInterval {
 	if scaling == nil || !conv.IsKnown(scaling.FixedIntervalSeconds) {
-		return &armadav1.ArmadaFixInterval{}
+		return nil
 	}
 	return &armadav1.ArmadaFixInterval{
 		Seconds: scaling.FixedIntervalSeconds.ValueInt32(),
