@@ -149,7 +149,7 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 						"replicas": schema.ListNestedAttribute{
 							Description:         "A replicas specifies the distribution of game servers across the available types of capacity in the selected region type.",
 							MarkdownDescription: "A replicas specifies the distribution of game servers across the available types of capacity in the selected region type.",
-							Optional:            true,
+							Required:            true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"region_type": schema.StringAttribute{
