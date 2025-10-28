@@ -58,12 +58,6 @@ func (r *serviceAccount) Schema(_ context.Context, _ datasource.SchemaRequest, r
 				MarkdownDescription: "The service account state.",
 				Computed:            true,
 			},
-			"password": schema.StringAttribute{
-				Description:         "The service account password (sensitive).",
-				MarkdownDescription: "The service account password (sensitive).",
-				Computed:            true,
-				Sensitive:           true,
-			},
 			"labels": schema.MapAttribute{
 				Description:         "Key-value labels for the service account.",
 				MarkdownDescription: "Key-value labels for the service account.",
