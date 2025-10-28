@@ -160,12 +160,23 @@ Optional:
 Required:
 
 - `name` (String) Region name.
+- `replicas` (Attributes List) A replicas specifies the distribution of game servers across the available types of capacity in the selected region type. (see [below for nested schema](#nestedatt--regions--replicas))
 
 Optional:
 
 - `envs` (Attributes List) Environment variables for the region. (see [below for nested schema](#nestedatt--regions--envs))
 - `labels` (Map of String) Labels for the region.
-- `replicas` (Attributes List) A replicas specifies the distribution of game servers across the available types of capacity in the selected region type. (see [below for nested schema](#nestedatt--regions--replicas))
+
+<a id="nestedatt--regions--replicas"></a>
+### Nested Schema for `regions.replicas`
+
+Required:
+
+- `buffer_size` (Number) BufferSize is the number of replicas to have ready all the time.
+- `max_replicas` (Number) MaxReplicas is the maximum number of replicas in the region type.
+- `min_replicas` (Number) MinReplicas is the minimum number of replicas in the region type.
+- `region_type` (String) RegionType is the name of the region type.
+
 
 <a id="nestedatt--regions--envs"></a>
 ### Nested Schema for `regions.envs`
@@ -187,17 +198,6 @@ Optional:
 - `config_file` (String) ConfigFile select the configuration file.
 - `field_path` (String) FieldPath selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.
 
-
-
-<a id="nestedatt--regions--replicas"></a>
-### Nested Schema for `regions.replicas`
-
-Required:
-
-- `buffer_size` (Number) BufferSize is the number of replicas to have ready all the time.
-- `max_replicas` (Number) MaxReplicas is the maximum number of replicas in the region type.
-- `min_replicas` (Number) MinReplicas is the minimum number of replicas in the region type.
-- `region_type` (String) RegionType is the name of the region type.
 
 
 
