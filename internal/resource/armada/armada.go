@@ -314,7 +314,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Optional:            true,
 				ElementType:         types.StringType,
 				Validators: []validator.List{
-					validators.NameValidator{},
+					listvalidator.ValueStringsAre(validators.NameValidator{}),
 					listvalidator.UniqueValues(),
 				},
 			},
