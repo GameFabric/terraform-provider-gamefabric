@@ -154,11 +154,11 @@ func toResourceList(spec *ResourceSpecModel) kcorev1.ResourceList {
 	if spec == nil {
 		return res
 	}
-	if q := conv.Quantity(spec.CPU); q != nil && !q.IsZero() {
-		res[kcorev1.ResourceCPU] = *q
+	if q := conv.Quantity(spec.CPU); !q.IsZero() {
+		res[kcorev1.ResourceCPU] = q
 	}
-	if q := conv.Quantity(spec.Memory); q != nil && !q.IsZero() {
-		res[kcorev1.ResourceMemory] = *q
+	if q := conv.Quantity(spec.Memory); !q.IsZero() {
+		res[kcorev1.ResourceMemory] = q
 	}
 	return res
 }

@@ -164,7 +164,7 @@ func toVolume(vol volumeModel) formationv1.Volume {
 	default:
 		res.Type = formationv1.VolumeTypeEmptyDir
 		res.EmptyDir = &formationv1.EmptyDirVolumeSource{
-			SizeLimit: conv.Quantity(vol.EmptyDir.SizeLimit),
+			SizeLimit: conv.QuantityPointer(vol.EmptyDir.SizeLimit),
 		}
 	}
 	return res

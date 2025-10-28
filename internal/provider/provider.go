@@ -190,6 +190,7 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		core.NewRegion,
 		container.NewBranch,
 		container.NewImageUpdater,
+		formation.NewFormation,
 		formation.NewVessel,
 		protection.NewGatewayPolicy,
 	}
