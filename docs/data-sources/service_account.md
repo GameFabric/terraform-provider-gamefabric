@@ -23,6 +23,5 @@ description: |-
 
 - `email` (String) The service account email.
 - `labels` (Map of String) Key-value labels for the service account.
-- `password` (String, Sensitive) The service account password (sensitive).
 - `state` (String) The service account state.
 - `username` (String) The service account username.

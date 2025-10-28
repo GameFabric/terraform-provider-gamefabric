@@ -12,7 +12,6 @@ type serviceAccountModel struct {
 	Username types.String            `tfsdk:"username"`
 	Email    types.String            `tfsdk:"email"`
 	State    types.String            `tfsdk:"state"`
-	Password types.String            `tfsdk:"password"`
 }
 
 func newServiceAccountModel(obj *authv1.ServiceAccount) serviceAccountModel {
@@ -22,6 +21,5 @@ func newServiceAccountModel(obj *authv1.ServiceAccount) serviceAccountModel {
 		Username: conv.OptionalFunc(obj.Spec.Username, types.StringValue, types.StringNull),
 		Email:    conv.OptionalFunc(obj.Spec.Email, types.StringValue, types.StringNull),
 		State:    conv.OptionalFunc(string(obj.Status.State), types.StringValue, types.StringNull),
-		Password: conv.OptionalFunc(obj.Status.Password, types.StringValue, types.StringNull),
 	}
 }
