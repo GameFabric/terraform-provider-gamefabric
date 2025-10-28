@@ -73,7 +73,6 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"environment": schema.StringAttribute{
@@ -85,7 +84,6 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"description": schema.StringAttribute{

@@ -60,7 +60,6 @@ func (r *configFile) Schema(_ context.Context, _ resource.SchemaRequest, resp *r
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"environment": schema.StringAttribute{
@@ -72,7 +71,6 @@ func (r *configFile) Schema(_ context.Context, _ resource.SchemaRequest, resp *r
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"labels": schema.MapAttribute{
