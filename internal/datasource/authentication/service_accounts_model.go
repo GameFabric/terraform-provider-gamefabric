@@ -6,22 +6,20 @@ import (
 )
 
 type serviceAccountsModel struct {
-	Items []serviceAccountModel `tfsdk:"items"`
-}
-
-type serviceAccountsDataSourceModel struct {
 	LabelFilters map[string]types.String `tfsdk:"label_filters"`
 	Items        []serviceAccountModel   `tfsdk:"items"`
 }
 
-func newServiceAccountsModel(list *authv1.ServiceAccountList, labelFilters map[string]string) []serviceAccountModel {
+func newServiceAccountsModel(list *authv1.ServiceAccountList, labelFilters map[string]string) serviceAccountsModel {
 	var result []serviceAccountModel
 	for _, obj := range list.Items {
 		if matchesLabels(obj.Labels, labelFilters) {
 			result = append(result, newServiceAccountModel(&obj))
 		}
 	}
-	return result
+	return serviceAccountsModel{
+		Items: result,
+	}
 }
 
 func matchesLabels(labels, filters map[string]string) bool {

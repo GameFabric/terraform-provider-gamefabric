@@ -69,7 +69,7 @@ func (r *serviceAccounts) Configure(_ context.Context, req datasource.ConfigureR
 }
 
 func (r *serviceAccounts) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var config serviceAccountsDataSourceModel
+	var config serviceAccountsModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -91,10 +91,10 @@ func (r *serviceAccounts) Read(ctx context.Context, req datasource.ReadRequest, 
 		return
 	}
 
-	items := newServiceAccountsModel(list, labelFilters)
-	state := serviceAccountsDataSourceModel{
+	model := newServiceAccountsModel(list, labelFilters)
+	state := serviceAccountsModel{
 		LabelFilters: config.LabelFilters,
-		Items:        items,
+		Items:        model.Items,
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
