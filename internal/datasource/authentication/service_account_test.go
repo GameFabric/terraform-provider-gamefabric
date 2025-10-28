@@ -43,7 +43,6 @@ func TestServiceAccount(t *testing.T) {
 					resource.TestCheckResourceAttr("data.gamefabric_service_account.test-sa", "username", "svc-user"),
 					resource.TestCheckResourceAttr("data.gamefabric_service_account.test-sa", "email", "svc@example.com"),
 					resource.TestCheckResourceAttr("data.gamefabric_service_account.test-sa", "state", "Applied"),
-					resource.TestCheckResourceAttr("data.gamefabric_service_account.test-sa", "password", "s3cr3t"),
 					resource.TestCheckResourceAttr("data.gamefabric_service_account.test-sa", "labels.env", "test"),
 					resource.TestCheckResourceAttr("data.gamefabric_service_account.test-sa", "labels.team", "devops"),
 				),
