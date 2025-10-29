@@ -3,9 +3,13 @@ package authentication
 import (
 	"context"
 	"fmt"
+	"slices"
+	"strings"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-core/pkg/api/authentication/v1beta1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -28,13 +32,13 @@ func (r *serviceAccounts) Metadata(_ context.Context, req datasource.MetadataReq
 func (r *serviceAccounts) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"label_filters": schema.MapAttribute{
+			"label_filter": schema.MapAttribute{
 				Description:         "Filter service accounts by labels.",
 				MarkdownDescription: "Filter service accounts by labels.",
 				Optional:            true,
 				ElementType:         types.StringType,
 			},
-			"items": schema.ListNestedAttribute{
+			"service_accounts": schema.ListNestedAttribute{
 				Description:         "List of service accounts.",
 				MarkdownDescription: "List of service accounts.",
 				Computed:            true,
@@ -72,26 +76,25 @@ func (r *serviceAccounts) Read(ctx context.Context, req datasource.ReadRequest, 
 		return
 	}
 
-	labelFilters := make(map[string]string)
-	for k, v := range config.LabelFilters {
-		if !v.IsNull() && !v.IsUnknown() {
-			labelFilters[k] = v.ValueString()
-		}
+	options := metav1.ListOptions{
+		LabelSelector: conv.ForEachMapItem(config.LabelFilter, func(item types.String) string {
+			return item.ValueString()
+		}),
 	}
-
-	list, err := r.clientSet.AuthenticationV1Beta1().ServiceAccounts().List(ctx, metav1.ListOptions{})
+	list, err := r.clientSet.AuthenticationV1Beta1().ServiceAccounts().List(ctx, options)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Listing Service Accounts",
-			fmt.Sprintf("Could not list ServiceAccounts: %v", err),
+			"Error Getting Service Accounts",
+			fmt.Sprintf("Could not get ServiceAccounts: %v", err),
 		)
 		return
 	}
 
-	model := newServiceAccountsModel(list, labelFilters)
-	state := serviceAccountsModel{
-		LabelFilters: config.LabelFilters,
-		Items:        model.Items,
-	}
+	slices.SortFunc(list.Items, func(a, b v1beta1.ServiceAccount) int {
+		return strings.Compare(a.Name, b.Name)
+	})
+
+	state := newServiceAccountsModel(list.Items)
+	state.LabelFilter = config.LabelFilter
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
