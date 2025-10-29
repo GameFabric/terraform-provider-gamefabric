@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	authv1 "github.com/gamefabric/gf-core/pkg/api/authentication/v1beta1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
-	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -36,27 +36,14 @@ func (r *serviceAccount) Schema(_ context.Context, _ datasource.SchemaRequest, r
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
-				Description:         "The unique object name.",
-				MarkdownDescription: "The unique object name.",
-				Required:            true,
-				Validators: []validator.String{
-					validators.NameValidator{},
-				},
-			},
-			"username": schema.StringAttribute{
 				Description:         "The service account username.",
 				MarkdownDescription: "The service account username.",
-				Computed:            true,
+				Optional:            true,
 			},
 			"email": schema.StringAttribute{
 				Description:         "The service account email.",
 				MarkdownDescription: "The service account email.",
-				Computed:            true,
-			},
-			"state": schema.StringAttribute{
-				Description:         "The service account state.",
-				MarkdownDescription: "The service account state.",
-				Computed:            true,
+				Optional:            true,
 			},
 			"labels": schema.MapAttribute{
 				Description:         "Key-value labels for the service account.",
@@ -94,15 +81,53 @@ func (r *serviceAccount) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	obj, err := r.clientSet.AuthenticationV1Beta1().ServiceAccounts().Get(ctx, config.Name.ValueString(), metav1.GetOptions{})
+	var obj *authv1.ServiceAccount
+	var err error
+
+	switch {
+	case conv.IsKnown(config.Name):
+		obj, err = r.clientSet.AuthenticationV1Beta1().ServiceAccounts().Get(ctx, config.Name.ValueString(), metav1.GetOptions{})
+	case conv.IsKnown(config.Email):
+		obj, err = r.findServiceAccountByEmail(ctx, config.Email.ValueString())
+	default:
+		resp.Diagnostics.AddError(
+			"Insufficient Information",
+			"Either 'name' or 'email' must be provided to locate the service account.",
+		)
+		return
+	}
+
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Getting Service Account",
-			fmt.Sprintf("Could not get ServiceAccount %q: %v", config.Name.ValueString(), err),
+			"Error Fetching Service Account",
+			fmt.Sprintf("Failed to retrieve ServiceAccount: %v", err),
+		)
+		return
+	}
+
+	if obj == nil {
+		resp.Diagnostics.AddError(
+			"Service Account Not Found",
+			"No service account was found matching the provided 'name' or 'email'.",
 		)
 		return
 	}
 
 	state := newServiceAccountModel(obj)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+}
+
+func (r *serviceAccount) findServiceAccountByEmail(ctx context.Context, email string) (*authv1.ServiceAccount, error) {
+	list, err := r.clientSet.AuthenticationV1Beta1().ServiceAccounts().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, sa := range list.Items {
+		if sa.Spec.Email == email {
+			return &sa, nil
+		}
+	}
+
+	return nil, fmt.Errorf("service account with email %q not found", email)
 }
