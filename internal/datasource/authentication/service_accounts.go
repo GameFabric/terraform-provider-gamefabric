@@ -16,13 +16,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-var _ datasource.DataSource = &serviceAccounts{}
-var _ datasource.DataSourceWithConfigure = &serviceAccounts{}
+var (
+	_ datasource.DataSource              = &serviceAccounts{}
+	_ datasource.DataSourceWithConfigure = &serviceAccounts{}
+)
 
 type serviceAccounts struct {
 	clientSet clientset.Interface
 }
 
+// NewServiceAccounts creates a new service accounts data source.
 func NewServiceAccounts() datasource.DataSource { return &serviceAccounts{} }
 
 func (r *serviceAccounts) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
