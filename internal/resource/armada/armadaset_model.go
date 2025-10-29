@@ -39,8 +39,8 @@ func newArmadaSetModel(obj *armadav1.ArmadaSet) armadaSetModel {
 		Name:                  types.StringValue(obj.Name),
 		Environment:           types.StringValue(obj.Environment),
 		Description:           conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
-		Labels:                conv.ForEachMapItem(obj.Labels, types.StringValue),
-		Annotations:           newAnnotations(obj.Annotations),
+		Labels:                conv.ForEachMapItem(conv.MapWithoutKey(obj.Labels, profilingKey), types.StringValue),
+		Annotations:           conv.ForEachMapItem(obj.Annotations, types.StringValue),
 		Autoscaling:           newAutoscalingModel(obj.Spec.Autoscaling),
 		Regions:               newRegionModels(obj.Spec),
 		GameServerLabels:      conv.ForEachMapItem(obj.Spec.Template.Labels, types.StringValue),
@@ -51,8 +51,44 @@ func newArmadaSetModel(obj *armadav1.ArmadaSet) armadaSetModel {
 		Strategy:              newStrategyModel(obj.Spec.Template.Spec.Strategy),
 		Volumes:               conv.ForEachSliceItem(obj.Spec.Template.Spec.Volumes, newVolumeModel),
 		GatewayPolicies:       conv.ForEachSliceItem(obj.Spec.Template.Spec.GatewayPolicies, types.StringValue),
-		ProfilingEnabled:      newProfilingEnabled(obj.Annotations),
+		ProfilingEnabled:      conv.BoolFromMapKey(obj.Labels, profilingKey),
 		ImageUpdaterTarget:    container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeArmada, obj.Name, obj.Environment),
+	}
+}
+
+func (m armadaSetModel) ToObject() *armadav1.ArmadaSet {
+	return &armadav1.ArmadaSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        m.Name.ValueString(),
+			Environment: m.Environment.ValueString(),
+			Labels: conv.ForEachMapItem(
+				conv.MapWithBool(m.Labels, profilingKey, m.ProfilingEnabled),
+				func(v types.String) string { return v.ValueString() },
+			),
+			Annotations: conv.ForEachMapItem(m.Annotations, func(v types.String) string { return v.ValueString() }),
+		},
+		Spec: armadav1.ArmadaSetSpec{
+			Description: m.Description.ValueString(),
+			Armadas:     conv.ForEachSliceItem(m.Regions, toArmadaTemplate),
+			Override:    conv.ForEachSliceItem(m.Regions, toArmadaOverride),
+			Autoscaling: armadav1.ArmadaAutoscaling{
+				FixedInterval: toFixedInterval(m.Autoscaling),
+			},
+			Template: armadav1.FleetTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels:      conv.ForEachMapItem(m.GameServerLabels, func(v types.String) string { return v.ValueString() }),
+					Annotations: conv.ForEachMapItem(m.GameServerAnnotations, func(v types.String) string { return v.ValueString() }),
+				},
+				Spec: armadav1.FleetSpec{
+					GatewayPolicies:               conv.ForEachSliceItem(m.GatewayPolicies, func(v types.String) string { return v.ValueString() }),
+					Strategy:                      toStrategy(m.Strategy),
+					Health:                        mps.ToHealthChecks(m.HealthChecks),
+					Containers:                    conv.ForEachSliceItem(m.Containers, mps.ToContainerForArmada),
+					TerminationGracePeriodSeconds: toTerminationGracePeriodSeconds(m.TerminationConfig),
+					Volumes:                       conv.ForEachSliceItem(m.Volumes, toVolume),
+				},
+			},
+		},
 	}
 }
 
@@ -87,42 +123,6 @@ type regionModel struct {
 	Replicas []replicaModel          `tfsdk:"replicas"`
 	Envs     []core.EnvVarModel      `tfsdk:"envs"`
 	Labels   map[string]types.String `tfsdk:"labels"`
-}
-
-func (m armadaSetModel) ToObject() *armadav1.ArmadaSet {
-	return &armadav1.ArmadaSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        m.Name.ValueString(),
-			Environment: m.Environment.ValueString(),
-			Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
-			Annotations: conv.ForEachMapItem(
-				toAnnotations(m.Annotations, m.ProfilingEnabled),
-				func(v types.String) string { return v.ValueString() },
-			),
-		},
-		Spec: armadav1.ArmadaSetSpec{
-			Description: m.Description.ValueString(),
-			Armadas:     conv.ForEachSliceItem(m.Regions, toArmadaTemplate),
-			Override:    conv.ForEachSliceItem(m.Regions, toArmadaOverride),
-			Autoscaling: armadav1.ArmadaAutoscaling{
-				FixedInterval: toFixedInterval(m.Autoscaling),
-			},
-			Template: armadav1.FleetTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels:      conv.ForEachMapItem(m.GameServerLabels, func(v types.String) string { return v.ValueString() }),
-					Annotations: conv.ForEachMapItem(m.GameServerAnnotations, func(v types.String) string { return v.ValueString() }),
-				},
-				Spec: armadav1.FleetSpec{
-					GatewayPolicies:               conv.ForEachSliceItem(m.GatewayPolicies, func(v types.String) string { return v.ValueString() }),
-					Strategy:                      toStrategy(m.Strategy),
-					Health:                        mps.ToHealthChecks(m.HealthChecks),
-					Containers:                    conv.ForEachSliceItem(m.Containers, mps.ToContainerForArmada),
-					TerminationGracePeriodSeconds: toTerminationGracePeriodSeconds(m.TerminationConfig),
-					Volumes:                       conv.ForEachSliceItem(m.Volumes, toVolume),
-				},
-			},
-		},
-	}
 }
 
 func toArmadaTemplate(reg regionModel) armadav1.ArmadaTemplate {
