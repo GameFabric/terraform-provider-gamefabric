@@ -14,7 +14,7 @@ func TestServiceAccounts(t *testing.T) {
 
 	sa1 := authv1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   "sa-1",
+			Name:   "user1",
 			Labels: map[string]string{"env": "test", "team": "devops"},
 		},
 		Spec: authv1.ServiceAccountSpec{
@@ -28,7 +28,7 @@ func TestServiceAccounts(t *testing.T) {
 	}
 	sa2 := authv1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   "sa-2",
+			Name:   "user2",
 			Labels: map[string]string{"env": "prod", "team": "devops"},
 		},
 		Spec: authv1.ServiceAccountSpec{
@@ -51,8 +51,10 @@ func TestServiceAccounts(t *testing.T) {
 				Config: `data "gamefabric_service_accounts" "all" {}`,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.gamefabric_service_accounts.all", "items.#", "2"),
-					resource.TestCheckResourceAttr("data.gamefabric_service_accounts.all", "items.0.name", "sa-1"),
-					resource.TestCheckResourceAttr("data.gamefabric_service_accounts.all", "items.1.name", "sa-2"),
+					resource.TestCheckResourceAttr("data.gamefabric_service_accounts.all", "items.0.name", "user1"),
+					resource.TestCheckResourceAttr("data.gamefabric_service_accounts.all", "items.1.name", "user2"),
+					resource.TestCheckResourceAttr("data.gamefabric_service_accounts.all", "items.0.email", "user1@example.com"),
+					resource.TestCheckResourceAttr("data.gamefabric_service_accounts.all", "items.1.email", "user2@example.com"),
 				),
 			},
 			{
@@ -65,6 +67,7 @@ func TestServiceAccounts(t *testing.T) {
 					resource.TestCheckResourceAttr("data.gamefabric_service_accounts.filtered", "items.#", "1"),
 					resource.TestCheckResourceAttr("data.gamefabric_service_accounts.filtered", "items.0.name", "sa-1"),
 					resource.TestCheckResourceAttr("data.gamefabric_service_accounts.filtered", "items.0.labels.env", "test"),
+					resource.TestCheckResourceAttr("data.gamefabric_service_accounts.filtered", "items.0.email", "user1@example.com"),
 				),
 			},
 		},
