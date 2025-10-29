@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/gamefabric/gf-apicore/api/validation"
-	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
