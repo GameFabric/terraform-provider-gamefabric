@@ -42,6 +42,8 @@ func (n NameValidator) MarkdownDescription(context.Context) string {
 // ValidateString checks that the provided string is a valid name.
 func (n NameValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 	if !conv.IsKnown(req.ConfigValue) {
+		// The framework still calls the validator when the value is optional and not set.
+		// This means we have to skip null values as well.
 		return
 	}
 
