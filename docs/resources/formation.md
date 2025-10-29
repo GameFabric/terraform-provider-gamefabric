@@ -240,7 +240,7 @@ Optional:
 Required:
 
 - `capacity` (String) Capacity is the storage capacity requested for the volume.
-- `name` (String) Name is the name of the vessel.
+- `name` (String) Name is the name of the volume as it will be referenced.
 - `reclaim_policy` (String) The reclaim policy for a volume created by a Formation.
 - `volume_store_name` (String) Name is the name of the VolumeStore.
 

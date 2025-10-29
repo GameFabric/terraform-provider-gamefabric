@@ -114,8 +114,8 @@ func (r *formation) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
-							Description:         "Name is the name of the vessel.",
-							MarkdownDescription: "Name is the name of the vessel.",
+							Description:         "Name is the name of the volume as it will be referenced.",
+							MarkdownDescription: "Name is the name of the volume as it will be referenced.",
 							Required:            true,
 							Validators: []validator.String{
 								validators.NameValidator{},
