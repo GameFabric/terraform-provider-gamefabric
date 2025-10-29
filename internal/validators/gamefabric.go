@@ -101,7 +101,7 @@ func (v gamefabricStoreValidator[T, M]) Validate(ctx context.Context, req GameFa
 			if pe == p || !strings.Contains(errMsg, pe) {
 				continue
 			}
-			ps := pathStringWithVars(tfPath.Steps(), req.Path.Steps()) // Currently not used, but could be useful for more detailed diagnostics.
+			ps := pathStringWithVars(tfPath.Steps(), req.Path.Steps())
 			errMsg = strings.ReplaceAll(errMsg, pe, ps)
 		}
 
