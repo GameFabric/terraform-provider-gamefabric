@@ -41,7 +41,7 @@ func (n NameValidator) MarkdownDescription(context.Context) string {
 
 // ValidateString checks that the provided string is a valid name.
 func (n NameValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if !conv.IsKnown(req.ConfigValue) {
+	if req.ConfigValue.IsUnknown() {
 		return
 	}
 
