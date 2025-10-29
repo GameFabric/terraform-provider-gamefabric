@@ -1,6 +1,7 @@
 package conv
 
 import (
+	"slices"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -64,4 +65,45 @@ func FromIntOrString(val *intstr.IntOrString) types.String {
 		return types.StringValue(strconv.Itoa(int(val.IntVal)))
 	}
 	return types.StringValue(val.StrVal)
+}
+
+// MapWithoutKey returns a new map with the specified key removed.
+func MapWithoutKey[K comparable, V any](m map[K]V, keys ...K) map[K]V {
+	res := make(map[K]V, len(m))
+	for k, v := range m {
+		if slices.Contains(keys, k) {
+			continue
+		}
+		res[k] = v
+	}
+	return res
+}
+
+// BoolFromMapKey returns a Bool value from the given map for the specified key.
+//
+// The value must be "true" to be considered true.
+func BoolFromMapKey(mp map[string]string, key string) types.Bool {
+	if len(mp) == 0 {
+		return types.BoolNull()
+	}
+
+	val, known := mp[key]
+	if !known {
+		return types.BoolNull()
+	}
+	return types.BoolValue(val == "true")
+}
+
+// MapWithBool adds a key-value pair to a map if the Bool value is known.
+func MapWithBool(mp map[string]types.String, key string, val types.Bool) map[string]types.String {
+	if !IsKnown(val) {
+		return mp
+	}
+
+	res := make(map[string]types.String, len(mp)+1)
+	for k, v := range mp {
+		res[k] = v
+	}
+	res[key] = types.StringValue(strconv.FormatBool(val.ValueBool()))
+	return res
 }
