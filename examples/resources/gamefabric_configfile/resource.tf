@@ -1,7 +1,7 @@
 resource "gamefabric_configfile" "content" {
   environment = data.gamefabric_environment.prod.name
   name        = "exampleconfig"
-  label = {
+  labels = {
     game-type = "alpha"
   }
   data = <<EOT
@@ -17,7 +17,7 @@ EOT
 resource "gamefabric_configfile" "content_from_file" {
   environment = data.gamefabric_environment.prod.name
   name        = "exampleconfig"
-  label = {
+  labels = {
     game-type = "alpha"
   }
   data = file("${path.module}/hello.txt")
