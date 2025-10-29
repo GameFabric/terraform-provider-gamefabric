@@ -10,7 +10,11 @@ import (
 	"github.com/gamefabric/gf-apiclient/tools/patch"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-apiserver/registry/generic"
+	armadav1 "github.com/gamefabric/gf-core/pkg/api/armada/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	armadareg "github.com/gamefabric/gf-core/pkg/apiserver/registry/armada/armada"
+	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
@@ -37,6 +41,13 @@ var (
 	_ resource.ResourceWithConfigure   = &armada{}
 	_ resource.ResourceWithImportState = &armada{}
 )
+
+var armadaValidator = validators.NewGameFabricValidator[*armadav1.Armada, armadaModel](func() validators.StoreValidator {
+	storage, _ := armadareg.New(generic.StoreOptions{Config: generic.Config{
+		StorageFactory: registrytest.FakeStorageFactory{},
+	}})
+	return storage.Store.Strategy
+})
 
 type armada struct {
 	clientSet clientset.Interface
@@ -120,6 +131,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 						Optional:            true,
 						Validators: []validator.Int32{
 							int32validator.AtLeast(0), // 0 is like omitempty.
+							validators.GFFieldInt32(armadaValidator, "spec.autoscaling.fixedInterval.seconds"),
 						},
 					},
 				},
@@ -147,6 +159,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 							Required:            true,
 							Validators: []validator.String{
 								validators.NameValidator{},
+								validators.GFFieldString(armadaValidator, "spec.distribution[?].name"),
 							},
 						},
 						"min_replicas": schema.Int32Attribute{
@@ -156,6 +169,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 							Validators: []validator.Int32{
 								int32validator.AtLeast(0),
 								int32validator.AtLeastSumOf(path.MatchRelative().AtParent().AtName("buffer_size")),
+								validators.GFFieldInt32(armadaValidator, "spec.distribution[?].minReplicas"),
 							},
 						},
 						"max_replicas": schema.Int32Attribute{
@@ -164,6 +178,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 							Required:            true,
 							Validators: []validator.Int32{
 								int32validator.AtLeast(0),
+								validators.GFFieldInt32(armadaValidator, "spec.distribution[?].maxReplicas"),
 							},
 						},
 						"buffer_size": schema.Int32Attribute{
@@ -172,6 +187,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 							Required:            true,
 							Validators: []validator.Int32{
 								int32validator.AtLeast(0),
+								validators.GFFieldInt32(armadaValidator, "spec.distribution[?].bufferSize"),
 							},
 						},
 					},
