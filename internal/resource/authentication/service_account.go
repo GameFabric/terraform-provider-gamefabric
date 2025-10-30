@@ -19,15 +19,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-var _ resource.Resource = &serviceAccount{}
-var _ resource.ResourceWithConfigure = &serviceAccount{}
-var _ resource.ResourceWithImportState = &serviceAccount{}
+var (
+	_ resource.Resource                = &serviceAccount{}
+	_ resource.ResourceWithConfigure   = &serviceAccount{}
+	_ resource.ResourceWithImportState = &serviceAccount{}
+)
 
 // serviceAccount implements the Terraform resource for service accounts.
 type serviceAccount struct {
 	clientSet clientset.Interface
 }
 
+// NewServiceAccountResource creates a new instance of the service account resource.
 func NewServiceAccountResource() resource.Resource {
 	return &serviceAccount{}
 }
