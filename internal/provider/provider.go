@@ -207,6 +207,7 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		formation.NewFormation,
 		formation.NewVessel,
 		protection.NewGatewayPolicy,
+		authentication.NewServiceAccountResource,
 		rbac.NewGroup,
 		storage.NewVolume,
 		storage.NewVolumeStoreRetentionPolicy,
