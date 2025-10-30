@@ -18,7 +18,7 @@ For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/g
 
 ## Example Usage - Simple Armadaset
 
-This example sets up a minimal armadaset for two regions europe and us which each uses baremetal and cloud locations.
+This example sets up a minimal armadaset for two regions europe and us which each use baremetal and cloud locations.
 
 ```terraform
 data "gamefabric_branch" "prod" {

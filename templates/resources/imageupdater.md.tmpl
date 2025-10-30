@@ -7,7 +7,7 @@ description: |-
 
 # {{.Name}} ({{.Type}})
 
-The image updater is a resource that allows you to automatically update the container image used by a target resource (like an Armada, Formation, Vessel, or ArmadaSet) whenever a new image tag is pushed to specified image in the GameFabric container registry.
+The image updater is a resource that allows you to automatically update the container image used by a target resource (like an Armada, Formation, Vessel, or ArmadaSet) whenever a new image tag is pushed to a specified image in the GameFabric container registry.
 This is the mechanism that is used if you select "autoUpdate" for the container image in the GameFabric web interface when creating or updating an Armada, Formation, Vessel, or ArmadaSet.
 
 Because this mechanism happens outside of terraform it is required to make use of the `lifecycle.ignore_changes` block on the target resource to prevent terraform from trying to revert the image back to the original value.
