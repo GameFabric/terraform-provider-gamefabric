@@ -107,10 +107,10 @@ resource "gamefabric_region" "europe" {
 
 ### Required
 
-- `display_name` (String) The user-friendly name of the region.
-- `environment` (String) The name of the environment the resource belongs to.
-- `name` (String) The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 24 characters.
-- `types` (Attributes Map) Types defines the types on infrastructure available in the region. (see [below for nested schema](#nestedatt--types))
+- `display_name` (String) DisplayName is the user-friendly name of a region.
+- `environment` (String) The name of the environment the object belongs to.
+- `name` (String) The unique object name within its scope.
+- `types` (Attributes List) Types defines the types on infrastructure available in the region. (see [below for nested schema](#nestedatt--types))
 
 ### Optional
 
@@ -128,6 +128,7 @@ resource "gamefabric_region" "europe" {
 Required:
 
 - `locations` (List of String) Locations defines the locations for a type.
+- `name` (String) Name of the region type.
 
 Optional:
 

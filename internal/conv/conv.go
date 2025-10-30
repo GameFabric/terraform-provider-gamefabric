@@ -82,19 +82,19 @@ func MapWithoutKey[K comparable, V any](m map[K]V, keys ...K) map[K]V {
 // BoolFromMapKey returns a Bool value from the given map for the specified key.
 //
 // The value must be "true" to be considered true.
-func BoolFromMapKey(mp map[string]string, key string) types.Bool {
+func BoolFromMapKey(mp map[string]string, key string, def types.Bool) types.Bool {
 	if len(mp) == 0 {
-		return types.BoolNull()
+		return def
 	}
 
 	val, known := mp[key]
 	if !known {
-		return types.BoolNull()
+		return def
 	}
 	return types.BoolValue(val == "true")
 }
 
-// MapWithBool adds a key-value pair to a map if the Bool value is known.
+// MapWithBool adds a key-value pair to a map if the Bool value is true.
 func MapWithBool(mp map[string]types.String, key string, val types.Bool) map[string]types.String {
 	if !IsKnown(val) {
 		return mp
@@ -102,8 +102,14 @@ func MapWithBool(mp map[string]types.String, key string, val types.Bool) map[str
 
 	res := make(map[string]types.String, len(mp)+1)
 	for k, v := range mp {
+		if k == key {
+			continue
+		}
 		res[k] = v
 	}
-	res[key] = types.StringValue(strconv.FormatBool(val.ValueBool()))
+
+	if val.ValueBool() {
+		res[key] = types.StringValue("true")
+	}
 	return res
 }
