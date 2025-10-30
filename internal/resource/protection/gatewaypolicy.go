@@ -62,7 +62,6 @@ func (r *gatewayPolicy) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"display_name": schema.StringAttribute{

@@ -93,7 +93,6 @@ func (r *imageUpdater) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 						},
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.RequiresReplace(),
-							stringplanmodifier.UseStateForUnknown(),
 						},
 					},
 				},

@@ -1,9 +1,6 @@
 package armada
 
 import (
-	"maps"
-	"strconv"
-
 	"github.com/gamefabric/gf-apiclient/tools/cache"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	armadav1 "github.com/gamefabric/gf-core/pkg/api/armada/v1"
@@ -18,7 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-const profilingAnnotation = "g8c.io/profiling"
+const profilingKey = "g8c.io/profiling"
 
 type armadaModel struct {
 	ID                    types.String                       `tfsdk:"id"`
@@ -48,8 +45,8 @@ func newArmadaModel(obj *armadav1.Armada) armadaModel {
 		Name:                  types.StringValue(obj.Name),
 		Environment:           types.StringValue(obj.Environment),
 		Description:           conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
-		Labels:                conv.ForEachMapItem(obj.Labels, types.StringValue),
-		Annotations:           newAnnotations(obj.Annotations),
+		Labels:                conv.ForEachMapItem(conv.MapWithoutKey(obj.Labels, profilingKey), types.StringValue),
+		Annotations:           conv.ForEachMapItem(obj.Annotations, types.StringValue),
 		Autoscaling:           newAutoscalingModel(obj.Spec.Autoscaling),
 		Region:                types.StringValue(obj.Spec.Region),
 		Replicas:              conv.ForEachSliceItem(obj.Spec.Distribution, newReplicas),
@@ -61,7 +58,7 @@ func newArmadaModel(obj *armadav1.Armada) armadaModel {
 		Strategy:              newStrategyModel(obj.Spec.Template.Spec.Strategy),
 		Volumes:               conv.ForEachSliceItem(obj.Spec.Template.Spec.Volumes, newVolumeModel),
 		GatewayPolicies:       conv.ForEachSliceItem(obj.Spec.Template.Spec.GatewayPolicies, types.StringValue),
-		ProfilingEnabled:      newProfilingEnabled(obj.Annotations),
+		ProfilingEnabled:      conv.BoolFromMapKey(obj.Labels, profilingKey),
 		ImageUpdaterTarget:    container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeArmada, obj.Name, obj.Environment),
 	}
 }
@@ -71,11 +68,11 @@ func (m armadaModel) ToObject() *armadav1.Armada {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        m.Name.ValueString(),
 			Environment: m.Environment.ValueString(),
-			Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
-			Annotations: conv.ForEachMapItem(
-				toAnnotations(m.Annotations, m.ProfilingEnabled),
+			Labels: conv.ForEachMapItem(
+				conv.MapWithBool(m.Labels, profilingKey, m.ProfilingEnabled),
 				func(v types.String) string { return v.ValueString() },
 			),
+			Annotations: conv.ForEachMapItem(m.Annotations, func(v types.String) string { return v.ValueString() }),
 		},
 		Spec: armadav1.ArmadaSpec{
 			Description: m.Description.ValueString(),
@@ -109,19 +106,6 @@ func (m armadaModel) ToObject() *armadav1.Armada {
 	}
 }
 
-func toAnnotations(annots map[string]types.String, profilingEnabled types.Bool) map[string]types.String {
-	if !conv.IsKnown(profilingEnabled) {
-		return annots
-	}
-
-	res := maps.Clone(annots)
-	if res == nil {
-		res = make(map[string]types.String)
-	}
-	res[profilingAnnotation] = types.StringValue(strconv.FormatBool(profilingEnabled.ValueBool()))
-	return res
-}
-
 func toStrategy(strat *strategyModel) appsv1.DeploymentStrategy {
 	switch {
 	case strat != nil && conv.IsKnown(strat.Recreate):
@@ -150,32 +134,6 @@ func toIntOrString(val types.String) *intstr.IntOrString {
 	}
 	is := intstr.Parse(val.ValueString())
 	return &is
-}
-
-func newProfilingEnabled(annots map[string]string) types.Bool {
-	if annots == nil {
-		return types.BoolNull()
-	}
-
-	val, known := annots[profilingAnnotation]
-	if !known {
-		return types.BoolNull()
-	}
-	return types.BoolValue(val == "true")
-}
-
-func newAnnotations(annots map[string]string) map[string]types.String {
-	if len(annots) == 0 {
-		return nil
-	}
-
-	annots = maps.Clone(annots)
-	delete(annots, profilingAnnotation)
-	if len(annots) == 0 {
-		return nil
-	}
-
-	return conv.ForEachMapItem(annots, types.StringValue)
 }
 
 type autoscalingModel struct {

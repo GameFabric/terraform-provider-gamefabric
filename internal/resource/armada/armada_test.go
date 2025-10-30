@@ -400,6 +400,11 @@ func TestResourceArmadaConfigValidates(t *testing.T) {
 			expectError: regexp.MustCompile(regexp.QuoteMeta(`invalid_name!`)),
 		},
 		{
+			name:        "validates empty name",
+			config:      testResourceArmadaConfigBasicNamed("", "test"),
+			expectError: regexp.MustCompile(regexp.QuoteMeta(`Name cannot be empty`)),
+		},
+		{
 			name:        "validates environment",
 			config:      testResourceArmadaConfigFullInvalid(),
 			expectError: regexp.MustCompile(regexp.QuoteMeta(`too_long`)),
@@ -577,10 +582,10 @@ func testResourceArmadaConfigEmpty() string {
 	return `resource "gamefabric_armada" "test" {}`
 }
 
-func testResourceArmadaConfigBasic(extras ...string) string {
+func testResourceArmadaConfigBasicNamed(name, env string, extras ...string) string {
 	return fmt.Sprintf(`resource "gamefabric_armada" "test" {
-  name        = "my-armada"
-  environment = "test"
+  name        = %q
+  environment = %q
   description = "My New Armada Description"
   region = "eu"
 
@@ -601,7 +606,11 @@ func testResourceArmadaConfigBasic(extras ...string) string {
   ]
 
   %s
-}`, strings.Join(extras, "\n"))
+}`, name, env, strings.Join(extras, "\n"))
+}
+
+func testResourceArmadaConfigBasic(extras ...string) string {
+	return testResourceArmadaConfigBasicNamed("my-armada", "test", extras...)
 }
 
 func testResourceArmadaConfigFull() string {

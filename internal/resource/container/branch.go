@@ -61,7 +61,6 @@ func (r *branch) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"display_name": schema.StringAttribute{

@@ -85,7 +85,6 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"description": schema.StringAttribute{
@@ -150,7 +149,7 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 						"replicas": schema.ListNestedAttribute{
 							Description:         "A replicas specifies the distribution of game servers across the available types of capacity in the selected region type.",
 							MarkdownDescription: "A replicas specifies the distribution of game servers across the available types of capacity in the selected region type.",
-							Optional:            true,
+							Required:            true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"region_type": schema.StringAttribute{
@@ -342,7 +341,7 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Optional:            true,
 				ElementType:         types.StringType,
 				Validators: []validator.List{
-					validators.NameValidator{},
+					listvalidator.ValueStringsAre(validators.NameValidator{}),
 					listvalidator.UniqueValues(),
 				},
 			},
