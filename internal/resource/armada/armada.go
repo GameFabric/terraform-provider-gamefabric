@@ -11,6 +11,7 @@ import (
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
@@ -144,6 +145,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "A replicas specifies the distribution of game servers across the available types of capacity in the selected region type.",
 				MarkdownDescription: "A replicas specifies the distribution of game servers across the available types of capacity in the selected region type.",
 				Optional:            true,
+
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"region_type": schema.StringAttribute{
@@ -391,6 +393,7 @@ func (r *armada) Create(ctx context.Context, req resource.CreateRequest, resp *r
 	}
 
 	plan = newArmadaModel(outObj)
+	normalize.Model(ctx, &plan, req.Plan)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -416,6 +419,7 @@ func (r *armada) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 	}
 
 	state = newArmadaModel(outObj)
+	normalize.Model(ctx, &state, req.State)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
@@ -453,6 +457,7 @@ func (r *armada) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 	}
 
 	plan = newArmadaModel(outObj)
+	normalize.Model(ctx, &plan, req.Plan)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
