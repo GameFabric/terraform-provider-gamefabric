@@ -214,6 +214,7 @@ Required:
 
 - `image` (Attributes) Image is the GameFabric container image to run. You can use the `image_target` attribute of the `gamefabric_image` datasource to set this. (see [below for nested schema](#nestedatt--containers--image))
 - `name` (String) Name is the name of the container. The primary gameserver container should be named `default`
+- `resources` (Attributes) Resources describes the compute resource requirements. See the <a href="https://docs.gamefabric.com/multiplayer-servers/multiplayer-services/resource-management">GameFabric documentation</a> for more details on how to configure resource requests and limits. (see [below for nested schema](#nestedatt--containers--resources))
 
 Optional:
 
@@ -222,7 +223,6 @@ Optional:
 - `config_files` (Attributes List) ConfigFiles is a list of configuration files to mount into the containers filesystem. (see [below for nested schema](#nestedatt--containers--config_files))
 - `envs` (Attributes List) Envs is a list of environment variables to set on all containers in this Armada. (see [below for nested schema](#nestedatt--containers--envs))
 - `ports` (Attributes List) Ports are the ports to expose from the container. (see [below for nested schema](#nestedatt--containers--ports))
-- `resources` (Attributes) Resources describes the compute resource requirements. See the <a href="https://docs.gamefabric.com/multiplayer-servers/multiplayer-services/resource-management">GameFabric documentation</a> for more details on how to configure resource requests and limits. (see [below for nested schema](#nestedatt--containers--resources))
 - `volume_mounts` (Attributes List) VolumeMounts are the volumes to mount into the container&#39;s filesystem. (see [below for nested schema](#nestedatt--containers--volume_mounts))
 
 <a id="nestedatt--containers--image"></a>
@@ -232,6 +232,36 @@ Required:
 
 - `branch` (String) Branch of the GameFabric image.
 - `name` (String) Name is the name of the GameFabric image.
+
+
+<a id="nestedatt--containers--resources"></a>
+### Nested Schema for `containers.resources`
+
+Required:
+
+- `requests` (Attributes) Requests describes the minimum amount of compute resources required. (see [below for nested schema](#nestedatt--containers--resources--requests))
+
+Optional:
+
+- `limits` (Attributes) Limits describes the maximum amount of compute resources allowed. (see [below for nested schema](#nestedatt--containers--resources--limits))
+
+<a id="nestedatt--containers--resources--requests"></a>
+### Nested Schema for `containers.resources.requests`
+
+Required:
+
+- `cpu` (String) CPU request.
+- `memory` (String) Memory request.
+
+
+<a id="nestedatt--containers--resources--limits"></a>
+### Nested Schema for `containers.resources.limits`
+
+Required:
+
+- `cpu` (String) CPU limit.
+- `memory` (String) Memory limit.
+
 
 
 <a id="nestedatt--containers--config_files"></a>
@@ -272,48 +302,24 @@ Required:
 
 - `name` (String) Name is the name of the port. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.
 - `policy` (String) Policy defines how the host port is populated. `Dynamic` (default) allocates a free host port and maps it to the `container_port` (required). The gameserver must report the external port (obtained via Agones SDK) to backends for client connections. `Passthrough` dynamically allocates a host port and sets `container_port` to match it. The gameserver must discover this port via Agones SDK and listen on it.
+- `protocol` (String) Protocol is the network protocol being used. Defaults to UDP. TCP is the other option.
 
 Optional:
 
 - `container_port` (Number) ContainerPort is the port that is being opened on the specified container&#39;s process.
 - `protection_protocol` (String) ProtectionProtocol is the optional name of the protection protocol being used.
-- `protocol` (String) Protocol is the network protocol being used. Defaults to UDP. TCP is the other option.
-
-
-<a id="nestedatt--containers--resources"></a>
-### Nested Schema for `containers.resources`
-
-Optional:
-
-- `limits` (Attributes) Limits describes the maximum amount of compute resources allowed. (see [below for nested schema](#nestedatt--containers--resources--limits))
-- `requests` (Attributes) Requests describes the minimum amount of compute resources required. (see [below for nested schema](#nestedatt--containers--resources--requests))
-
-<a id="nestedatt--containers--resources--limits"></a>
-### Nested Schema for `containers.resources.limits`
-
-Optional:
-
-- `cpu` (String) CPU limit.
-- `memory` (String) Memory limit.
-
-
-<a id="nestedatt--containers--resources--requests"></a>
-### Nested Schema for `containers.resources.requests`
-
-Optional:
-
-- `cpu` (String) CPU request.
-- `memory` (String) Memory request.
-
 
 
 <a id="nestedatt--containers--volume_mounts"></a>
 ### Nested Schema for `containers.volume_mounts`
 
-Optional:
+Required:
 
 - `mount_path` (String) Path within the container at which the volume should be mounted.
 - `name` (String) Name is the name of the volume.
+
+Optional:
+
 - `sub_path` (String) Path within the volume from which the container's volume should be mounted.
 - `sub_path_expr` (String) Expanded path within the volume from which the container's volume should be mounted.
 
@@ -420,16 +426,13 @@ Optional:
 
 Required:
 
-- `name` (String) Name is the name of the volume.
-
-Optional:
-
 - `empty_dir` (Attributes) EmptyDir represents a volume that is initially empty. (see [below for nested schema](#nestedatt--volumes--empty_dir))
+- `name` (String) Name is the name of the volume.
 
 <a id="nestedatt--volumes--empty_dir"></a>
 ### Nested Schema for `volumes.empty_dir`
 
-Optional:
+Required:
 
 - `size_limit` (String) SizeLimit is the total amount of local storage required for this EmptyDir volume.
 

@@ -23,8 +23,8 @@ func newGatewayPolicyModel(obj *protectionv1.GatewayPolicy) gatewayPolicyModel {
 		Name:             types.StringValue(obj.Name),
 		Labels:           conv.ForEachMapItem(obj.Labels, func(item string) types.String { return types.StringValue(item) }),
 		Annotations:      conv.ForEachMapItem(obj.Annotations, func(item string) types.String { return types.StringValue(item) }),
-		DisplayName:      conv.OptionalFunc(obj.Spec.DisplayName, types.StringValue, types.StringNull),
-		Description:      conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
+		DisplayName:      types.StringValue(obj.Spec.DisplayName),
+		Description:      types.StringValue(obj.Spec.Description),
 		DestinationCIDRs: conv.ForEachSliceItem(obj.Spec.DestinationCIDRs, func(item string) types.String { return types.StringValue(item) }),
 	}
 }

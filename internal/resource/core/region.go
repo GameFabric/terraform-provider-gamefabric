@@ -11,6 +11,7 @@ import (
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -19,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -52,6 +54,9 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "The unique Terraform identifier.",
 				MarkdownDescription: "The unique Terraform identifier.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"name": schema.StringAttribute{
 				Description:         "The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 24 characters.",
@@ -79,6 +84,8 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "A map of keys and values that can be used to organize and categorize objects.",
 				MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
 				Optional:            true,
+				Computed:            true,
+				Default:             mps.DefaultMapOf(types.StringType),
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
 					validators.LabelsValidator{},
@@ -88,6 +95,8 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "Annotations is an unstructured map of keys and values stored on an object.",
 				MarkdownDescription: "Annotations is an unstructured map of keys and values stored on an object.",
 				Optional:            true,
+				Computed:            true,
+				Default:             mps.DefaultMapOf(types.StringType),
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
 					validators.AnnotationsValidator{},
@@ -102,6 +111,8 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "Description is the optional description of the region.",
 				MarkdownDescription: "Description is the optional description of the region.",
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 			},
 			"types": schema.ListNestedAttribute{
 				Description:         "Types defines the types on infrastructure available in the region.",
@@ -127,8 +138,10 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 							Description:         "Env is a list of environment variables to set on all containers in this region.",
 							MarkdownDescription: "Env is a list of environment variables to set on all containers in this region.",
 							Optional:            true,
+							Computed:            true,
+							Default:             mps.EnvVarDefault(),
 							NestedObject: schema.NestedAttributeObject{
-								Attributes: EnvVarAttributes(),
+								Attributes: mps.EnvVarAttributes(),
 							},
 						},
 						"scheduling": schema.StringAttribute{
@@ -139,6 +152,8 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 
 **Distributed:** Spread gameservers across as many nodes as possible. This is important for baremetal environments where you want to spread the load across the nodes you have.`,
 							Optional: true,
+							Computed: true,
+							Default:  stringdefault.StaticString("Packed"),
 							Validators: []validator.String{
 								stringvalidator.OneOf("Packed", "Distributed"),
 							},
@@ -179,8 +194,7 @@ func (r *region) Create(ctx context.Context, req resource.CreateRequest, resp *r
 	}
 
 	obj := plan.ToObject()
-	_, err := r.clientSet.CoreV1().Regions(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
-	if err != nil {
+	if _, err := r.clientSet.CoreV1().Regions(obj.Environment).Create(ctx, obj, metav1.CreateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Region",
 			fmt.Sprintf("Could not create Region: %v", err),

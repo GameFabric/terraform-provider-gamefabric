@@ -10,12 +10,14 @@ import (
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -67,11 +69,15 @@ func (r *branch) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "The user-friendly name of the branch.",
 				MarkdownDescription: "The user-friendly name of the branch.",
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 			},
 			"labels": schema.MapAttribute{
 				Description:         "A map of keys and values that can be used to organize and categorize objects.",
 				MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
 				Optional:            true,
+				Computed:            true,
+				Default:             mps.DefaultMapOf(types.StringType),
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
 					validators.LabelsValidator{},
@@ -81,6 +87,8 @@ func (r *branch) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "Annotations is an unstructured map of keys and values stored on an object.",
 				MarkdownDescription: "Annotations is an unstructured map of keys and values stored on an object.",
 				Optional:            true,
+				Computed:            true,
+				Default:             mps.DefaultMapOf(types.StringType),
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
 					validators.AnnotationsValidator{},
@@ -90,6 +98,8 @@ func (r *branch) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "Description is the optional description of the branch.",
 				MarkdownDescription: "Description is the optional description of the branch.",
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 			},
 			"retention_policy_rules": schema.ListNestedAttribute{
 				Description:         "RetentionPolicyRules are the rules that define how images are retained.",
@@ -156,14 +166,14 @@ func (r *branch) Create(ctx context.Context, req resource.CreateRequest, resp *r
 	}
 
 	obj := plan.ToObject()
-	_, err := r.clientSet.ContainerV1().Branches().Create(ctx, obj, metav1.CreateOptions{})
-	if err != nil {
+	if _, err := r.clientSet.ContainerV1().Branches().Create(ctx, obj, metav1.CreateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Create Error",
 			fmt.Sprintf("Could not create Branch %q: %v", plan.Name.ValueString(), err),
 		)
 		return
 	}
+
 	plan.ID = types.StringValue(obj.Name)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }

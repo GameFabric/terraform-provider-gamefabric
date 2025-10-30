@@ -62,8 +62,8 @@ github.com/gamefabric/gf-apiclient v0.2.0 h1:ljKI3IfkY424/6adY7hTUbHZxuDgXe+cAkG
 github.com/gamefabric/gf-apiclient v0.2.0/go.mod h1:QNFAxroscROk1jA+ng5/aQlFbGJfuTLZ/0jhw3xcD8k=
 github.com/gamefabric/gf-apicore v1.9.0 h1:ulxRjA/8s/pK2jQbyDDrqdwzSrne2u6INVhWNyRyyY8=
 github.com/gamefabric/gf-apicore v1.9.0/go.mod h1:OCQMHZRPSXXfZ4ukGd3REH1fe70CrcuphaXk5A5PoAI=
-github.com/gamefabric/gf-core v0.28.0 h1:dTT/5Is4jI5qUvPJ1HBt3jnOifuKcdAxx2NsOMdUPE8=
-github.com/gamefabric/gf-core v0.28.0/go.mod h1:yjxXddm4+MHo8kkz/75XYn9T3uWaxPH8+6GGjp+z5PQ=
+github.com/gamefabric/gf-core v0.29.1-0.20251029145038-96cd4b60e5a8 h1:V2RcqzW0WSkwZDJlwOWyi7hncV4mwBG28WTHvI8rSQQ=
+github.com/gamefabric/gf-core v0.29.1-0.20251029145038-96cd4b60e5a8/go.mod h1:+6B+zTPfBgTJLQF/TLzzFgxEivcIFr68vCPiHNHQ8gU=
 github.com/gamefabric/tfutils v0.0.0-20250923125427-d3b835f8c62b h1:7pM+9KBD/+oh+dM2CGb+yURV1kEHheDYGWxhq4vAjhE=
 github.com/gamefabric/tfutils v0.0.0-20250923125427-d3b835f8c62b/go.mod h1:E4vgnLHNDXOC0JPkKcdM9gDe3kze/qIU6pBt29iPKII=
 github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 h1:+zs/tPmkDkHx3U66DAb0lQFJrpS6731Oaa12ikc+DiI=
@@ -325,8 +325,8 @@ go.opentelemetry.io/otel/metric v1.38.0 h1:Kl6lzIYGAh5M159u9NgiRkmoMKjvbsKtYRwgf
 go.opentelemetry.io/otel/metric v1.38.0/go.mod h1:kB5n/QoRM8YwmUahxvI3bO34eVtQf2i4utNVLr9gEmI=
 go.opentelemetry.io/otel/sdk v1.38.0 h1:l48sr5YbNf2hpCUj/FoGhW9yDkl+Ma+LrVl8qaM5b+E=
 go.opentelemetry.io/otel/sdk v1.38.0/go.mod h1:ghmNdGlVemJI3+ZB5iDEuk4bWA3GkTpW+DOoZMYBVVg=
-go.opentelemetry.io/otel/sdk/metric v1.37.0 h1:90lI228XrB9jCMuSdA0673aubgRobVZFhbjxHHspCPc=
-go.opentelemetry.io/otel/sdk/metric v1.37.0/go.mod h1:cNen4ZWfiD37l5NhS+Keb5RXVWZWpRE+9WyVCpbo5ps=
+go.opentelemetry.io/otel/sdk/metric v1.38.0 h1:aSH66iL0aZqo//xXzQLYozmWrXxyFkBJ6qT5wthqPoM=
+go.opentelemetry.io/otel/sdk/metric v1.38.0/go.mod h1:dg9PBnW9XdQ1Hd6ZnRz689CbtrUp0wMMs9iPcgT9EZA=
 go.opentelemetry.io/otel/trace v1.38.0 h1:Fxk5bKrDZJUH+AMyyIXGcFAPah0oRcT+LuNtJrmcNLE=
 go.opentelemetry.io/otel/trace v1.38.0/go.mod h1:j1P9ivuFsTceSWe1oY+EeW3sc+Pp42sO++GHkg4wwhs=
 go.yaml.in/yaml/v2 v2.4.3 h1:6gvOSjQoTB3vt1l+CU+tSyi/HOjfOjRLJ4YwYZGwRO0=
@@ -423,8 +423,8 @@ gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8
 gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c h1:Hei/4ADfdWqJk1ZMxUNpqntNwaWcugrBjAiHlqqRiVk=
 gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c/go.mod h1:JHkPIbrfpd72SG/EVd6muEfDQjcINNoR0C8j2r3qZ4Q=
-gopkg.in/evanphx/json-patch.v4 v4.12.0 h1:n6jtcsulIzXPJaxegRbvFNNrZDjbij7ny3gmSPG+6V4=
-gopkg.in/evanphx/json-patch.v4 v4.12.0/go.mod h1:p8EYWUEYMpynmqDbY58zCKCFZw8pRWMG4EsWvDvM72M=
+gopkg.in/evanphx/json-patch.v4 v4.13.0 h1:czT3CmqEaQ1aanPc5SdlgQrrEIb8w/wwCvWWnfEbYzo=
+gopkg.in/evanphx/json-patch.v4 v4.13.0/go.mod h1:p8EYWUEYMpynmqDbY58zCKCFZw8pRWMG4EsWvDvM72M=
 gopkg.in/fsnotify.v1 v1.4.7 h1:xOHLXZwVvI9hhs+cLKq5+I5onOuwQLhQwiu63xxlHs4=
 gopkg.in/fsnotify.v1 v1.4.7/go.mod h1:Tz8NjZHkW78fSQdbUxIjBTcgA1z1m8ZHf0WmKUhAMys=
 gopkg.in/inf.v0 v0.9.1 h1:73M5CoZyi3ZLMOyDlQh031Cx6N9NDJ2Vvfl76EDAgDc=

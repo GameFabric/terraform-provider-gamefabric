@@ -398,7 +398,7 @@ func TestResourceArmadaSetConfigValidates(t *testing.T) {
 		{
 			name:        "validates empty name",
 			config:      testResourceArmadaSetConfigBasicNamed("", "test"),
-			expectError: regexp.MustCompile(regexp.QuoteMeta(`Name cannot be empty`)),
+			expectError: regexp.MustCompile(regexp.QuoteMeta(`name cannot be empty`)),
 		},
 		{
 			name:        "validates environment",
@@ -832,7 +832,7 @@ func testResourceArmadaSetConfigFullInvalid() string {
       command = ["example-command"]
       args    = ["example-arg"]
       resources = {
-        limits = {
+        requests = {
           cpu    = "all_cpu"
           memory = "all_memory"
         }

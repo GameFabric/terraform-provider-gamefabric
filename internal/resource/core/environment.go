@@ -10,13 +10,13 @@ import (
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -59,14 +59,13 @@ func (r *environment) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Validators: []validator.String{
 					validators.EnvironmentValidator{},
 				},
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			"labels": schema.MapAttribute{
 				Description:         "A map of keys and values that can be used to organize and categorize objects.",
 				MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
 				Optional:            true,
+				Computed:            true,
+				Default:             mps.DefaultMapOf(types.StringType),
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
 					validators.LabelsValidator{},
@@ -76,6 +75,8 @@ func (r *environment) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Description:         "Annotations is an unstructured map of keys and values stored on an object.",
 				MarkdownDescription: "Annotations is an unstructured map of keys and values stored on an object.",
 				Optional:            true,
+				Computed:            true,
+				Default:             mps.DefaultMapOf(types.StringType),
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
 					validators.AnnotationsValidator{},
@@ -90,6 +91,8 @@ func (r *environment) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Description:         "Description is the optional description of the environment.",
 				MarkdownDescription: "Description is the optional description of the environment.",
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 			},
 		},
 	}
@@ -121,8 +124,7 @@ func (r *environment) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 
 	obj := plan.ToObject()
-	_, err := r.clientSet.CoreV1().Environments().Create(ctx, obj, metav1.CreateOptions{})
-	if err != nil {
+	if _, err := r.clientSet.CoreV1().Environments().Create(ctx, obj, metav1.CreateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Environment",
 			fmt.Sprintf("Could not create Environment: %v", err),

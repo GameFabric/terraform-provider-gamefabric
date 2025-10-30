@@ -1,12 +1,15 @@
 package mps
 
 import (
-	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -46,18 +49,22 @@ func ContainersAttributes() schema.NestedAttributeObject {
 				Description:         "Command is the entrypoint array. This is not executed within a shell.",
 				MarkdownDescription: "Command is the entrypoint array. This is not executed within a shell.",
 				Optional:            true,
+				Computed:            true,
+				Default:             listdefault.StaticValue(types.ListValueMust(types.StringType, nil)),
 				ElementType:         types.StringType,
 			},
 			"args": schema.ListAttribute{
 				Description:         "Args are arguments to the entrypoint.",
 				MarkdownDescription: "Args are arguments to the entrypoint.",
 				Optional:            true,
+				Computed:            true,
+				Default:             listdefault.StaticValue(types.ListValueMust(types.StringType, nil)),
 				ElementType:         types.StringType,
 			},
 			"resources": schema.SingleNestedAttribute{
 				Description:         "Resources describes the compute resource requirements.",
 				MarkdownDescription: "Resources describes the compute resource requirements. See the <a href=\"https://docs.gamefabric.com/multiplayer-servers/multiplayer-services/resource-management\">GameFabric documentation</a> for more details on how to configure resource requests and limits.",
-				Optional:            true,
+				Required:            true,
 				Attributes: map[string]schema.Attribute{
 					"limits": schema.SingleNestedAttribute{
 						Description:         "Limits describes the maximum amount of compute resources allowed.",
@@ -67,7 +74,7 @@ func ContainersAttributes() schema.NestedAttributeObject {
 							"cpu": schema.StringAttribute{
 								Description:         "CPU limit.",
 								MarkdownDescription: "CPU limit.",
-								Optional:            true,
+								Required:            true,
 								Validators: []validator.String{
 									validators.QuantityValidator{},
 								},
@@ -75,7 +82,7 @@ func ContainersAttributes() schema.NestedAttributeObject {
 							"memory": schema.StringAttribute{
 								Description:         "Memory limit.",
 								MarkdownDescription: "Memory limit.",
-								Optional:            true,
+								Required:            true,
 								Validators: []validator.String{
 									validators.QuantityValidator{},
 								},
@@ -85,12 +92,12 @@ func ContainersAttributes() schema.NestedAttributeObject {
 					"requests": schema.SingleNestedAttribute{
 						Description:         "Requests describes the minimum amount of compute resources required.",
 						MarkdownDescription: "Requests describes the minimum amount of compute resources required.",
-						Optional:            true,
+						Required:            true,
 						Attributes: map[string]schema.Attribute{
 							"cpu": schema.StringAttribute{
 								Description:         "CPU request.",
 								MarkdownDescription: "CPU request.",
-								Optional:            true,
+								Required:            true,
 								Validators: []validator.String{
 									validators.QuantityValidator{},
 								},
@@ -98,7 +105,7 @@ func ContainersAttributes() schema.NestedAttributeObject {
 							"memory": schema.StringAttribute{
 								Description:         "Memory request.",
 								MarkdownDescription: "Memory request.",
-								Optional:            true,
+								Required:            true,
 								Validators: []validator.String{
 									validators.QuantityValidator{},
 								},
@@ -111,14 +118,26 @@ func ContainersAttributes() schema.NestedAttributeObject {
 				Description:         "Envs is a list of environment variables to set on all containers in this Armada.",
 				MarkdownDescription: "Envs is a list of environment variables to set on all containers in this Armada.",
 				Optional:            true,
+				Computed:            true,
+				Default:             EnvVarDefault(),
 				NestedObject: schema.NestedAttributeObject{
-					Attributes: core.EnvVarAttributes(),
+					Attributes: EnvVarAttributes(),
 				},
 			},
 			"ports": schema.ListNestedAttribute{
 				Description:         "Ports are the ports to expose from the container.",
 				MarkdownDescription: "Ports are the ports to expose from the container.",
 				Optional:            true,
+				Computed:            true,
+				Default: DefaultListOf(types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"name":                types.StringType,
+						"policy":              types.StringType,
+						"container_port":      types.Int32Type,
+						"protocol":            types.StringType,
+						"protection_protocol": types.StringType,
+					},
+				}),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
@@ -141,14 +160,16 @@ func ContainersAttributes() schema.NestedAttributeObject {
 							Description:         "ContainerPort is the port that is being opened on the specified container&#39;s process.",
 							MarkdownDescription: "ContainerPort is the port that is being opened on the specified container&#39;s process.",
 							Optional:            true,
+							Computed:            true,
+							Default:             int32default.StaticInt32(0),
 							Validators: []validator.Int32{
-								int32validator.Between(1, 65535),
+								int32validator.Between(0, 65535),
 							},
 						},
 						"protocol": schema.StringAttribute{
 							Description:         "Protocol is the network protocol being used. Defaults to UDP. TCP is the other option.",
 							MarkdownDescription: "Protocol is the network protocol being used. Defaults to UDP. TCP is the other option.",
-							Optional:            true,
+							Required:            true,
 							Validators: []validator.String{
 								stringvalidator.OneOf("UDP", "TCP"), // GameFabric does not support TCPUDP.
 							},
@@ -157,8 +178,12 @@ func ContainersAttributes() schema.NestedAttributeObject {
 							Description:         "ProtectionProtocol is the optional name of the protection protocol being used.",
 							MarkdownDescription: "ProtectionProtocol is the optional name of the protection protocol being used.",
 							Optional:            true,
+							Computed:            true,
+							Default:             stringdefault.StaticString(""),
 							Validators: []validator.String{
-								validators.NameValidator{},
+								validators.NameValidator{
+									AllowEmpty: true,
+								},
 							},
 						},
 					},
@@ -168,12 +193,21 @@ func ContainersAttributes() schema.NestedAttributeObject {
 				Description:         "VolumeMounts are the volumes to mount into the container&#39;s filesystem.",
 				MarkdownDescription: "VolumeMounts are the volumes to mount into the container&#39;s filesystem.",
 				Optional:            true,
+				Computed:            true,
+				Default: DefaultListOf(types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"name":          types.StringType,
+						"mount_path":    types.StringType,
+						"sub_path":      types.StringType,
+						"sub_path_expr": types.StringType,
+					},
+				}),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
 							Description:         "Name is the name of the volume.",
 							MarkdownDescription: "Name is the name of the volume.",
-							Optional:            true,
+							Required:            true,
 							Validators: []validator.String{
 								validators.NameValidator{},
 							},
@@ -181,7 +215,7 @@ func ContainersAttributes() schema.NestedAttributeObject {
 						"mount_path": schema.StringAttribute{
 							Description:         "Path within the container at which the volume should be mounted.",
 							MarkdownDescription: "Path within the container at which the volume should be mounted.",
-							Optional:            true,
+							Required:            true,
 						},
 						"sub_path": schema.StringAttribute{
 							Description:         "Path within the volume from which the container's volume should be mounted. Defaults to empty string (volume's root).",
@@ -206,6 +240,13 @@ func ContainersAttributes() schema.NestedAttributeObject {
 				Description:         "ConfigFiles is a list of configuration files to mount into the containers filesystem.",
 				MarkdownDescription: "ConfigFiles is a list of configuration files to mount into the containers filesystem.",
 				Optional:            true,
+				Computed:            true,
+				Default: DefaultListOf(types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"name":       types.StringType,
+						"mount_path": types.StringType,
+					},
+				}),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{

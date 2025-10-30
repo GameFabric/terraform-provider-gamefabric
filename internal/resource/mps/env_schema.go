@@ -1,12 +1,31 @@
-package core
+package mps
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+// EnvVarDefault returns the default value for an environment variable.
+func EnvVarDefault() defaults.List {
+	return DefaultListOf(types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"name":  types.StringType,
+			"value": types.StringType,
+			"value_from": types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"field_path":  types.StringType,
+					"config_file": types.StringType,
+				},
+			},
+		},
+	})
+}
 
 // EnvVarAttributes returns the schema attributes for an environment variable.
 func EnvVarAttributes() map[string]schema.Attribute {

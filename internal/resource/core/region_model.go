@@ -8,6 +8,7 @@ import (
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -30,7 +31,7 @@ func newRegionModel(obj *corev1.Region) regionModel {
 		Labels:      conv.ForEachMapItem(obj.Labels, func(item string) types.String { return types.StringValue(item) }),
 		Annotations: conv.ForEachMapItem(obj.Annotations, func(item string) types.String { return types.StringValue(item) }),
 		DisplayName: types.StringValue(obj.Spec.DisplayName),
-		Description: conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
+		Description: types.StringValue(obj.Spec.Description),
 		Types:       conv.ForEachSliceItem(obj.Spec.Types, newRegionTypeModel),
 	}
 	return model
@@ -56,7 +57,7 @@ func (m regionModel) ToObject() *corev1.Region {
 		}
 		if len(typ.Envs) > 0 || conv.IsKnown(typ.Scheduling) {
 			regTyp.Template = &corev1.RegionTemplate{
-				Env:        conv.ForEachSliceItem(typ.Envs, func(v EnvVarModel) corev1.EnvVar { return v.ToObject() }),
+				Env:        conv.ForEachSliceItem(typ.Envs, func(v mps.EnvVarModel) corev1.EnvVar { return v.ToObject() }),
 				Scheduling: apis.SchedulingStrategy(typ.Scheduling.ValueString()),
 			}
 		}
@@ -66,10 +67,10 @@ func (m regionModel) ToObject() *corev1.Region {
 }
 
 type regionTypeModel struct {
-	Name       types.String   `tfsdk:"name"`
-	Locations  []types.String `tfsdk:"locations"`
-	Envs       []EnvVarModel  `tfsdk:"envs"`
-	Scheduling types.String   `tfsdk:"scheduling"`
+	Name       types.String      `tfsdk:"name"`
+	Locations  []types.String    `tfsdk:"locations"`
+	Envs       []mps.EnvVarModel `tfsdk:"envs"`
+	Scheduling types.String      `tfsdk:"scheduling"`
 }
 
 func newRegionTypeModel(obj corev1.RegionType) regionTypeModel {
@@ -77,7 +78,7 @@ func newRegionTypeModel(obj corev1.RegionType) regionTypeModel {
 	return regionTypeModel{
 		Name:       types.StringValue(obj.Name),
 		Locations:  conv.EmptyIfNil(conv.ForEachSliceItem(obj.Locations, types.StringValue)),
-		Envs:       conv.ForEachSliceItem(template.Env, NewEnvVarModel),
+		Envs:       conv.ForEachSliceItem(template.Env, mps.NewEnvVarModel),
 		Scheduling: conv.OptionalFunc(string(template.Scheduling), types.StringValue, types.StringNull),
 	}
 }

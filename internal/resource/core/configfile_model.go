@@ -25,7 +25,7 @@ func newConfigModel(obj *corev1.ConfigFile) configFileModel {
 		Environment: types.StringValue(obj.Environment),
 		Labels:      conv.ForEachMapItem(obj.Labels, func(item string) types.String { return types.StringValue(item) }),
 		Annotations: conv.ForEachMapItem(obj.Annotations, func(item string) types.String { return types.StringValue(item) }),
-		Description: conv.OptionalFunc(obj.Description, types.StringValue, types.StringNull),
+		Description: types.StringValue(obj.Description),
 		Data:        types.StringValue(obj.Data),
 	}
 }

@@ -1,4 +1,4 @@
-package core
+package mps
 
 import (
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"

@@ -10,6 +10,7 @@ import (
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -17,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -52,6 +54,9 @@ func (r *gatewayPolicy) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Description:         "The unique Terraform identifier.",
 				MarkdownDescription: "The unique Terraform identifier.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"name": schema.StringAttribute{
 				Description:         "The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.",
@@ -73,6 +78,8 @@ func (r *gatewayPolicy) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Description:         "A map of keys and values that can be used to organize and categorize objects.",
 				MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
 				Optional:            true,
+				Computed:            true,
+				Default:             mps.DefaultMapOf(types.StringType),
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
 					&validators.LabelsValidator{},
@@ -82,6 +89,8 @@ func (r *gatewayPolicy) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Description:         "A map of keys and values that can be used to organize and categorize objects.",
 				MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
 				Optional:            true,
+				Computed:            true,
+				Default:             mps.DefaultMapOf(types.StringType),
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
 					&validators.AnnotationsValidator{},
@@ -91,6 +100,8 @@ func (r *gatewayPolicy) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Description:         "Description is the optional description of the gateway policy.",
 				MarkdownDescription: "Description is the optional description of the gateway policy.",
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 			},
 			"destination_cidrs": schema.ListAttribute{
 				Description:         "The CIDRs that should use the gateway for outbound traffic, rather than the game server node.",
@@ -132,8 +143,7 @@ func (r *gatewayPolicy) Create(ctx context.Context, req resource.CreateRequest, 
 	}
 
 	obj := plan.ToObject()
-	_, err := r.clientSet.ProtectionV1().GatewayPolicies().Create(ctx, obj, metav1.CreateOptions{})
-	if err != nil {
+	if _, err := r.clientSet.ProtectionV1().GatewayPolicies().Create(ctx, obj, metav1.CreateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Gateway Policy",
 			fmt.Sprintf("Could not create Gateway Policy: %v", err),

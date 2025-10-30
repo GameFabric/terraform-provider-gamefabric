@@ -10,7 +10,7 @@ require (
 	github.com/ettle/strcase v0.2.0
 	github.com/gamefabric/gf-apiclient v0.2.0
 	github.com/gamefabric/gf-apicore v1.9.0
-	github.com/gamefabric/gf-core v0.28.0
+	github.com/gamefabric/gf-core v0.29.1-0.20251029145038-96cd4b60e5a8
 	github.com/gamefabric/tfutils v0.0.0-20250923125427-d3b835f8c62b
 	github.com/google/uuid v1.6.0
 	github.com/hamba/cmd/v3 v3.1.0

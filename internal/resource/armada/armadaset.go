@@ -12,7 +12,7 @@ import (
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
-	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
@@ -21,14 +21,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -92,11 +95,15 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Description:         "Description is the optional description of the armadaset.",
 				MarkdownDescription: "Description is the optional description of the armadaset.",
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 			},
 			"labels": schema.MapAttribute{
 				Description:         "A map of keys and values that can be used to organize and categorize objects.",
 				MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
 				Optional:            true,
+				Computed:            true,
+				Default:             mps.DefaultMapOf(types.StringType),
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
 					validators.LabelsValidator{},
@@ -106,6 +113,8 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Description:         "Annotations is an unstructured map of keys and values stored on an object.",
 				MarkdownDescription: "Annotations is an unstructured map of keys and values stored on an object.",
 				Optional:            true,
+				Computed:            true,
+				Default:             mps.DefaultMapOf(types.StringType),
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
 					validators.AnnotationsValidator{},
@@ -193,14 +202,18 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 							Description:         "Environment variables for the region.",
 							MarkdownDescription: "Environment variables for the region.",
 							Optional:            true,
+							Computed:            true,
+							Default:             mps.EnvVarDefault(),
 							NestedObject: schema.NestedAttributeObject{
-								Attributes: core.EnvVarAttributes(),
+								Attributes: mps.EnvVarAttributes(),
 							},
 						},
 						"labels": schema.MapAttribute{
 							Description:         "A map of keys and values that can be used to organize and categorize objects.",
 							MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
 							Optional:            true,
+							Computed:            true,
+							Default:             mps.DefaultMapOf(types.StringType),
 							ElementType:         types.StringType,
 							Validators: []validator.Map{
 								validators.LabelsValidator{},
@@ -213,6 +226,8 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Description:         "Labels for the game server pods.",
 				MarkdownDescription: "Labels for the game server pods.",
 				Optional:            true,
+				Computed:            true,
+				Default:             mps.DefaultMapOf(types.StringType),
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
 					validators.LabelsValidator{},
@@ -222,6 +237,8 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Description:         "Annotations for the game server pods.",
 				MarkdownDescription: "Annotations for the game server pods.",
 				Optional:            true,
+				Computed:            true,
+				Default:             mps.DefaultMapOf(types.StringType),
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
 					validators.AnnotationsValidator{},
@@ -267,11 +284,26 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Description:         "Strategy defines the rollout strategy for updating game servers. The default is RollingUpdate.",
 				MarkdownDescription: "Strategy defines the rollout strategy for updating game servers. The default is RollingUpdate.",
 				Optional:            true,
+				Computed:            true,
+				Default: objectdefault.StaticValue(types.ObjectNull(map[string]attr.Type{
+					"rolling_update": types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"max_surge":       types.StringType,
+							"max_unavailable": types.StringType,
+						},
+					},
+					"recreate": types.ObjectType{},
+				})),
 				Attributes: map[string]schema.Attribute{
 					"rolling_update": schema.SingleNestedAttribute{
 						Description:         "RollingUpdate defines the rolling update strategy, which gradually replaces game servers with new ones.",
 						MarkdownDescription: "RollingUpdate defines the rolling update strategy, which gradually replaces game servers with new ones.",
 						Optional:            true,
+						Computed:            true,
+						Default: objectdefault.StaticValue(types.ObjectNull(map[string]attr.Type{
+							"max_surge":       types.StringType,
+							"max_unavailable": types.StringType,
+						})),
 						Validators: []validator.Object{
 							objectvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("recreate")),
 						},
@@ -308,6 +340,17 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Description:         "Volumes is a list of volumes that can be mounted by containers belonging to the game server.",
 				MarkdownDescription: "Volumes is a list of volumes that can be mounted by containers belonging to the game server.",
 				Optional:            true,
+				Computed:            true,
+				Default: mps.DefaultListOf(types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"name": types.StringType,
+						"empty_dir": types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"size_limit": types.StringType,
+							},
+						},
+					},
+				}),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
@@ -321,12 +364,12 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 						"empty_dir": schema.SingleNestedAttribute{
 							Description:         "EmptyDir represents a volume that is initially empty.",
 							MarkdownDescription: "EmptyDir represents a volume that is initially empty.",
-							Optional:            true,
+							Required:            true,
 							Attributes: map[string]schema.Attribute{
 								"size_limit": schema.StringAttribute{
 									Description:         "SizeLimit is the total amount of local storage required for this EmptyDir volume.",
 									MarkdownDescription: "SizeLimit is the total amount of local storage required for this EmptyDir volume.",
-									Optional:            true,
+									Required:            true,
 									Validators: []validator.String{
 										validators.QuantityValidator{},
 									},
@@ -340,6 +383,8 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Description:         "GatewayPolicies is a list of gateway policies to apply to the Armada.",
 				MarkdownDescription: "GatewayPolicies is a list of gateway policies to apply to the Armada.",
 				Optional:            true,
+				Computed:            true,
+				Default:             mps.DefaultListOf(types.StringType),
 				ElementType:         types.StringType,
 				Validators: []validator.List{
 					listvalidator.ValueStringsAre(validators.NameValidator{}),
@@ -408,8 +453,7 @@ func (r *armadaSet) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	obj := plan.ToObject()
-	outObj, err := r.clientSet.ArmadaV1().ArmadaSets(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
-	if err != nil {
+	if _, err := r.clientSet.ArmadaV1().ArmadaSets(obj.Environment).Create(ctx, obj, metav1.CreateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating ArmadaSet",
 			fmt.Sprintf("Could not create ArmadaSet: %v", err),
@@ -417,7 +461,8 @@ func (r *armadaSet) Create(ctx context.Context, req resource.CreateRequest, resp
 		return
 	}
 
-	plan = newArmadaSetModel(outObj)
+	plan.ID = types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String())
+	plan.ImageUpdaterTarget = container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeArmadaSet, obj.Name, obj.Environment)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -470,8 +515,7 @@ func (r *armadaSet) Update(ctx context.Context, req resource.UpdateRequest, resp
 		return
 	}
 
-	outObj, err := r.clientSet.ArmadaV1().ArmadaSets(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
-	if err != nil {
+	if _, err = r.clientSet.ArmadaV1().ArmadaSets(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching ArmadaSet",
 			fmt.Sprintf("Could not patch for ArmadaSet: %v", err),
@@ -479,7 +523,8 @@ func (r *armadaSet) Update(ctx context.Context, req resource.UpdateRequest, resp
 		return
 	}
 
-	plan = newArmadaSetModel(outObj)
+	plan.ID = types.StringValue(cache.NewObjectName(newObj.Environment, newObj.Name).String())
+	plan.ImageUpdaterTarget = container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeArmadaSet, newObj.Name, newObj.Environment)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

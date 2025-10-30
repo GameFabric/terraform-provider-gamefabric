@@ -44,7 +44,7 @@ func newArmadaModel(obj *armadav1.Armada) armadaModel {
 		ID:                    types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String()),
 		Name:                  types.StringValue(obj.Name),
 		Environment:           types.StringValue(obj.Environment),
-		Description:           conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
+		Description:           types.StringValue(obj.Spec.Description),
 		Labels:                conv.ForEachMapItem(obj.Labels, types.StringValue),
 		Annotations:           conv.ForEachMapItem(obj.Annotations, types.StringValue),
 		Autoscaling:           newAutoscalingModel(obj.Spec.Autoscaling),
@@ -253,7 +253,7 @@ func newVolumeModel(obj armadav1.Volume) volumeModel {
 	}
 	if obj.SizeLimit != nil && !obj.SizeLimit.IsZero() {
 		vol.EmptyDir = &emptyDirModel{
-			SizeLimit: conv.OptionalFunc(obj.SizeLimit.String(), types.StringValue, types.StringNull),
+			SizeLimit: types.StringValue(obj.SizeLimit.String()),
 		}
 	}
 	return vol

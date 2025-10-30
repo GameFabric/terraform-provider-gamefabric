@@ -11,12 +11,14 @@ import (
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -50,6 +52,9 @@ func (r *configFile) Schema(_ context.Context, _ resource.SchemaRequest, resp *r
 				Description:         "The unique Terraform identifier.",
 				MarkdownDescription: "The unique Terraform identifier.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"name": schema.StringAttribute{
 				Description:         "The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.",
@@ -77,6 +82,8 @@ func (r *configFile) Schema(_ context.Context, _ resource.SchemaRequest, resp *r
 				Description:         "A map of keys and values that can be used to organize and categorize objects.",
 				MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
 				Optional:            true,
+				Computed:            true,
+				Default:             mps.DefaultMapOf(types.StringType),
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
 					validators.LabelsValidator{},
@@ -86,6 +93,8 @@ func (r *configFile) Schema(_ context.Context, _ resource.SchemaRequest, resp *r
 				Description:         "Annotations is an unstructured map of keys and values stored on an object.",
 				MarkdownDescription: "Annotations is an unstructured map of keys and values stored on an object.",
 				Optional:            true,
+				Computed:            true,
+				Default:             mps.DefaultMapOf(types.StringType),
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
 					validators.AnnotationsValidator{},
@@ -95,6 +104,8 @@ func (r *configFile) Schema(_ context.Context, _ resource.SchemaRequest, resp *r
 				Description:         "Description is the optional description of the config file.",
 				MarkdownDescription: "Description is the optional description of the config file.",
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 			},
 			"data": schema.StringAttribute{
 				Description:         "The content of the config file.",
@@ -131,8 +142,7 @@ func (r *configFile) Create(ctx context.Context, req resource.CreateRequest, res
 	}
 
 	obj := plan.ToObject()
-	_, err := r.clientSet.CoreV1().ConfigFiles(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
-	if err != nil {
+	if _, err := r.clientSet.CoreV1().ConfigFiles(obj.Environment).Create(ctx, obj, metav1.CreateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Config File",
 			fmt.Sprintf("Could not create ConfigFile: %v", err),
@@ -192,7 +202,8 @@ func (r *configFile) Update(ctx context.Context, req resource.UpdateRequest, res
 		return
 	}
 
-	if _, err = r.clientSet.CoreV1().ConfigFiles(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
+	outObj, err := r.clientSet.CoreV1().ConfigFiles(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Config File",
 			fmt.Sprintf("Could not patch ConfigFile: %v", err),
@@ -200,7 +211,7 @@ func (r *configFile) Update(ctx context.Context, req resource.UpdateRequest, res
 		return
 	}
 
-	plan.ID = types.StringValue(cache.NewObjectName(newObj.Environment, newObj.Name).String())
+	plan = newConfigModel(outObj)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

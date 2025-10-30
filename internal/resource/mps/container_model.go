@@ -5,7 +5,6 @@ import (
 	armadav1 "github.com/gamefabric/gf-core/pkg/api/armada/v1"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
-	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	kcorev1 "k8s.io/api/core/v1"
 )
@@ -17,7 +16,7 @@ type ContainerModel struct {
 	Command      []types.String     `tfsdk:"command"`
 	Args         []types.String     `tfsdk:"args"`
 	Resources    *ResourcesModel    `tfsdk:"resources"`
-	Envs         []core.EnvVarModel `tfsdk:"envs"`
+	Envs         []EnvVarModel      `tfsdk:"envs"`
 	Ports        []PortModel        `tfsdk:"ports"`
 	VolumeMounts []VolumeMountModel `tfsdk:"volume_mounts"`
 	ConfigFiles  []ConfigFileModel  `tfsdk:"config_files"`
@@ -34,7 +33,7 @@ func NewContainerForArmada(obj armadav1.Container) ContainerModel {
 		Command:      conv.ForEachSliceItem(obj.Command, types.StringValue),
 		Args:         conv.ForEachSliceItem(obj.Args, types.StringValue),
 		Resources:    newResourcesModel(obj.Resources),
-		Envs:         conv.ForEachSliceItem(obj.Env, core.NewEnvVarModel),
+		Envs:         conv.ForEachSliceItem(obj.Env, NewEnvVarModel),
 		Ports:        conv.ForEachSliceItem(obj.Ports, newPortModelForArmada),
 		VolumeMounts: conv.ForEachSliceItem(obj.VolumeMounts, newVolumeMountModel),
 		ConfigFiles:  conv.ForEachSliceItem(obj.ConfigFiles, newConfigFileModelForArmada),
@@ -50,7 +49,7 @@ func ToContainerForArmada(ctr ContainerModel) armadav1.Container {
 		Command:      conv.ForEachSliceItem(ctr.Command, func(v types.String) string { return v.ValueString() }),
 		Args:         conv.ForEachSliceItem(ctr.Args, func(v types.String) string { return v.ValueString() }),
 		Resources:    toResourceRequirements(ctr.Resources),
-		Env:          conv.ForEachSliceItem(ctr.Envs, func(item core.EnvVarModel) corev1.EnvVar { return item.ToObject() }),
+		Env:          conv.ForEachSliceItem(ctr.Envs, func(item EnvVarModel) corev1.EnvVar { return item.ToObject() }),
 		Ports:        conv.ForEachSliceItem(ctr.Ports, toPortForArmada),
 		VolumeMounts: conv.ForEachSliceItem(ctr.VolumeMounts, toVolumeMount),
 		ConfigFiles:  conv.ForEachSliceItem(ctr.ConfigFiles, toConfigFile),
@@ -138,9 +137,9 @@ type PortModel struct {
 }
 
 func newPortModelForArmada(obj armadav1.Port) PortModel {
-	prot := types.StringNull()
-	if obj.ProtectionProtocol != nil {
-		prot = conv.OptionalFunc(*obj.ProtectionProtocol, types.StringValue, types.StringNull)
+	pp := types.StringValue("")
+	if obj.ProtectionProtocol != nil && *obj.ProtectionProtocol != "" {
+		pp = types.StringValue(*obj.ProtectionProtocol)
 	}
 
 	return PortModel{
@@ -148,17 +147,22 @@ func newPortModelForArmada(obj armadav1.Port) PortModel {
 		Protocol:           types.StringValue(string(obj.Protocol)),
 		ContainerPort:      types.Int32Value(int32(obj.ContainerPort)),
 		Policy:             types.StringValue(string(obj.Policy)),
-		ProtectionProtocol: prot,
+		ProtectionProtocol: pp,
 	}
 }
 
 func toPortForArmada(p PortModel) armadav1.Port {
+	var pp *string
+	if p.ProtectionProtocol.ValueString() != "" {
+		pp = p.ProtectionProtocol.ValueStringPointer()
+	}
+
 	return armadav1.Port{
 		Name:               p.Name.ValueString(),
 		Policy:             agonesv1.PortPolicy(p.Policy.ValueString()),
 		ContainerPort:      uint16(p.ContainerPort.ValueInt32()), //nolint:gosec // Keep it simple.
 		Protocol:           kcorev1.Protocol(p.Protocol.ValueString()),
-		ProtectionProtocol: p.ProtectionProtocol.ValueStringPointer(),
+		ProtectionProtocol: pp,
 	}
 }
 

@@ -24,7 +24,7 @@ func newBranchModel(obj *containerv1.Branch) branchModel {
 		Labels:               conv.ForEachMapItem(obj.Labels, func(item string) types.String { return types.StringValue(item) }),
 		Annotations:          conv.ForEachMapItem(obj.Annotations, func(item string) types.String { return types.StringValue(item) }),
 		DisplayName:          types.StringValue(obj.Spec.DisplayName),
-		Description:          conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
+		Description:          types.StringValue(obj.Spec.Description),
 		RetentionPolicyRules: conv.EmptyIfNil(conv.ForEachSliceItem(obj.Spec.RetentionPolicyRules, newBranchImageRetentionPolicyRuleModel)),
 	}
 }

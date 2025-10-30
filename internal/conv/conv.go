@@ -12,7 +12,7 @@ import (
 // ForEachSliceItem applies a function to each item in a slice and returns a new slice with the results.
 func ForEachSliceItem[T, K any](s []T, fn func(item T) K) []K {
 	if len(s) == 0 {
-		return nil
+		return make([]K, 0)
 	}
 	result := make([]K, len(s))
 	for i, item := range s {
@@ -24,7 +24,7 @@ func ForEachSliceItem[T, K any](s []T, fn func(item T) K) []K {
 // ForEachMapItem applies a function to each item in a map and returns a new map with the results.
 func ForEachMapItem[T, K any](m map[string]T, fn func(item T) K) map[string]K {
 	if len(m) == 0 {
-		return nil
+		return make(map[string]K)
 	}
 	result := make(map[string]K, len(m))
 	for key, item := range m {

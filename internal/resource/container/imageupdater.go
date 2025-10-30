@@ -127,8 +127,7 @@ func (r *imageUpdater) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	obj := plan.ToObject(uuid.New().String())
-	_, err := r.clientSet.ContainerV1().ImageUpdaters(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
-	if err != nil {
+	if _, err := r.clientSet.ContainerV1().ImageUpdaters(obj.Environment).Create(ctx, obj, metav1.CreateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Image Updater",
 			fmt.Sprintf("Could not create ImageUpdater: %v", err),
@@ -191,7 +190,8 @@ func (r *imageUpdater) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	if _, err = r.clientSet.ContainerV1().ImageUpdaters(env).Patch(ctx, name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
+	outObj, err := r.clientSet.ContainerV1().ImageUpdaters(env).Patch(ctx, name, rest.MergePatchType, pb, metav1.UpdateOptions{})
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Image Updater",
 			fmt.Sprintf("Could not patch for ImageUpdater: %v", err),
@@ -199,7 +199,7 @@ func (r *imageUpdater) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	plan.ID = types.StringValue(cache.NewObjectName(newObj.Environment, newObj.Name).String())
+	plan.ID = types.StringValue(cache.NewObjectName(outObj.Environment, outObj.Name).String())
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

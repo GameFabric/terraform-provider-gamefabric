@@ -6,9 +6,11 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/ettle/strcase"
 	"github.com/gamefabric/gf-apicore/api/validation"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -27,7 +29,9 @@ var (
 )
 
 // NameValidator is a custom validator that checks if a string is a valid name.
-type NameValidator struct{}
+type NameValidator struct {
+	AllowEmpty bool
+}
 
 // Description provides a description of the validator.
 func (n NameValidator) Description(context.Context) string {
@@ -50,10 +54,12 @@ func (n NameValidator) ValidateString(_ context.Context, req validator.StringReq
 	value := req.ConfigValue.ValueString()
 	switch {
 	case value == "":
-		resp.Diagnostics.Append(diag.NewErrorDiagnostic(
-			"Empty name",
-			"Name cannot be empty",
-		))
+		if !n.AllowEmpty {
+			resp.Diagnostics.Append(diag.NewErrorDiagnostic(
+				"Empty "+nameFromPath(req.Path),
+				req.Path.String()+" cannot be empty",
+			))
+		}
 	case len(value) > maxNameLength:
 		resp.Diagnostics.Append(diag.NewErrorDiagnostic(
 			"Invalid name length",
@@ -200,4 +206,12 @@ func (n AnnotationsValidator) ValidateMap(_ context.Context, req validator.MapRe
 			fmt.Sprintf("Total size of annotations must be no more than %d bytes", totalAnnotationSizeLimitB),
 		))
 	}
+}
+
+// nameFromPath extracts a human-readable name from a path.Path.
+//
+// Example: containers[0].ports[0].protection_protocol => Protection Protocol.
+func nameFromPath(p path.Path) string {
+	parts := strings.Split(p.String(), ".")
+	return strcase.ToCase(parts[len(parts)-1], strcase.TitleCase, ' ')
 }

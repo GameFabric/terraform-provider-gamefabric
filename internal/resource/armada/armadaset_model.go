@@ -7,7 +7,6 @@ import (
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
-	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -38,7 +37,7 @@ func newArmadaSetModel(obj *armadav1.ArmadaSet) armadaSetModel {
 		ID:                    types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String()),
 		Name:                  types.StringValue(obj.Name),
 		Environment:           types.StringValue(obj.Environment),
-		Description:           conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
+		Description:           types.StringValue(obj.Spec.Description),
 		Labels:                conv.ForEachMapItem(obj.Labels, types.StringValue),
 		Annotations:           conv.ForEachMapItem(obj.Annotations, types.StringValue),
 		Autoscaling:           newAutoscalingModel(obj.Spec.Autoscaling),
@@ -52,7 +51,7 @@ func newArmadaSetModel(obj *armadav1.ArmadaSet) armadaSetModel {
 		Volumes:               conv.ForEachSliceItem(obj.Spec.Template.Spec.Volumes, newVolumeModel),
 		GatewayPolicies:       conv.ForEachSliceItem(obj.Spec.Template.Spec.GatewayPolicies, types.StringValue),
 		ProfilingEnabled:      conv.BoolFromMapKey(obj.Spec.Template.Labels, profilingKey, types.BoolValue(false)),
-		ImageUpdaterTarget:    container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeArmada, obj.Name, obj.Environment),
+		ImageUpdaterTarget:    container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeArmadaSet, obj.Name, obj.Environment),
 	}
 }
 
@@ -111,7 +110,7 @@ func newRegionModels(spec armadav1.ArmadaSetSpec) []regionModel {
 		}
 
 		reg := regs[idx]
-		reg.Envs = conv.ForEachSliceItem(val.Env, core.NewEnvVarModel)
+		reg.Envs = conv.ForEachSliceItem(val.Env, mps.NewEnvVarModel)
 		reg.Labels = conv.ForEachMapItem(val.Labels, types.StringValue)
 		regs[idx] = reg
 	}
@@ -121,7 +120,7 @@ func newRegionModels(spec armadav1.ArmadaSetSpec) []regionModel {
 type regionModel struct {
 	Name     types.String            `tfsdk:"name"`
 	Replicas []replicaModel          `tfsdk:"replicas"`
-	Envs     []core.EnvVarModel      `tfsdk:"envs"`
+	Envs     []mps.EnvVarModel       `tfsdk:"envs"`
 	Labels   map[string]types.String `tfsdk:"labels"`
 }
 
@@ -142,7 +141,7 @@ func toArmadaTemplate(reg regionModel) armadav1.ArmadaTemplate {
 func toArmadaOverride(reg regionModel) armadav1.ArmadaOverride {
 	return armadav1.ArmadaOverride{
 		Region: reg.Name.ValueString(),
-		Env:    conv.ForEachSliceItem(reg.Envs, func(item core.EnvVarModel) corev1.EnvVar { return item.ToObject() }),
+		Env:    conv.ForEachSliceItem(reg.Envs, func(item mps.EnvVarModel) corev1.EnvVar { return item.ToObject() }),
 		Labels: conv.ForEachMapItem(reg.Labels, func(v types.String) string { return v.ValueString() }),
 	}
 }
