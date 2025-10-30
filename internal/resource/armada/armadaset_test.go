@@ -64,8 +64,8 @@ func TestResourceArmadaSet(t *testing.T) {
 					// Containers.
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.name", "example-container"),
-					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.image.name", "gameserver-asoda0s"),
-					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.image.branch", "prod"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.image_ref.name", "gameserver-asoda0s"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.image_ref.branch", "prod"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.command.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.command.0", "example-command"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.args.#", "1"),
@@ -604,7 +604,7 @@ func testResourceArmadaSetConfigBasicNamed(name, env string, extras ...string) s
   containers = [
     {
       name = "example-container"
-      image = {
+      image_ref = {
         name   = "gameserver-asoda0s"
         branch = "prod"
       }
@@ -679,7 +679,7 @@ func testResourceArmadaSetConfigFull() string {
   containers = [
     {
       name = "example-container"
-      image = {
+      image_ref = {
         name   = "gameserver-asoda0s"
         branch = "prod"
       }
@@ -825,7 +825,7 @@ func testResourceArmadaSetConfigFullInvalid() string {
   containers = [
     {
       name = "name"
-      image = {
+      image_ref = {
         name   = "gameserver-asoda0s"
         branch = "prod"
       }

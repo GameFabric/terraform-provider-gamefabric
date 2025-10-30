@@ -147,7 +147,7 @@ resource "gamefabric_armada" "this" {
   containers = [
     {
       name  = "default" # the gameserver container should always be named "default"
-      image = data.gamefabric_image.gameserver.image_target
+      image_ref = data.gamefabric_image.gameserver.image_ref
       resources = {
         requests = {
           cpu    = local.game_cpu_request

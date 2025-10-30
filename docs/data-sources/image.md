@@ -33,8 +33,8 @@ resource "gamefabric_armada" "this" {
   ]
   containers = [
     {
-      name  = "default"
-      image = data.gamefabric_image.gameserver.image_target
+      name      = "default"
+      image_ref = data.gamefabric_image.gameserver.image_ref
     }
   ]
 }
@@ -64,8 +64,8 @@ resource "gamefabric_armada" "this" {
   ]
   containers = [
     {
-      name  = "default"
-      image = data.gamefabric_image.gameserver.image_target
+      name      = "default"
+      image_ref = data.gamefabric_image.gameserver.image_ref
     }
   ]
 }
@@ -83,10 +83,10 @@ resource "gamefabric_armada" "this" {
 
 ### Read-Only
 
-- `image_target` (Attributes) Provides information about the resolved image target, such as its unique name within the branch and the branch in which it is found. (see [below for nested schema](#nestedatt--image_target))
+- `image_ref` (Attributes) Provides information about the resolved image reference, such as its unique name within the branch and the branch in which it is found. (see [below for nested schema](#nestedatt--image_ref))
 
-<a id="nestedatt--image_target"></a>
-### Nested Schema for `image_target`
+<a id="nestedatt--image_ref"></a>
+### Nested Schema for `image_ref`
 
 Read-Only:
 

@@ -58,8 +58,8 @@ func TestResourceArmada(t *testing.T) {
 					// Containers.
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.name", "example-container"),
-					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.image.name", "gameserver-asoda0s"),
-					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.image.branch", "prod"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.image_ref.name", "gameserver-asoda0s"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.image_ref.branch", "prod"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.command.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.command.0", "example-command"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.args.#", "1"),
@@ -149,8 +149,8 @@ func TestResourceArmadaConfigBasic(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "region", "eu"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.name", "example-container"),
-					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.image.name", "gameserver-asoda0s"),
-					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.image.branch", "prod"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.image_ref.name", "gameserver-asoda0s"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.image_ref.branch", "prod"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.resources.requests.cpu", "250m"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.resources.requests.memory", "256Mi"),
 
@@ -592,7 +592,7 @@ func testResourceArmadaConfigBasicNamed(name, env string, extras ...string) stri
   containers = [
     {
       name = "example-container"
-      image = {
+      image_ref = {
         name   = "gameserver-asoda0s"
         branch = "prod"
       }
@@ -654,7 +654,7 @@ func testResourceArmadaConfigFull() string {
   containers = [
     {
       name = "example-container"
-      image = {
+      image_ref = {
         name   = "gameserver-asoda0s"
         branch = "prod"
       }
@@ -786,7 +786,7 @@ func testResourceArmadaConfigFullInvalid() string {
   containers = [
     {
       name = "name"
-      image = {
+      image_ref = {
         name   = "gameserver-asoda0s"
         branch = "prod"
       }

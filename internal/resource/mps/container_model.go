@@ -13,7 +13,7 @@ import (
 // ContainerModel is the terraform model for a container.
 type ContainerModel struct {
 	Name         types.String       `tfsdk:"name"`
-	Image        ImageModel         `tfsdk:"image"`
+	ImageRef     ImageRefModel      `tfsdk:"image_ref"`
 	Command      []types.String     `tfsdk:"command"`
 	Args         []types.String     `tfsdk:"args"`
 	Resources    *ResourcesModel    `tfsdk:"resources"`
@@ -27,7 +27,7 @@ type ContainerModel struct {
 func NewContainerForArmada(obj armadav1.Container) ContainerModel {
 	return ContainerModel{
 		Name: types.StringValue(obj.Name),
-		Image: ImageModel{
+		ImageRef: ImageRefModel{
 			Name:   types.StringValue(obj.Image),
 			Branch: types.StringValue(obj.Branch),
 		},
@@ -45,8 +45,8 @@ func NewContainerForArmada(obj armadav1.Container) ContainerModel {
 func ToContainerForArmada(ctr ContainerModel) armadav1.Container {
 	return armadav1.Container{
 		Name:         ctr.Name.ValueString(),
-		Image:        ctr.Image.Name.ValueString(),
-		Branch:       ctr.Image.Branch.ValueString(),
+		Image:        ctr.ImageRef.Name.ValueString(),
+		Branch:       ctr.ImageRef.Branch.ValueString(),
 		Command:      conv.ForEachSliceItem(ctr.Command, func(v types.String) string { return v.ValueString() }),
 		Args:         conv.ForEachSliceItem(ctr.Args, func(v types.String) string { return v.ValueString() }),
 		Resources:    toResourceRequirements(ctr.Resources),
@@ -57,8 +57,8 @@ func ToContainerForArmada(ctr ContainerModel) armadav1.Container {
 	}
 }
 
-// ImageModel is the terraform model for a container image.
-type ImageModel struct {
+// ImageRefModel is the terraform model for a container image.
+type ImageRefModel struct {
 	Name   types.String `tfsdk:"name"`
 	Branch types.String `tfsdk:"branch"`
 }
