@@ -47,17 +47,13 @@ resource "gamefabric_region" "europe" {
         {
           name = "REGION"
           value_from = {
-            field_ref = {
-              field_path = "metadata.regionName" # e.g., "europe"
-            }
+            field_path = "metadata.regionName" # e.g., "europe"
           }
         },
         {
           name = "REGION_TYPE"
           value_from = {
-            field_ref = {
-              field_path = "metadata.regionTypeName" # e.g., "baremetal"
-            }
+            field_path = "metadata.regionTypeName" # e.g., "baremetal"
           }
         },
         {
@@ -67,9 +63,7 @@ resource "gamefabric_region" "europe" {
         {
           name = "BACKEND_TOKEN"
           value_from = {
-            config_file_key_ref = {
-              name = "eu-token" # Reference a ConfigFile named "eu-token"
-            }
+            config_file = "eu-token-file.txt"
           }
         }
       ]
@@ -81,17 +75,13 @@ resource "gamefabric_region" "europe" {
         {
           name = "REGION"
           value_from = {
-            field_ref = {
-              field_path = "metadata.regionName" # e.g., "europe"
-            }
+            field_path = "metadata.regionName" # e.g., "europe"
           }
         },
         {
           name = "REGION_TYPE"
           value_from = {
-            field_ref = {
-              field_path = "metadata.regionTypeName" # e.g., "cloud"
-            }
+            field_path = "metadata.regionTypeName" # e.g., "cloud"
           }
         },
         {
@@ -101,9 +91,7 @@ resource "gamefabric_region" "europe" {
         {
           name = "BACKEND_TOKEN"
           value_from = {
-            config_file_key_ref = {
-              name = "eu-token" # Reference a ConfigFile named "eu-token"
-            }
+            config_file = "eu-token-file.txt"
           }
         }
       ]
