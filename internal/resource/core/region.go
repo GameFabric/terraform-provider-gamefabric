@@ -13,7 +13,7 @@ import (
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
-	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -103,12 +103,20 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				MarkdownDescription: "Description is the optional description of the region.",
 				Optional:            true,
 			},
-			"types": schema.MapNestedAttribute{
+			"types": schema.ListNestedAttribute{
 				Description:         "Types defines the types on infrastructure available in the region.",
 				MarkdownDescription: "Types defines the types on infrastructure available in the region.",
 				Required:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
+						"name": schema.StringAttribute{
+							Description:         "Name of the region type.",
+							MarkdownDescription: "Name of the region type.",
+							Required:            true,
+							Validators: []validator.String{
+								validators.NameValidator{},
+							},
+						},
 						"locations": schema.ListAttribute{
 							Description:         "Locations defines the locations for a type.",
 							MarkdownDescription: "Locations defines the locations for a type.",
@@ -137,8 +145,8 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 						},
 					},
 				},
-				Validators: []validator.Map{
-					mapvalidator.SizeAtLeast(1),
+				Validators: []validator.List{
+					listvalidator.SizeAtLeast(1),
 				},
 			},
 		},
