@@ -51,8 +51,8 @@ func (r *environment) Schema(_ context.Context, _ datasource.SchemaRequest, resp
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description:         "A user-friendly name for the environment, shown in GameFabric. Unlike the technical 'name' field, this can be freely chosen and does not have strict constraints.",
-				MarkdownDescription: "A user-friendly name for the environment, shown in GameFabric. Unlike the technical 'name' field, this can be freely chosen and does not have strict constraints.",
+				Description:         "The user-friendly name of the environment.",
+				MarkdownDescription: "The user-friendly name of the environment.",
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("name")),
@@ -65,8 +65,8 @@ func (r *environment) Schema(_ context.Context, _ datasource.SchemaRequest, resp
 				ElementType:         types.StringType,
 			},
 			"description": schema.StringAttribute{
-				Description:         "Description is the description of the environment.",
-				MarkdownDescription: "Description is the description of the environment.",
+				Description:         "The description of the environment.",
+				MarkdownDescription: "The description of the environment.",
 				Computed:            true,
 			},
 		},

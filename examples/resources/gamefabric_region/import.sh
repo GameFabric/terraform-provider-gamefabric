@@ -1,1 +1,1 @@
-terraform import gamefabric_region.europe "{{ environment }}/regions/{{ name }}"
+terraform import gamefabric_region.europe "{{ environment }}/{{ name }}"

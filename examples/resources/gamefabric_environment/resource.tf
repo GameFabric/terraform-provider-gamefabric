@@ -4,7 +4,7 @@ resource "gamefabric_environment" "prod" {
   description  = "Production environment for live game servers"
 
   labels = {
-    environment_type = "production"
+    environment-type = "production"
     criticality      = "high"
   }
 }

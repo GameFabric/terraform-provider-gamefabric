@@ -67,8 +67,8 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				},
 			},
 			"name": schema.StringAttribute{
-				Description:         "The unique object name within its scope.",
-				MarkdownDescription: "The unique object name within its scope.",
+				Description:         "The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 24 characters.",
+				MarkdownDescription: "The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 24 characters.",
 				Required:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},
@@ -78,8 +78,8 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				},
 			},
 			"environment": schema.StringAttribute{
-				Description:         "The name of the environment the object belongs to.",
-				MarkdownDescription: "The name of the environment the object belongs to.",
+				Description:         "The name of the environment the resource belongs to.",
+				MarkdownDescription: "The name of the environment the resource belongs to.",
 				Required:            true,
 				Validators: []validator.String{
 					validators.EnvironmentValidator{},
@@ -89,8 +89,8 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				},
 			},
 			"description": schema.StringAttribute{
-				Description:         "Description of the ArmadaSet.",
-				MarkdownDescription: "Description of the ArmadaSet.",
+				Description:         "Description is the optional description of the armadaset.",
+				MarkdownDescription: "Description is the optional description of the armadaset.",
 				Optional:            true,
 			},
 			"labels": schema.MapAttribute{
@@ -198,8 +198,8 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 							},
 						},
 						"labels": schema.MapAttribute{
-							Description:         "Labels for the region.",
-							MarkdownDescription: "Labels for the region.",
+							Description:         "A map of keys and values that can be used to organize and categorize objects.",
+							MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
 							Optional:            true,
 							ElementType:         types.StringType,
 							Validators: []validator.Map{
@@ -228,8 +228,8 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				},
 			},
 			"containers": schema.ListNestedAttribute{
-				Description:         "Containers belonging to the game server.",
-				MarkdownDescription: "Containers belonging to the game server.",
+				Description:         "Containers is a list of containers belonging to the game server.",
+				MarkdownDescription: "Containers is a list of containers belonging to the game server.",
 				Required:            true,
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
@@ -264,13 +264,13 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				},
 			},
 			"strategy": schema.SingleNestedAttribute{
-				Description:         "Strategy defines the rollout strategy for updating game servers.",
-				MarkdownDescription: "Strategy defines the rollout strategy for updating game servers.",
+				Description:         "Strategy defines the rollout strategy for updating game servers. The default is RollingUpdate.",
+				MarkdownDescription: "Strategy defines the rollout strategy for updating game servers. The default is RollingUpdate.",
 				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"rolling_update": schema.SingleNestedAttribute{
-						Description:         "RollingUpdate defines the rolling update strategy.",
-						MarkdownDescription: "RollingUpdate defines the rolling update strategy.",
+						Description:         "RollingUpdate defines the rolling update strategy, which gradually replaces game servers with new ones.",
+						MarkdownDescription: "RollingUpdate defines the rolling update strategy, which gradually replaces game servers with new ones.",
 						Optional:            true,
 						Validators: []validator.Object{
 							objectvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("recreate")),
@@ -295,8 +295,8 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 						},
 					},
 					"recreate": schema.SingleNestedAttribute{
-						Description:         "Recreate defines the recreate strategy.",
-						MarkdownDescription: "Recreate defines the recreate strategy.",
+						Description:         "Recreate defines the recreate strategy which will recreate all unallocated gameservers at once. This should only be used for development workloads or where downtime is acceptable.",
+						MarkdownDescription: "Recreate defines the recreate strategy which will recreate all unallocated gameservers at once on updates. This should only be used for development workloads or where downtime is acceptable.",
 						Optional:            true,
 						Validators: []validator.Object{
 							objectvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("rolling_update")),

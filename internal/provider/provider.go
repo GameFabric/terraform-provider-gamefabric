@@ -86,8 +86,8 @@ func (p *Provider) Schema(_ context.Context, _ provider.SchemaRequest, resp *pro
 				Optional:            true,
 			},
 			"customer_id": schema.StringAttribute{
-				Description:         "The customer ID.",
-				MarkdownDescription: "The customer ID.",
+				Description:         "The customer ID (first segment of your installation URL). If your installation URL is 'customerID.gamefabric.dev', set this to 'customerID'.",
+				MarkdownDescription: "The customer ID (first segment of your installation URL). If your installation URL is `customerID.gamefabric.dev`, set this to `customerID`.",
 				Optional:            true,
 			},
 			"service_account": schema.StringAttribute{

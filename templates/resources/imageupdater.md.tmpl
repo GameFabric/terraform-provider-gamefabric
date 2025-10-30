@@ -1,0 +1,42 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+The image updater is a resource that allows you to automatically update the container image used by a target resource (like an Armada, Formation, Vessel, or ArmadaSet) whenever a new image tag is pushed to a specified image in the GameFabric container registry.
+This is the mechanism that is used if you select "autoUpdate" for the container image in the GameFabric web interface when creating or updating an Armada, Formation, Vessel, or ArmadaSet.
+
+Because this mechanism happens outside of terraform it is required to make use of the `lifecycle.ignore_changes` block on the target resource to prevent terraform from trying to revert the image back to the original value.
+
+
+## Example Usage
+
+This example sets up a minimal armada in a single region for europe and creates an image updater to automatically update the container image.
+
+{{ tffile "examples/resources/gamefabric_imageupdater/resource.tf" }}
+
+
+{{ .SchemaMarkdown | trimspace }}
+{{- if or .HasImport .HasImportIDConfig .HasImportIdentityConfig }}
+
+## Import
+
+Import is supported using the following syntax:
+{{- end }}
+
+{{- if .HasImportIDConfig }}
+
+In Terraform v1.5.0 and later, the [`import` block](https://developer.hashicorp.com/terraform/language/import) can be used with the `id` attribute, for example:
+
+{{tffile .ImportIDConfigFile }}
+{{- end }}
+{{- if .HasImport }}
+
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
+{{codefile "shell" .ImportFile }}
+{{- end }}

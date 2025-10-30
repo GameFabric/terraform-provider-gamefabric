@@ -16,24 +16,25 @@ func ContainersAttributes() schema.NestedAttributeObject {
 	return schema.NestedAttributeObject{
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
-				Description:         "Name is the name of the container.",
-				MarkdownDescription: "Name is the name of the container.",
+				Description:         "Name is the name of the container. The primary gameserver container should be named `default`",
+				MarkdownDescription: "Name is the name of the container. The primary gameserver container should be named `default`",
 				Required:            true,
 			},
 			"image": schema.SingleNestedAttribute{
-				Required: true,
+				Description: "Image is the GameFabric container image to run. You can use the `image_target` attribute of the `gamefabric_image` datasource to set this.",
+				Required:    true,
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
-						Description:         "Name is the name of the image.",
-						MarkdownDescription: "Name is the name of the image.",
+						Description:         "Name is the name of the GameFabric image.",
+						MarkdownDescription: "Name is the name of the GameFabric image.",
 						Required:            true,
 						Validators: []validator.String{
 							validators.NameValidator{},
 						},
 					},
 					"branch": schema.StringAttribute{
-						Description:         "Branch is the branch of the image.",
-						MarkdownDescription: "Branch is the branch of the image.",
+						Description:         "Branch of the GameFabric image.",
+						MarkdownDescription: "Branch of the GameFabric image.",
 						Required:            true,
 						Validators: []validator.String{
 							validators.NameValidator{},
@@ -55,7 +56,7 @@ func ContainersAttributes() schema.NestedAttributeObject {
 			},
 			"resources": schema.SingleNestedAttribute{
 				Description:         "Resources describes the compute resource requirements.",
-				MarkdownDescription: "Resources describes the compute resource requirements.",
+				MarkdownDescription: "Resources describes the compute resource requirements. See the <a href=\"https://docs.gamefabric.com/multiplayer-servers/multiplayer-services/resource-management\">GameFabric documentation</a> for more details on how to configure resource requests and limits.",
 				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"limits": schema.SingleNestedAttribute{
@@ -121,19 +122,19 @@ func ContainersAttributes() schema.NestedAttributeObject {
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
-							Description:         "Name is the name of the port.",
-							MarkdownDescription: "Name is the name of the port.",
+							Description:         "Name is the name of the port. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.",
+							MarkdownDescription: "Name is the name of the port. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.",
 							Required:            true,
 							Validators: []validator.String{
 								validators.NameValidator{},
 							},
 						},
 						"policy": schema.StringAttribute{
-							Description:         "Policy defines the policy for how the HostPort is populated.",
-							MarkdownDescription: "Policy defines the policy for how the HostPort is populated.",
+							Description:         "Policy defines how the host port is populated. Dynamic (default) allocates a free host port and maps it to the container_port (required). The gameserver must report the external port (obtained via Agones SDK) to backends for client connections. Passthrough dynamically allocates a host port and sets container_port to match it. The gameserver must discover this port via Agones SDK and listen on it.",
+							MarkdownDescription: "Policy defines how the host port is populated. `Dynamic` (default) allocates a free host port and maps it to the `container_port` (required). The gameserver must report the external port (obtained via Agones SDK) to backends for client connections. `Passthrough` dynamically allocates a host port and sets `container_port` to match it. The gameserver must discover this port via Agones SDK and listen on it.",
 							Required:            true,
 							Validators: []validator.String{
-								stringvalidator.OneOf("Static", "Dynamic", "Passthrough", "None"),
+								stringvalidator.OneOf("Dynamic", "Passthrough"),
 							},
 						},
 						"container_port": schema.Int32Attribute{

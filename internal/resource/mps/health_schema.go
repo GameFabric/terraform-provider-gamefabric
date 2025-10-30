@@ -29,8 +29,8 @@ func HealthCheckAttributes() map[string]schema.Attribute {
 			Default: int32default.StaticInt32(0),
 		},
 		"failure_threshold": schema.Int32Attribute{
-			Description:         "FailureThreshold is the number of consecutive failures before the game server is marked unhealthy.",
-			MarkdownDescription: "FailureThreshold is the number of consecutive failures before the game server is marked unhealthy.",
+			Description:         "FailureThreshold is the number of consecutive failures before the game server is marked unhealthy and terminated.",
+			MarkdownDescription: "FailureThreshold is the number of consecutive failures before the game server is marked unhealthy and terminated.",
 			Optional:            true,
 			Computed:            true,
 			Validators: []validator.Int32{

@@ -54,8 +54,8 @@ func (r *gatewayPolicy) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Computed:            true,
 			},
 			"name": schema.StringAttribute{
-				Description:         "The unique object name within its scope.",
-				MarkdownDescription: "The unique object name within its scope.",
+				Description:         "The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.",
+				MarkdownDescription: "The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.",
 				Required:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},
@@ -65,8 +65,8 @@ func (r *gatewayPolicy) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description:         "Display name is the friendly name of the gateway policy.",
-				MarkdownDescription: "Display name is the friendly name of the gateway policy.",
+				Description:         "The user-friendly name of the gateway policy.",
+				MarkdownDescription: "The user-friendly name of the gateway policy.",
 				Required:            true,
 			},
 			"labels": schema.MapAttribute{
@@ -88,8 +88,8 @@ func (r *gatewayPolicy) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				},
 			},
 			"description": schema.StringAttribute{
-				Description:         "Description is the description of the gateway policy.",
-				MarkdownDescription: "Description is the description of the gateway policy.",
+				Description:         "Description is the optional description of the gateway policy.",
+				MarkdownDescription: "Description is the optional description of the gateway policy.",
 				Optional:            true,
 			},
 			"destination_cidrs": schema.ListAttribute{
