@@ -7,7 +7,7 @@ description: |-
 
 # gamefabric_armada (Resource)
 
-An Armada manages your game server deployments within a Region. It handles the distribution and scaling of your game servers, whether you're running on a single node or across multiple locations with mixed baremetal and cloud infrastructure.
+An Armada manages your game server deployments within a region. It handles the distribution and scaling of your game servers, whether you're running on a single node or across multiple locations with mixed baremetal and cloud infrastructure.
 
 When you update an Armada, it creates a new revision. This versioning system allows you to safely roll back to a previous configuration if needed, or run multiple versions simultaneously during gradual rollouts to minimize disruption to your players.
 
@@ -92,7 +92,7 @@ resource "gamefabric_armada" "this" {
 }
 ```
 
-## Example Advanced Usage - Armada for All Regions with Dynamic Sizing
+## Example Advanced Usage - Armada for All regions with dynamic sizing
 
 This example sets up an armada in all available regions, it uses the result of the `gamefabric_regions` data source to create an armada in each region within the environment.
 It also calculates the minimum, maximum and buffer sizes based on available CPU/Memory resources within a region type.

@@ -7,7 +7,7 @@ description: |-
 
 # gamefabric_armadaset (Resource)
 
-An ArmadaSet is a templating resource that creates and manages Armadas across multiple Regions with a single configuration. It allows you to define common settings while enabling region-specific overrides for environment variables and other configurations.
+An ArmadaSet is a templating resource that creates and manages Armadas across multiple regions with a single configuration. It allows you to define common settings while enabling region-specific overrides for environment variables and other configurations.
 
 This simplifies multi-region deployments by eliminating the need to duplicate Armada configurations. You define your game server deployment settings once in the ArmadaSet, specify which regions to deploy to, and customize per-region settings where needed.
 
