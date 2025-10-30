@@ -15,6 +15,7 @@ import (
 	dsprotection "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/protection"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/armada"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/authentication"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/protection"
@@ -192,6 +193,7 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		container.NewBranch,
 		container.NewImageUpdater,
 		protection.NewGatewayPolicy,
+		authentication.NewServiceAccountResource,
 	}
 }
 
