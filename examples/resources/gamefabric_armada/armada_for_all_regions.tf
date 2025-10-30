@@ -1,36 +1,3 @@
----
-page_title: "Dynamic Armada Scaling Across All Regions"
-subcategory: "Guides"
-description: |-
-  Learn how to create armadas across all regions with dynamic replica sizing based on available resources.
----
-
-# Dynamic Armada Scaling Across All Regions
-
-This guide demonstrates how to create armadas across all available regions in an environment with dynamic replica sizing. The configuration automatically calculates minimum replicas, maximum replicas, and buffer sizes based on the available CPU and memory resources within each region type.
-
-## Overview
-
-This approach is useful when you want to:
-
-- Deploy game servers to all regions in your environment
-- Automatically scale based on available infrastructure resources
-- Maintain consistent resource allocation across different region types
-- Adjust capacity by simply changing CPU/memory request values
-
-## Prerequisites
-
-Before following this guide, you should have:
-
-- A GameFabric environment configured
-- A container branch with your game server image
-- Knowledge of your game server's resource requirements
-
-## Complete Example
-
-The following example creates an armada in each available region, automatically calculating replica counts based on the resources available in each region type:
-
-```terraform
 data "gamefabric_branch" "prod" {
   display_name = "prod"
 }
@@ -146,7 +113,7 @@ resource "gamefabric_armada" "this" {
   replicas = local.replicas_per_region[each.key]
   containers = [
     {
-      name  = "default" # the gameserver container should always be named "default"
+      name      = "default" # the gameserver container should always be named "default"
       image_ref = data.gamefabric_image.gameserver.image_ref
       resources = {
         requests = {
@@ -157,7 +124,7 @@ resource "gamefabric_armada" "this" {
       envs = [
         {
           name  = "REGION"
-          value = each.key
+          value = data.gamefabric_region.europe.name
         },
         {
           name = "REGION_TYPE"
@@ -177,94 +144,3 @@ resource "gamefabric_armada" "this" {
     }
   ]
 }
-```
-
-## How It Works
-
-### 1. Resource Requirements
-
-First, define your game server's resource requirements:
-
-```terraform
-locals {
-  game_cpu_request    = "250m"
-  game_memory_request = "250Mi"
-}
-```
-
-These values determine how many game servers can fit on each type of infrastructure.
-
-### 2. Resource Normalization
-
-The configuration normalizes all resource values to standard units (CPU cores and GiB of memory). This ensures consistent calculations regardless of the unit format (e.g., "250m", "0.25", "250Mi", "0.25Gi").
-
-### 3. Region Data Extraction
-
-The `gamefabric_regions` data source provides information about all available regions and their resource capacity by type (e.g., baremetal, cloud). The configuration processes this data to create a normalized view of available resources.
-
-### 4. Replica Calculation
-
-For each region and type, the configuration calculates:
-
-- **max_replicas**: Maximum number of game servers that can run based on available resources
-  - Calculated as: `min(available_cpu / requested_cpu, available_memory / requested_memory)`
-- **min_replicas**: Baseline capacity (10% of max_replicas, minimum of 1)
-  - Ensures there's always some capacity available for quick scaling
-- **buffer_size**: Extra servers kept ready (5% of max_replicas, minimum of 1)
-  - Maintains a pool of ready servers for instant player connections
-
-### 5. Dynamic Armada Creation
-
-The `for_each` on the `gamefabric_armada` resource creates one armada per region, each configured with the calculated replica settings for that region's available resources.
-
-## Customization
-
-### Adjusting Scaling Percentages
-
-You can modify the min_replicas and buffer_size percentages to fit your needs:
-
-```terraform
-min_replicas = max(1, floor(max_replicas * 0.2))  # 20% instead of 10%
-buffer_size = max(2, floor(max_replicas * 0.1))   # 10% instead of 5%, minimum of 2
-```
-
-### Filtering Regions
-
-To deploy to specific regions only:
-
-```terraform
-locals {
-  regions = { 
-    for index, region in data.gamefabric_regions.all.regions : 
-    region.name => region 
-    if contains(["europe", "us-east"], region.name)
-  }
-}
-```
-
-### Different Resources Per Region
-
-You can define region-specific resource requirements:
-
-```terraform
-locals {
-  game_cpu_request = lookup({
-    europe  = "500m"
-    us-east = "250m"
-  }, each.key, "250m")
-}
-```
-
-## Best Practices
-
-1. **Start Conservative**: Begin with lower resource requests and gradually increase based on actual usage
-2. **Monitor Utilization**: Use GameFabric's monitoring to ensure calculated replica counts match your needs
-3. **Test Scaling**: Validate that the min/max/buffer calculations work for your traffic patterns
-4. **Version Control**: Keep this configuration in version control to track changes to scaling parameters
-5. **Environment Separation**: Use different configurations for dev/staging/production environments
-
-## Related Resources
-
-- [gamefabric_armada](../resources/armada.md) - Armada resource documentation
-- [gamefabric_regions](../data-sources/regions.md) - Regions data source documentation
-- [gamefabric_image](../data-sources/image.md) - Image data source documentation

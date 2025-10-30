@@ -59,8 +59,8 @@ resource "gamefabric_armada" "this" {
   ]
   containers = [
     {
-      name  = "default" # the gameserver container should always be named "default"
-      image = data.gamefabric_image.gameserver.image_target
+      name      = "default" # the gameserver container should always be named "default"
+      image_ref = data.gamefabric_image.gameserver.image_ref
       resources = {
         requests = {
           cpu    = "250m"
@@ -133,7 +133,7 @@ For more complex scenarios such as creating armadas across all regions with dyna
 
 Required:
 
-- `image_ref` (Attributes) ImageRef is the GameFabric container image reference to run. You should use the `image_ref` attribute of the `gamefabric_image` datasource to configure this attribute. (see [below for nested schema](#nestedatt--containers--image_ref))
+- `image_ref` (Attributes) The reference to the image to run your container with. You should use the `image_ref` attribute of the `gamefabric_image` datasource to configure this attribute. (see [below for nested schema](#nestedatt--containers--image_ref))
 - `name` (String) Name is the name of the container. The primary gameserver container should be named `default`
 
 Optional:
