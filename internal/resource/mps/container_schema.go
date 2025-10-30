@@ -21,7 +21,7 @@ func ContainersAttributes() schema.NestedAttributeObject {
 				Required:            true,
 			},
 			"image_ref": schema.SingleNestedAttribute{
-				Description: "ImageRef is the GameFabric container image reference to run. You should use the `image_ref` attribute of the `gamefabric_image` datasource to configure this attribute.",
+				Description: "The reference to the image to run your container with. You should use the `image_ref` attribute of the `gamefabric_image` datasource to configure this attribute.",
 				Required:    true,
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
