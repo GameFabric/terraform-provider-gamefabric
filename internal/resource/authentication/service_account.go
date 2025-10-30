@@ -163,6 +163,7 @@ func (r *serviceAccount) Delete(ctx context.Context, req resource.DeleteRequest,
 	err := r.clientSet.AuthenticationV1Beta1().ServiceAccounts().Delete(ctx, state.Name.ValueString(), metav1.DeleteOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting service account", err.Error())
+		return
 	}
 
 	if err = wait.PollUntilNotFound(ctx, r.clientSet.AuthenticationV1Beta1().ServiceAccounts(), state.Name.ValueString()); err != nil {
