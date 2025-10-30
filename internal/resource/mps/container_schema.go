@@ -20,8 +20,8 @@ func ContainersAttributes() schema.NestedAttributeObject {
 				MarkdownDescription: "Name is the name of the container. The primary gameserver container should be named `default`",
 				Required:            true,
 			},
-			"image": schema.SingleNestedAttribute{
-				Description: "Image is the GameFabric container image to run. You can use the `image_target` attribute of the `gamefabric_image` datasource to set this.",
+			"image_ref": schema.SingleNestedAttribute{
+				Description: "ImageRef is the GameFabric container image reference to run. You should use the `image_ref` attribute of the `gamefabric_image` datasource to configure this attribute.",
 				Required:    true,
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{

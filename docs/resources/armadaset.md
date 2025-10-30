@@ -212,7 +212,7 @@ resource "gamefabric_armadaset" "this" {
 
 Required:
 
-- `image` (Attributes) Image is the GameFabric container image to run. You can use the `image_target` attribute of the `gamefabric_image` datasource to set this. (see [below for nested schema](#nestedatt--containers--image))
+- `image_ref` (Attributes) ImageRef is the GameFabric container image reference to run. You should use the `image_ref` attribute of the `gamefabric_image` datasource to configure this attribute. (see [below for nested schema](#nestedatt--containers--image_ref))
 - `name` (String) Name is the name of the container. The primary gameserver container should be named `default`
 
 Optional:
@@ -225,8 +225,8 @@ Optional:
 - `resources` (Attributes) Resources describes the compute resource requirements. See the <a href="https://docs.gamefabric.com/multiplayer-servers/multiplayer-services/resource-management">GameFabric documentation</a> for more details on how to configure resource requests and limits. (see [below for nested schema](#nestedatt--containers--resources))
 - `volume_mounts` (Attributes List) VolumeMounts are the volumes to mount into the container&#39;s filesystem. (see [below for nested schema](#nestedatt--containers--volume_mounts))
 
-<a id="nestedatt--containers--image"></a>
-### Nested Schema for `containers.image`
+<a id="nestedatt--containers--image_ref"></a>
+### Nested Schema for `containers.image_ref`
 
 Required:
 
