@@ -391,7 +391,7 @@ Optional:
 Optional:
 
 - `recreate` (Attributes) Recreate defines the recreate strategy which will recreate all unallocated gameservers at once on updates. This should only be used for development workloads or where downtime is acceptable. (see [below for nested schema](#nestedatt--strategy--recreate))
-- `rolling_update` (Attributes) RollingUpdate defines the rolling update strategy. Which gradually replaces game servers with new ones. (see [below for nested schema](#nestedatt--strategy--rolling_update))
+- `rolling_update` (Attributes) RollingUpdate defines the rolling update strategy, which gradually replaces game servers with new ones. (see [below for nested schema](#nestedatt--strategy--rolling_update))
 
 <a id="nestedatt--strategy--recreate"></a>
 ### Nested Schema for `strategy.recreate`

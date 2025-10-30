@@ -241,8 +241,8 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"rolling_update": schema.SingleNestedAttribute{
-						Description:         "RollingUpdate defines the rolling update strategy. Which gradually replaces game servers with new ones.",
-						MarkdownDescription: "RollingUpdate defines the rolling update strategy. Which gradually replaces game servers with new ones.",
+						Description:         "RollingUpdate defines the rolling update strategy, which gradually replaces game servers with new ones.",
+						MarkdownDescription: "RollingUpdate defines the rolling update strategy, which gradually replaces game servers with new ones.",
 						Optional:            true,
 						Validators: []validator.Object{
 							objectvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("recreate")),
