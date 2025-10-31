@@ -4,6 +4,7 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -12,13 +13,17 @@ import (
 )
 
 // ContainersAttributes returns the schema attributes for containers.
-func ContainersAttributes() schema.NestedAttributeObject {
+func ContainersAttributes(val validators.GameFabricValidator, pathPrefix string) schema.NestedAttributeObject {
 	return schema.NestedAttributeObject{
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
 				Description:         "Name is the name of the container. The primary gameserver container should be named `default`",
 				MarkdownDescription: "Name is the name of the container. The primary gameserver container should be named `default`",
 				Required:            true,
+				Validators: []validator.String{
+					validators.NameValidator{},
+					validators.GFFieldString(val, pathPrefix+".name"),
+				},
 			},
 			"image_ref": schema.SingleNestedAttribute{
 				Description: "The reference to the image to run your container with. You should use the `image_ref` attribute of the `gamefabric_image` datasource to configure this attribute.",
@@ -30,6 +35,7 @@ func ContainersAttributes() schema.NestedAttributeObject {
 						Required:            true,
 						Validators: []validator.String{
 							validators.NameValidator{},
+							validators.GFFieldString(val, pathPrefix+".image"),
 						},
 					},
 					"branch": schema.StringAttribute{
@@ -38,6 +44,7 @@ func ContainersAttributes() schema.NestedAttributeObject {
 						Required:            true,
 						Validators: []validator.String{
 							validators.NameValidator{},
+							validators.GFFieldString(val, pathPrefix+".branch"),
 						},
 					},
 				},
@@ -47,17 +54,26 @@ func ContainersAttributes() schema.NestedAttributeObject {
 				MarkdownDescription: "Command is the entrypoint array. This is not executed within a shell.",
 				Optional:            true,
 				ElementType:         types.StringType,
+				Validators: []validator.List{
+					listvalidator.ValueStringsAre(validators.GFFieldString(val, pathPrefix+".command[?]")),
+				},
 			},
 			"args": schema.ListAttribute{
 				Description:         "Args are arguments to the entrypoint.",
 				MarkdownDescription: "Args are arguments to the entrypoint.",
 				Optional:            true,
 				ElementType:         types.StringType,
+				Validators: []validator.List{
+					listvalidator.ValueStringsAre(validators.GFFieldString(val, pathPrefix+".args[?]")),
+				},
 			},
 			"resources": schema.SingleNestedAttribute{
 				Description:         "Resources describes the compute resource requirements.",
 				MarkdownDescription: "Resources describes the compute resource requirements. See the <a href=\"https://docs.gamefabric.com/multiplayer-servers/multiplayer-services/resource-management\">GameFabric documentation</a> for more details on how to configure resource requests and limits.",
 				Optional:            true,
+				Validators: []validator.Object{
+					validators.GFFieldObject(val, pathPrefix+".resources[?]"),
+				},
 				Attributes: map[string]schema.Attribute{
 					"limits": schema.SingleNestedAttribute{
 						Description:         "Limits describes the maximum amount of compute resources allowed.",
@@ -70,6 +86,7 @@ func ContainersAttributes() schema.NestedAttributeObject {
 								Optional:            true,
 								Validators: []validator.String{
 									validators.QuantityValidator{},
+									validators.GFFieldString(val, pathPrefix+".resources[?].limits.cpu"),
 								},
 							},
 							"memory": schema.StringAttribute{
@@ -78,6 +95,7 @@ func ContainersAttributes() schema.NestedAttributeObject {
 								Optional:            true,
 								Validators: []validator.String{
 									validators.QuantityValidator{},
+									validators.GFFieldString(val, pathPrefix+".resources[?].limits.memory"),
 								},
 							},
 						},
@@ -93,6 +111,7 @@ func ContainersAttributes() schema.NestedAttributeObject {
 								Optional:            true,
 								Validators: []validator.String{
 									validators.QuantityValidator{},
+									validators.GFFieldString(val, pathPrefix+".resources[?].requests.cpu"),
 								},
 							},
 							"memory": schema.StringAttribute{
@@ -101,6 +120,7 @@ func ContainersAttributes() schema.NestedAttributeObject {
 								Optional:            true,
 								Validators: []validator.String{
 									validators.QuantityValidator{},
+									validators.GFFieldString(val, pathPrefix+".resources[?].requests.memory"),
 								},
 							},
 						},
@@ -111,6 +131,9 @@ func ContainersAttributes() schema.NestedAttributeObject {
 				Description:         "Envs is a list of environment variables to set on all containers in this Armada.",
 				MarkdownDescription: "Envs is a list of environment variables to set on all containers in this Armada.",
 				Optional:            true,
+				Validators: []validator.List{
+					validators.GFFieldList(val, pathPrefix+".env[?]"),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: core.EnvVarAttributes(),
 				},
@@ -119,6 +142,9 @@ func ContainersAttributes() schema.NestedAttributeObject {
 				Description:         "Ports are the ports to expose from the container.",
 				MarkdownDescription: "Ports are the ports to expose from the container.",
 				Optional:            true,
+				Validators: []validator.List{
+					validators.GFFieldList(val, pathPrefix+".ports[?]"),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
@@ -127,6 +153,7 @@ func ContainersAttributes() schema.NestedAttributeObject {
 							Required:            true,
 							Validators: []validator.String{
 								validators.NameValidator{},
+								validators.GFFieldString(val, pathPrefix+".ports[?].name"),
 							},
 						},
 						"policy": schema.StringAttribute{
@@ -135,6 +162,7 @@ func ContainersAttributes() schema.NestedAttributeObject {
 							Required:            true,
 							Validators: []validator.String{
 								stringvalidator.OneOf("Dynamic", "Passthrough"),
+								validators.GFFieldString(val, pathPrefix+".policy"),
 							},
 						},
 						"container_port": schema.Int32Attribute{
@@ -143,6 +171,7 @@ func ContainersAttributes() schema.NestedAttributeObject {
 							Optional:            true,
 							Validators: []validator.Int32{
 								int32validator.Between(1, 65535),
+								validators.GFFieldInt32(val, pathPrefix+".ports[?].containerPort"),
 							},
 						},
 						"protocol": schema.StringAttribute{
@@ -151,6 +180,7 @@ func ContainersAttributes() schema.NestedAttributeObject {
 							Optional:            true,
 							Validators: []validator.String{
 								stringvalidator.OneOf("UDP", "TCP"), // GameFabric does not support TCPUDP.
+								validators.GFFieldString(val, pathPrefix+".ports[?].protocol"),
 							},
 						},
 						"protection_protocol": schema.StringAttribute{
@@ -159,6 +189,7 @@ func ContainersAttributes() schema.NestedAttributeObject {
 							Optional:            true,
 							Validators: []validator.String{
 								validators.NameValidator{},
+								validators.GFFieldString(val, pathPrefix+".ports[?].protectionProtocol"),
 							},
 						},
 					},
@@ -168,6 +199,9 @@ func ContainersAttributes() schema.NestedAttributeObject {
 				Description:         "VolumeMounts are the volumes to mount into the container&#39;s filesystem.",
 				MarkdownDescription: "VolumeMounts are the volumes to mount into the container&#39;s filesystem.",
 				Optional:            true,
+				Validators: []validator.List{
+					validators.GFFieldList(val, pathPrefix+".volumeMounts[?]"),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
@@ -176,12 +210,16 @@ func ContainersAttributes() schema.NestedAttributeObject {
 							Optional:            true,
 							Validators: []validator.String{
 								validators.NameValidator{},
+								validators.GFFieldString(val, pathPrefix+".volumeMounts[?].name"),
 							},
 						},
 						"mount_path": schema.StringAttribute{
 							Description:         "Path within the container at which the volume should be mounted.",
 							MarkdownDescription: "Path within the container at which the volume should be mounted.",
 							Optional:            true,
+							Validators: []validator.String{
+								validators.GFFieldString(val, pathPrefix+".volumeMounts[?].mountPath"),
+							},
 						},
 						"sub_path": schema.StringAttribute{
 							Description:         "Path within the volume from which the container's volume should be mounted. Defaults to empty string (volume's root).",
@@ -189,6 +227,7 @@ func ContainersAttributes() schema.NestedAttributeObject {
 							Optional:            true,
 							Validators: []validator.String{
 								stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("sub_path_expr")),
+								validators.GFFieldString(val, pathPrefix+".volumeMounts[?].subPath"),
 							},
 						},
 						"sub_path_expr": schema.StringAttribute{
@@ -197,6 +236,7 @@ func ContainersAttributes() schema.NestedAttributeObject {
 							Optional:            true,
 							Validators: []validator.String{
 								stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("sub_path")),
+								validators.GFFieldString(val, pathPrefix+".volumeMounts[?].subPathExpr"),
 							},
 						},
 					},
@@ -206,17 +246,26 @@ func ContainersAttributes() schema.NestedAttributeObject {
 				Description:         "ConfigFiles is a list of configuration files to mount into the containers filesystem.",
 				MarkdownDescription: "ConfigFiles is a list of configuration files to mount into the containers filesystem.",
 				Optional:            true,
+				Validators: []validator.List{
+					validators.GFFieldList(val, pathPrefix+".configFiles[?]"),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
 							Description:         "Name is the name of the configuration file.",
 							MarkdownDescription: "Name is the name of the configuration file.",
 							Required:            true,
+							Validators: []validator.String{
+								validators.GFFieldString(val, pathPrefix+".configFiles[?].name"),
+							},
 						},
 						"mount_path": schema.StringAttribute{
 							Description:         "MountPath is the path to mount the configuration file on.",
 							MarkdownDescription: "MountPath is the path to mount the configuration file on.",
 							Required:            true,
+							Validators: []validator.String{
+								validators.GFFieldString(val, pathPrefix+".configFiles[?].mountPath"),
+							},
 						},
 					},
 				},
