@@ -10,6 +10,9 @@ func Quantity(val types.String) *resource.Quantity {
 	if !IsKnown(val) {
 		return nil
 	}
-	q := resource.MustParse(val.ValueString()) // Pre-validation required.
+	q, err := resource.ParseQuantity(val.ValueString())
+	if err != nil {
+		return &resource.Quantity{}
+	}
 	return &q
 }

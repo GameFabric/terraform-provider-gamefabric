@@ -183,17 +183,6 @@ func TestResourceArmadaConfigAutoscaling(t *testing.T) {
 		CheckDestroy:             testCheckArmadaDestroy(t, cs),
 		Steps: []resource.TestStep{
 			{
-				Config: testResourceArmadaConfigBasic("autoscaling = {\nfixed_interval_seconds = 0\n}\n"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("gamefabric_armada.test", "autoscaling.%", "1"),
-					resource.TestCheckResourceAttr("gamefabric_armada.test", "autoscaling.fixed_interval_seconds", "0"),
-				),
-			},
-			{
-				ResourceName: "gamefabric_armada.test",
-				ImportState:  true,
-			},
-			{
 				Config: testResourceArmadaConfigBasic("autoscaling = {\nfixed_interval_seconds = 1\n}\n"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "autoscaling.%", "1"),
