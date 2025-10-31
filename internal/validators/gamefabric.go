@@ -5,6 +5,7 @@ import (
 	"context"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/gamefabric/gf-apicore/api/validation"
 	"github.com/gamefabric/gf-apicore/runtime"
@@ -42,17 +43,18 @@ type GameFabricValidator interface {
 }
 
 type gamefabricStoreValidator[T runtime.Object, M Model[T]] struct {
-	val       StoreValidator
-	pathExprs map[string]path.Path
+	val          StoreValidator
+	pathExprOnce sync.Once
+	pathExprs    map[string]path.Path
 }
 
 // NewGameFabricValidator creates a new gamefabricStoreValidator that wraps the given StoreValidator.
 func NewGameFabricValidator[T runtime.Object, M Model[T]](fn func() StoreValidator) GameFabricValidator {
-	return gamefabricStoreValidator[T, M]{val: fn()}
+	return &gamefabricStoreValidator[T, M]{val: fn()}
 }
 
-func (v gamefabricStoreValidator[T, M]) Validate(ctx context.Context, req GameFabricValidatorRequest) diag.Diagnostics {
-	if len(v.pathExprs) == 0 {
+func (v *gamefabricStoreValidator[T, M]) Validate(ctx context.Context, req GameFabricValidatorRequest) diag.Diagnostics {
+	v.pathExprOnce.Do(func() {
 		// The first time we run, we need to collect all path expressions from the schema.
 		tfutils.WalkResourceSchema(req.Config.Schema.(rschema.Schema), func(attr rschema.Attribute, p path.Path) {
 			vals := tfutils.Validators(attr)
@@ -65,7 +67,7 @@ func (v gamefabricStoreValidator[T, M]) Validate(ctx context.Context, req GameFa
 				}
 			}
 		})
-	}
+	})
 
 	// If the value is not known, delay the validation until it is known.
 	if req.ConfigValue.IsUnknown() {
