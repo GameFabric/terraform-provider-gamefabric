@@ -69,7 +69,7 @@ func ptrType(ctx context.Context, v reflect.Value, t reflect.Type, state State, 
 		// Set the pointer to a new value as Terraform has a non-null value.
 		v.Set(reflect.New(t.Elem()))
 		return normTypes(ctx, v.Elem(), t.Elem(), state, p)
-	case !v.IsNil() && v.IsZero() && tfVal.IsNull():
+	case !v.IsNil() && tfVal.IsNull() && isZeroValue(ctx, v):
 		// Set the pointer to nil as Terraform has a null value.
 		v.Set(reflect.Zero(t))
 		return nil
@@ -154,13 +154,57 @@ func primitiveType(ctx context.Context, v reflect.Value, state State, p path.Pat
 	}
 
 	val := v.Interface().(attr.Value)
-	if (tfVal.IsNull() && !val.IsNull() && isZeroValue(ctx, val)) || (!tfVal.IsNull() && val.IsNull()) {
+	if (tfVal.IsNull() && !val.IsNull() && isZeroAttr(ctx, val)) || (!tfVal.IsNull() && val.IsNull()) {
 		v.Set(reflect.ValueOf(tfVal))
 	}
 	return nil
 }
 
-func isZeroValue(ctx context.Context, v attr.Value) bool {
+func isZeroValue(ctx context.Context, v reflect.Value) bool {
+	if v.IsZero() {
+		return true
+	}
+	if v.Type().Implements(attrValueType) {
+		val := v.Interface().(attr.Value)
+		if val.IsNull() {
+			return true
+		}
+		return isZeroAttr(ctx, v.Interface().(attr.Value))
+	}
+
+	switch v.Kind() {
+	case reflect.Ptr:
+		if v.IsNil() {
+			return true
+		}
+		return isZeroValue(ctx, v.Elem())
+	case reflect.Struct:
+		return isZeroStruct(ctx, v)
+	case reflect.Map, reflect.Slice:
+		return v.IsNil() || v.Len() == 0
+	default:
+		return false
+	}
+}
+
+func isZeroStruct(ctx context.Context, v reflect.Value) bool {
+	for i := range v.NumField() {
+		fld := v.Field(i)
+		fldType := v.Type().Field(i)
+
+		tagName := fldType.Tag.Get("tfsdk")
+		if tagName == "" || tagName == "-" {
+			continue
+		}
+
+		if !isZeroValue(ctx, fld) {
+			return false
+		}
+	}
+	return true
+}
+
+func isZeroAttr(ctx context.Context, v attr.Value) bool {
 	switch v.Type(ctx) {
 	case types.StringType:
 		return v.(types.String).ValueString() == ""

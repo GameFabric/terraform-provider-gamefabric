@@ -117,7 +117,6 @@ func TestResourceArmada(t *testing.T) {
 			{
 				ResourceName: "gamefabric_armada.test",
 				ImportState:  true,
-				// ImportStateVerify: true,
 			}, {
 				Config: testResourceArmadaConfigBasic(),
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -160,7 +159,6 @@ func TestResourceArmadaConfigBasic(t *testing.T) {
 			{
 				ResourceName: "gamefabric_armada.test",
 				ImportState:  true,
-				// ImportStateVerify: true,
 			}, {
 				Config: testResourceArmadaConfigBasic("strategy = {\nrecreate = {}\n}\n"),
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -194,7 +192,6 @@ func TestResourceArmadaConfigAutoscaling(t *testing.T) {
 			{
 				ResourceName: "gamefabric_armada.test",
 				ImportState:  true,
-				// ImportStateVerify: true,
 			},
 			{
 				Config: testResourceArmadaConfigBasic("autoscaling = {\nfixed_interval_seconds = 1\n}\n"),
@@ -206,7 +203,6 @@ func TestResourceArmadaConfigAutoscaling(t *testing.T) {
 			{
 				ResourceName: "gamefabric_armada.test",
 				ImportState:  true,
-				// ImportStateVerify: true,
 			},
 		},
 	})

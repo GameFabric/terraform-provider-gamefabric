@@ -123,7 +123,6 @@ func TestResourceArmadaSet(t *testing.T) {
 			{
 				ResourceName: "gamefabric_armadaset.test",
 				ImportState:  true,
-				// ImportStateVerify: true,
 			},
 			{
 				Config: testResourceArmadaSetConfigBasic(),
@@ -160,7 +159,6 @@ func TestResourceArmadaSetConfigSetBasic(t *testing.T) {
 			{
 				ResourceName: "gamefabric_armadaset.test",
 				ImportState:  true,
-				// ImportStateVerify: true,
 			},
 			{
 				Config: testResourceArmadaSetConfigBasic("strategy = {\nrecreate = {}\n}\n"),
@@ -195,7 +193,6 @@ func TestResourceArmadaSetConfigAutoscaling(t *testing.T) {
 			{
 				ResourceName: "gamefabric_armadaset.test",
 				ImportState:  true,
-				// ImportStateVerify: true,
 			},
 			{
 				Config: testResourceArmadaSetConfigBasic("autoscaling = {\nfixed_interval_seconds = 1\n}\n"),
@@ -207,7 +204,6 @@ func TestResourceArmadaSetConfigAutoscaling(t *testing.T) {
 			{
 				ResourceName: "gamefabric_armadaset.test",
 				ImportState:  true,
-				// ImportStateVerify: true,
 			},
 		},
 	})
