@@ -40,8 +40,9 @@ resource "gamefabric_region" "europe" {
   name         = "europe"
   display_name = "Europe"
   environment  = data.gamefabric_environment.prod.name
-  types = {
-    "baremetal" = {
+  types = [
+    {
+      name      = "baremetal"
       locations = data.gamefabric_locations.baremetal_europe.names
       envs = [
         {
@@ -69,7 +70,8 @@ resource "gamefabric_region" "europe" {
       ]
       scheduling = "Distributed"
     },
-    "cloud" = {
+    {
+      name      = "cloud"
       locations = data.gamefabric_locations.cloud_europe.names
       envs = [
         {
@@ -97,7 +99,7 @@ resource "gamefabric_region" "europe" {
       ]
       scheduling = "Packed"
     }
-  }
+  ]
 }
 ```
 
