@@ -69,6 +69,7 @@ func testResourceBranchConfigBasicWithDescription(name string) string {
   name = "%s"
   display_name = "My Branch"
   description = "My Branch Description"
+  retention_policy_rules = []
 }`, name)
 }
 
