@@ -107,24 +107,26 @@ func (m armadaModel) ToObject() *armadav1.Armada {
 }
 
 func toStrategy(strat *strategyModel) appsv1.DeploymentStrategy {
-	switch {
-	case strat != nil && conv.IsKnown(strat.Recreate):
+	if strat == nil {
+		return appsv1.DeploymentStrategy{}
+	}
+
+	if conv.IsKnown(strat.Recreate) {
 		return appsv1.DeploymentStrategy{
 			Type: appsv1.RecreateDeploymentStrategyType,
 		}
-	case strat == nil:
-		return appsv1.DeploymentStrategy{
-			Type:          appsv1.RollingUpdateDeploymentStrategyType,
-			RollingUpdate: &appsv1.RollingUpdateDeployment{},
-		}
-	default:
-		return appsv1.DeploymentStrategy{
-			Type: appsv1.RollingUpdateDeploymentStrategyType,
-			RollingUpdate: &appsv1.RollingUpdateDeployment{
-				MaxSurge:       toIntOrString(strat.RollingUpdate.MaxSurge),
-				MaxUnavailable: toIntOrString(strat.RollingUpdate.MaxUnavailable),
-			},
-		}
+	}
+
+	update := strat.RollingUpdate
+	if update == nil {
+		update = &rollingUpdateModel{}
+	}
+	return appsv1.DeploymentStrategy{
+		Type: appsv1.RollingUpdateDeploymentStrategyType,
+		RollingUpdate: &appsv1.RollingUpdateDeployment{
+			MaxSurge:       toIntOrString(update.MaxSurge),
+			MaxUnavailable: toIntOrString(update.MaxUnavailable),
+		},
 	}
 }
 
