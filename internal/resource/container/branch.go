@@ -95,7 +95,7 @@ func (r *branch) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 			"retention_policy_rules": schema.ListNestedAttribute{
 				Description:         "RetentionPolicyRules are the rules that define how images are retained.",
 				MarkdownDescription: "RetentionPolicyRules are the rules that define how images are retained.",
-				Optional:            true,
+				Required:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{

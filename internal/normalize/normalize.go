@@ -1,3 +1,5 @@
+// Package normalize provides functionality to normalize Go struct models based on the current Terraform state or plan. This is useful to ensure
+// that default values and nulls are correctly represented in the model before performing operations such as Create or Update.
 package normalize
 
 import (
