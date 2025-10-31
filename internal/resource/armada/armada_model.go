@@ -112,6 +112,9 @@ func toStrategy(strat *strategyModel) appsv1.DeploymentStrategy {
 			Type: appsv1.RecreateDeploymentStrategyType,
 		}
 	default:
+		if strat.RollingUpdate == nil {
+			return appsv1.DeploymentStrategy{}
+		}
 		return appsv1.DeploymentStrategy{
 			Type: appsv1.RollingUpdateDeploymentStrategyType,
 			RollingUpdate: &appsv1.RollingUpdateDeployment{
