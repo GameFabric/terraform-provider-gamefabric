@@ -189,6 +189,7 @@ func (r *role) Update(ctx context.Context, req resource.UpdateRequest, resp *res
 		return
 	}
 
+	plan.ID = types.StringValue(newObj.Name)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...) // Update the state
 }
 
