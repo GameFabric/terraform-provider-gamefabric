@@ -111,6 +111,7 @@ func (r *role) Configure(_ context.Context, req resource.ConfigureRequest, resp 
 		)
 		return
 	}
+
 	r.clientSet = procCtx.ClientSet
 }
 
@@ -188,7 +189,6 @@ func (r *role) Update(ctx context.Context, req resource.UpdateRequest, resp *res
 		return
 	}
 
-	plan.ID = types.StringValue(plan.Name.ValueString())
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...) // Update the state
 }
 
