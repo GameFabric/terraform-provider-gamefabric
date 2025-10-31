@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // State provides access to the current state or plan attributes.
@@ -68,7 +69,7 @@ func ptrType(ctx context.Context, v reflect.Value, t reflect.Type, state State, 
 		// Set the pointer to a new value as Terraform has a non-null value.
 		v.Set(reflect.New(t.Elem()))
 		return normTypes(ctx, v.Elem(), t.Elem(), state, p)
-	case !v.IsNil() && tfVal.IsNull():
+	case !v.IsNil() && v.IsZero() && tfVal.IsNull():
 		// Set the pointer to nil as Terraform has a null value.
 		v.Set(reflect.Zero(t))
 		return nil
@@ -153,8 +154,27 @@ func primitiveType(ctx context.Context, v reflect.Value, state State, p path.Pat
 	}
 
 	val := v.Interface().(attr.Value)
-	if (tfVal.IsNull() && !val.IsNull()) || (!tfVal.IsNull() && val.IsNull()) {
+	if (tfVal.IsNull() && !val.IsNull() && isZeroValue(ctx, val)) || (!tfVal.IsNull() && val.IsNull()) {
 		v.Set(reflect.ValueOf(tfVal))
 	}
 	return nil
+}
+
+func isZeroValue(ctx context.Context, v attr.Value) bool {
+	switch v.Type(ctx) {
+	case types.StringType:
+		return v.(types.String).ValueString() == ""
+	case types.Int64Type:
+		return v.(types.Int64).ValueInt64() == 0
+	case types.Int32Type:
+		return v.(types.Int32).ValueInt32() == 0
+	case types.Float64Type:
+		return v.(types.Float64).ValueFloat64() == 0.0
+	case types.Float32Type:
+		return v.(types.Float32).ValueFloat32() == 0.0
+	case types.BoolType:
+		return v.(types.Bool).ValueBool() == false
+	default:
+		return false
+	}
 }

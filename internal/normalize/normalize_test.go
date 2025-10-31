@@ -280,14 +280,11 @@ func TestModelWithNull(t *testing.T) {
 			Age:  types.Int64Value(0),
 			City: types.StringValue(""),
 		},
-		PtrSubModel: &TestSubModel{
-			Age:  types.Int64Value(0),
-			City: types.StringValue(""),
-		},
-		MapStr:    map[string]types.String{},
-		MapObj:    map[string]TestSubModel{},
-		SliceBool: []types.Bool{},
-		SliceObj:  []TestSubModel{},
+		PtrSubModel: &TestSubModel{},
+		MapStr:      map[string]types.String{},
+		MapObj:      map[string]TestSubModel{},
+		SliceBool:   []types.Bool{},
+		SliceObj:    []TestSubModel{},
 	}
 	want := TestObject{
 		Name: types.StringNull(),
