@@ -10,6 +10,7 @@ import (
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
@@ -131,7 +132,7 @@ func (r *configFile) Create(ctx context.Context, req resource.CreateRequest, res
 	}
 
 	obj := plan.ToObject()
-	_, err := r.clientSet.CoreV1().ConfigFiles(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.CoreV1().ConfigFiles(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Config File",
@@ -140,7 +141,8 @@ func (r *configFile) Create(ctx context.Context, req resource.CreateRequest, res
 		return
 	}
 
-	plan.ID = types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String())
+	plan = newConfigModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -166,6 +168,7 @@ func (r *configFile) Read(ctx context.Context, req resource.ReadRequest, resp *r
 	}
 
 	state = newConfigModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 

@@ -9,6 +9,7 @@ import (
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
@@ -156,7 +157,7 @@ func (r *branch) Create(ctx context.Context, req resource.CreateRequest, resp *r
 	}
 
 	obj := plan.ToObject()
-	_, err := r.clientSet.ContainerV1().Branches().Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.ContainerV1().Branches().Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Create Error",
@@ -164,14 +165,15 @@ func (r *branch) Create(ctx context.Context, req resource.CreateRequest, resp *r
 		)
 		return
 	}
-	plan.ID = types.StringValue(obj.Name)
+	plan = newBranchModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *branch) Read(ctx context.Context, request resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *branch) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state branchModel
-	resp.Diagnostics.Append(request.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -190,18 +192,19 @@ func (r *branch) Read(ctx context.Context, request resource.ReadRequest, resp *r
 		return
 	}
 
-	newState := newBranchModel(obj)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
+	state = newBranchModel(obj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *branch) Update(ctx context.Context, request resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *branch) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state branchModel
-	resp.Diagnostics.Append(request.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(request.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -230,9 +233,9 @@ func (r *branch) Update(ctx context.Context, request resource.UpdateRequest, res
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *branch) Delete(ctx context.Context, request resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *branch) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state branchModel
-	resp.Diagnostics.Append(request.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

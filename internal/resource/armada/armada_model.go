@@ -7,9 +7,6 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -108,16 +105,16 @@ func (m armadaModel) ToObject() *armadav1.Armada {
 
 func toStrategy(strat *strategyModel) appsv1.DeploymentStrategy {
 	switch {
-	case strat != nil && conv.IsKnown(strat.Recreate):
+	case strat == nil:
+		return appsv1.DeploymentStrategy{}
+	case conv.IsKnown(strat.Recreate):
 		return appsv1.DeploymentStrategy{
 			Type: appsv1.RecreateDeploymentStrategyType,
 		}
-	case strat == nil:
-		return appsv1.DeploymentStrategy{
-			Type:          appsv1.RollingUpdateDeploymentStrategyType,
-			RollingUpdate: &appsv1.RollingUpdateDeployment{},
-		}
 	default:
+		if strat.RollingUpdate == nil {
+			return appsv1.DeploymentStrategy{}
+		}
 		return appsv1.DeploymentStrategy{
 			Type: appsv1.RollingUpdateDeploymentStrategyType,
 			RollingUpdate: &appsv1.RollingUpdateDeployment{
@@ -141,31 +138,21 @@ type autoscalingModel struct {
 }
 
 func newAutoscalingModel(obj armadav1.ArmadaAutoscaling) *autoscalingModel {
-	var secs int32
-	if obj.FixedInterval != nil {
-		secs = obj.FixedInterval.Seconds
+	if obj.FixedInterval == nil {
+		return nil
 	}
 	return &autoscalingModel{
-		FixedIntervalSeconds: types.Int32Value(secs),
+		FixedIntervalSeconds: types.Int32Value(obj.FixedInterval.Seconds),
 	}
 }
 
 func toFixedInterval(scaling *autoscalingModel) *armadav1.ArmadaFixInterval {
-	if scaling == nil || scaling.FixedIntervalSeconds.ValueInt32() == 0 {
+	if scaling == nil || !conv.IsKnown(scaling.FixedIntervalSeconds) {
 		return nil
 	}
 	return &armadav1.ArmadaFixInterval{
 		Seconds: scaling.FixedIntervalSeconds.ValueInt32(),
 	}
-}
-
-// Default returns the default values for autoscalingModel.
-func (m autoscalingModel) Default() defaults.Object {
-	return objectdefault.StaticValue(types.ObjectValueMust(map[string]attr.Type{
-		"fixed_interval_seconds": types.Int32Type,
-	}, map[string]attr.Value{
-		"fixed_interval_seconds": types.Int32Value(0),
-	}))
 }
 
 type replicaModel struct {
@@ -189,21 +176,12 @@ type terminationConfigModel struct {
 }
 
 func newTerminationConfig(seconds *int64) *terminationConfigModel {
-	var n int64
-	if seconds != nil {
-		n = *seconds
+	if seconds == nil {
+		return nil
 	}
 	return &terminationConfigModel{
-		GracePeriodSeconds: types.Int64Value(n),
+		GracePeriodSeconds: types.Int64Value(*seconds),
 	}
-}
-
-func (m *terminationConfigModel) Default() defaults.Object {
-	return objectdefault.StaticValue(types.ObjectValueMust(map[string]attr.Type{
-		"grace_period_seconds": types.Int64Type,
-	}, map[string]attr.Value{
-		"grace_period_seconds": types.Int64Value(0),
-	}))
 }
 
 func toTerminationGracePeriodSeconds(cfg *terminationConfigModel) *int64 {
@@ -221,19 +199,18 @@ type strategyModel struct {
 func newStrategyModel(obj appsv1.DeploymentStrategy) *strategyModel {
 	switch obj.Type {
 	case appsv1.RollingUpdateDeploymentStrategyType:
-		if obj.RollingUpdate == nil || (obj.RollingUpdate.MaxSurge == nil && obj.RollingUpdate.MaxUnavailable == nil) {
-			return nil
-		}
 		return &strategyModel{
 			RollingUpdate: &rollingUpdateModel{
 				MaxSurge:       conv.FromIntOrString(obj.RollingUpdate.MaxSurge),
 				MaxUnavailable: conv.FromIntOrString(obj.RollingUpdate.MaxUnavailable),
 			},
 		}
-	default:
+	case appsv1.RecreateDeploymentStrategyType:
 		return &strategyModel{
 			Recreate: types.ObjectValueMust(nil, nil),
 		}
+	default:
+		return nil
 	}
 }
 

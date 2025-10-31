@@ -11,7 +11,9 @@ import (
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
@@ -23,9 +25,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -114,15 +113,11 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "Autoscaling configuration for the game servers.",
 				MarkdownDescription: "Autoscaling configuration for the game servers.",
 				Optional:            true,
-				Computed:            true,
-				Default:             autoscalingModel{}.Default(),
 				Attributes: map[string]schema.Attribute{
 					"fixed_interval_seconds": schema.Int32Attribute{
 						Description:         "Defines how often the auto-scaler re-evaluates the number of game servers.",
 						MarkdownDescription: "Defines how often the auto-scaler re-evaluates the number of game servers.",
 						Optional:            true,
-						Computed:            true,
-						Default:             int32default.StaticInt32(0),
 						Validators: []validator.Int32{
 							int32validator.AtLeast(0), // 0 is like omitempty.
 						},
@@ -213,25 +208,19 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "HealthChecks is the health checking configuration for Agones game servers.",
 				MarkdownDescription: "HealthChecks is the health checking configuration for Agones game servers.",
 				Optional:            true,
-				Computed:            true,
-				Default:             mps.HealthChecksModel{}.Default(),
 				Attributes:          mps.HealthCheckAttributes(),
 			},
 			"termination_configuration": schema.SingleNestedAttribute{
 				Description:         "TerminationConfiguration defines the termination grace period for game servers.",
 				MarkdownDescription: "TerminationConfiguration defines the termination grace period for game servers.",
 				Optional:            true,
-				Computed:            true,
-				Default:             (&terminationConfigModel{}).Default(),
 				Attributes: map[string]schema.Attribute{
 					"grace_period_seconds": schema.Int64Attribute{
 						Description:         "GracePeriodSeconds is the duration in seconds the game server needs to terminate gracefully.",
 						MarkdownDescription: "GracePeriodSeconds is the duration in seconds the game server needs to terminate gracefully.",
 						Optional:            true,
-						Computed:            true,
-						Default:             int64default.StaticInt64(0),
 						Validators: []validator.Int64{
-							int64validator.AtLeast(0),
+							int64validator.AtLeast(1),
 						},
 					},
 				},
@@ -323,8 +312,6 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "ProfilingEnabled indicates whether profiling is enabled for the Armada.",
 				MarkdownDescription: "ProfilingEnabled indicates whether profiling is enabled for the Armada.",
 				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
 			},
 			"image_updater_target": schema.SingleNestedAttribute{
 				Description:         "ImageUpdaterTarget is the reference that an image updater can target to match the Armada.",
@@ -391,6 +378,7 @@ func (r *armada) Create(ctx context.Context, req resource.CreateRequest, resp *r
 	}
 
 	plan = newArmadaModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -416,6 +404,7 @@ func (r *armada) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 	}
 
 	state = newArmadaModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
@@ -443,8 +432,7 @@ func (r *armada) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	outObj, err := r.clientSet.ArmadaV1().Armadas(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
-	if err != nil {
+	if _, err = r.clientSet.ArmadaV1().Armadas(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Armada",
 			fmt.Sprintf("Could not patch for Armada: %v", err),
@@ -452,7 +440,8 @@ func (r *armada) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	plan = newArmadaModel(outObj)
+	plan.ID = types.StringValue(cache.NewObjectName(newObj.Environment, newObj.Name).String())
+	plan.ImageUpdaterTarget = container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeArmada, oldObj.Name, oldObj.Environment)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
