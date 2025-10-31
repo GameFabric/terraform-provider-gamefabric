@@ -243,8 +243,7 @@ func (r *region) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	outObj, err := r.clientSet.CoreV1().Regions(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
-	if err != nil {
+	if _, err = r.clientSet.CoreV1().Regions(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Region",
 			fmt.Sprintf("Could not patch for Region: %v", err),
@@ -252,8 +251,7 @@ func (r *region) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	plan = newRegionModel(outObj)
-	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
+	plan.ID = types.StringValue(cache.NewObjectName(newObj.Environment, newObj.Name).String())
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

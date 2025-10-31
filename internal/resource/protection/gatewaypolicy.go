@@ -196,8 +196,7 @@ func (r *gatewayPolicy) Update(ctx context.Context, req resource.UpdateRequest, 
 		return
 	}
 
-	outObj, err := r.clientSet.ProtectionV1().GatewayPolicies().Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
-	if err != nil {
+	if _, err = r.clientSet.ProtectionV1().GatewayPolicies().Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Gateway Policy",
 			fmt.Sprintf("Could not patch for Gateway Policy: %v", err),
@@ -205,8 +204,7 @@ func (r *gatewayPolicy) Update(ctx context.Context, req resource.UpdateRequest, 
 		return
 	}
 
-	plan = newGatewayPolicyModel(outObj)
-	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
+	plan.ID = types.StringValue(newObj.Name)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

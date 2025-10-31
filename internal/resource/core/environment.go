@@ -185,8 +185,7 @@ func (r *environment) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	outObj, err := r.clientSet.CoreV1().Environments().Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
-	if err != nil {
+	if _, err = r.clientSet.CoreV1().Environments().Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Environment",
 			fmt.Sprintf("Could not patch for Environment: %v", err),
@@ -194,8 +193,7 @@ func (r *environment) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	plan = newEnvironmentModel(outObj)
-	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
+	plan.ID = types.StringValue(newObj.Name)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

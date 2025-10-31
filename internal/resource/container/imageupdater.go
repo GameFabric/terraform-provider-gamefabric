@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var (
@@ -193,8 +194,7 @@ func (r *imageUpdater) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	outObj, err := r.clientSet.ContainerV1().ImageUpdaters(env).Patch(ctx, name, rest.MergePatchType, pb, metav1.UpdateOptions{})
-	if err != nil {
+	if _, err = r.clientSet.ContainerV1().ImageUpdaters(env).Patch(ctx, name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Image Updater",
 			fmt.Sprintf("Could not patch for ImageUpdater: %v", err),
@@ -202,8 +202,7 @@ func (r *imageUpdater) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	plan = newImageUpdaterModel(outObj)
-	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
+	plan.ID = types.StringValue(cache.NewObjectName(newObj.Environment, newObj.Name).String())
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

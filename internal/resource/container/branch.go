@@ -221,8 +221,7 @@ func (r *branch) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	outObj, err := r.clientSet.ContainerV1().Branches().Patch(ctx, state.Name.ValueString(), rest.MergePatchType, pb, metav1.UpdateOptions{})
-	if err != nil {
+	if _, err = r.clientSet.ContainerV1().Branches().Patch(ctx, state.Name.ValueString(), rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Patching Branch",
 			fmt.Sprintf("Could not patch Branch %q: %v", state.Name.ValueString(), err),
@@ -230,8 +229,7 @@ func (r *branch) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	plan = newBranchModel(outObj)
-	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
+	plan.ID = types.StringValue(newObj.Name)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

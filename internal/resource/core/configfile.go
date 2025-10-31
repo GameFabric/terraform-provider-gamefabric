@@ -195,8 +195,7 @@ func (r *configFile) Update(ctx context.Context, req resource.UpdateRequest, res
 		return
 	}
 
-	outObj, err := r.clientSet.CoreV1().ConfigFiles(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
-	if err != nil {
+	if _, err = r.clientSet.CoreV1().ConfigFiles(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Config File",
 			fmt.Sprintf("Could not patch ConfigFile: %v", err),
@@ -204,8 +203,7 @@ func (r *configFile) Update(ctx context.Context, req resource.UpdateRequest, res
 		return
 	}
 
-	plan = newConfigModel(outObj)
-	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
+	plan.ID = types.StringValue(cache.NewObjectName(newObj.Environment, newObj.Name).String())
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
