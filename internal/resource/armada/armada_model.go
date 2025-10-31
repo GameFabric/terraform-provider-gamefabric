@@ -142,7 +142,7 @@ func newAutoscalingModel(obj armadav1.ArmadaAutoscaling) *autoscalingModel {
 		return nil
 	}
 	return &autoscalingModel{
-		FixedIntervalSeconds: types.Int32Value((*obj.FixedInterval).Seconds),
+		FixedIntervalSeconds: types.Int32Value(obj.FixedInterval.Seconds),
 	}
 }
 

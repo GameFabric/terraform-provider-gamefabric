@@ -217,7 +217,7 @@ func isZeroAttr(ctx context.Context, v attr.Value) bool {
 	case types.Float32Type:
 		return v.(types.Float32).ValueFloat32() == 0.0
 	case types.BoolType:
-		return v.(types.Bool).ValueBool() == false
+		return !v.(types.Bool).ValueBool()
 	default:
 		return false
 	}
