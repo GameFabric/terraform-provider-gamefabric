@@ -393,7 +393,7 @@ func (r *armada) Create(ctx context.Context, req resource.CreateRequest, resp *r
 	}
 
 	plan = newArmadaModel(outObj)
-	normalize.Model(ctx, &plan, req.Plan)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -419,7 +419,7 @@ func (r *armada) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 	}
 
 	state = newArmadaModel(outObj)
-	normalize.Model(ctx, &state, req.State)
+	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
@@ -457,7 +457,7 @@ func (r *armada) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 	}
 
 	plan = newArmadaModel(outObj)
-	normalize.Model(ctx, &plan, req.Plan)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

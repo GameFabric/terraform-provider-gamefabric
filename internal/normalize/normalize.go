@@ -47,7 +47,6 @@ func normTypes(ctx context.Context, v reflect.Value, t reflect.Type, state State
 	case reflect.Slice:
 		return sliceType(ctx, v, t, state, p)
 	default:
-		// Unsupported type
 		return diag.Diagnostics{
 			diag.NewErrorDiagnostic(
 				"Unsupported Type",

@@ -9,6 +9,7 @@ import (
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
@@ -132,7 +133,7 @@ func (r *gatewayPolicy) Create(ctx context.Context, req resource.CreateRequest, 
 	}
 
 	obj := plan.ToObject()
-	_, err := r.clientSet.ProtectionV1().GatewayPolicies().Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.ProtectionV1().GatewayPolicies().Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Gateway Policy",
@@ -141,7 +142,8 @@ func (r *gatewayPolicy) Create(ctx context.Context, req resource.CreateRequest, 
 		return
 	}
 
-	plan.ID = types.StringValue(obj.Name)
+	plan = newGatewayPolicyModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -167,6 +169,7 @@ func (r *gatewayPolicy) Read(ctx context.Context, req resource.ReadRequest, resp
 	}
 
 	state = newGatewayPolicyModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
@@ -193,7 +196,8 @@ func (r *gatewayPolicy) Update(ctx context.Context, req resource.UpdateRequest, 
 		return
 	}
 
-	if _, err = r.clientSet.ProtectionV1().GatewayPolicies().Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
+	outObj, err := r.clientSet.ProtectionV1().GatewayPolicies().Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Gateway Policy",
 			fmt.Sprintf("Could not patch for Gateway Policy: %v", err),
@@ -201,7 +205,8 @@ func (r *gatewayPolicy) Update(ctx context.Context, req resource.UpdateRequest, 
 		return
 	}
 
-	plan.ID = types.StringValue(newObj.Name)
+	plan = newGatewayPolicyModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

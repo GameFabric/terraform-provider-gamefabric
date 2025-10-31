@@ -10,6 +10,7 @@ import (
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var (
@@ -127,7 +127,7 @@ func (r *imageUpdater) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	obj := plan.ToObject(uuid.New().String())
-	_, err := r.clientSet.ContainerV1().ImageUpdaters(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.ContainerV1().ImageUpdaters(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Image Updater",
@@ -136,7 +136,8 @@ func (r *imageUpdater) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	plan.ID = types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String())
+	plan = newImageUpdaterModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -163,6 +164,7 @@ func (r *imageUpdater) Read(ctx context.Context, req resource.ReadRequest, resp 
 	}
 
 	state = newImageUpdaterModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
@@ -191,7 +193,8 @@ func (r *imageUpdater) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	if _, err = r.clientSet.ContainerV1().ImageUpdaters(env).Patch(ctx, name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
+	outObj, err := r.clientSet.ContainerV1().ImageUpdaters(env).Patch(ctx, name, rest.MergePatchType, pb, metav1.UpdateOptions{})
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Image Updater",
 			fmt.Sprintf("Could not patch for ImageUpdater: %v", err),
@@ -199,7 +202,8 @@ func (r *imageUpdater) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	plan.ID = types.StringValue(cache.NewObjectName(newObj.Environment, newObj.Name).String())
+	plan = newImageUpdaterModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
