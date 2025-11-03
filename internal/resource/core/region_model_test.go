@@ -111,15 +111,13 @@ var (
 						Name:  types.StringValue("ENV_VAR_2"),
 						Value: types.StringNull(),
 						ValueFrom: &EnvVarSourceModel{
-							FieldPath:  types.StringValue("metadata.name"),
-							ConfigFile: types.StringNull(),
+							FieldPath: types.StringValue("metadata.name"),
 						},
 					},
 					{
 						Name:  types.StringValue("ENV_VAR_3"),
 						Value: types.StringNull(),
 						ValueFrom: &EnvVarSourceModel{
-							FieldPath:  types.StringNull(),
 							ConfigFile: types.StringValue("config-file-name"),
 						},
 					},
