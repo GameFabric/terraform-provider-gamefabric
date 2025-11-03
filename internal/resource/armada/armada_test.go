@@ -231,7 +231,7 @@ func TestResourceArmadaConfigValidates(t *testing.T) {
 		{
 			name:        "validates empty name",
 			config:      testResourceArmadaConfigBasicNamed("", "test"),
-			expectError: regexp.MustCompile(regexp.QuoteMeta(`Name cannot be empty`)),
+			expectError: regexp.MustCompile(regexp.QuoteMeta(`name is required`)),
 		},
 		{
 			name:        "validates environment",
