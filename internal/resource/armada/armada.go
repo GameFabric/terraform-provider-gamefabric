@@ -78,7 +78,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Required:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},
-					validators.GFFieldString(armadaValidator, "name"),
+					validators.GFFieldString(armadaValidator, "metadata.name"),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),

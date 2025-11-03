@@ -80,7 +80,7 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Required:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},
-					validators.GFFieldString(armadaSetValidator, "name"),
+					validators.GFFieldString(armadaSetValidator, "metadata.name"),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
