@@ -18,3 +18,11 @@ func newConfigModel(obj *corev1.ConfigFile) configFileModel {
 		Data:        types.StringValue(obj.Data),
 	}
 }
+
+func (m configFileModel) ToObject() *corev1.ConfigFile {
+	return &corev1.ConfigFile{
+		Name:        m.Name.ValueString(),
+		Environment: m.Environment.ValueString(),
+		Data:        m.Data.ValueString(),
+	}
+}
