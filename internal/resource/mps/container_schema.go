@@ -132,7 +132,7 @@ func ContainersAttributes(val validators.GameFabricValidator, pathPrefix string)
 				MarkdownDescription: "Envs is a list of environment variables to set on all containers in this Armada.",
 				Optional:            true,
 				Validators: []validator.List{
-					validators.GFFieldList(val, pathPrefix+".env[?]"),
+					validators.GFFieldList(val, pathPrefix+".env"),
 				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: core.EnvVarAttributes(),
@@ -143,7 +143,7 @@ func ContainersAttributes(val validators.GameFabricValidator, pathPrefix string)
 				MarkdownDescription: "Ports are the ports to expose from the container.",
 				Optional:            true,
 				Validators: []validator.List{
-					validators.GFFieldList(val, pathPrefix+".ports[?]"),
+					validators.GFFieldList(val, pathPrefix+".ports"),
 				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -200,7 +200,7 @@ func ContainersAttributes(val validators.GameFabricValidator, pathPrefix string)
 				MarkdownDescription: "VolumeMounts are the volumes to mount into the container&#39;s filesystem.",
 				Optional:            true,
 				Validators: []validator.List{
-					validators.GFFieldList(val, pathPrefix+".volumeMounts[?]"),
+					validators.GFFieldList(val, pathPrefix+".volumeMounts"),
 				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -247,7 +247,7 @@ func ContainersAttributes(val validators.GameFabricValidator, pathPrefix string)
 				MarkdownDescription: "ConfigFiles is a list of configuration files to mount into the containers filesystem.",
 				Optional:            true,
 				Validators: []validator.List{
-					validators.GFFieldList(val, pathPrefix+".configFiles[?]"),
+					validators.GFFieldList(val, pathPrefix+".configFiles"),
 				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
