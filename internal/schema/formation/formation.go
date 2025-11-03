@@ -153,7 +153,7 @@ func FormationAttributes() map[string]schema.Attribute {
 													MarkdownDescription: "Env is a list of environment variables to set on containers.",
 													Optional:            true,
 													NestedObject: schema.NestedAttributeObject{
-														Attributes: core2.EnvVarAttributes(),
+														Attributes: core2.EnvVarAttributes(nil, ""),
 													},
 												},
 											},

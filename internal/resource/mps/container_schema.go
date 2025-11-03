@@ -135,7 +135,7 @@ func ContainersAttributes(val validators.GameFabricValidator, pathPrefix string)
 					validators.GFFieldList(val, pathPrefix+".env"),
 				},
 				NestedObject: schema.NestedAttributeObject{
-					Attributes: core.EnvVarAttributes(),
+					Attributes: core.EnvVarAttributes(val, pathPrefix+".env[?]"),
 				},
 			},
 			"ports": schema.ListNestedAttribute{

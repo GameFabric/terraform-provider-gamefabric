@@ -208,7 +208,7 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 							MarkdownDescription: "Environment variables for the region.",
 							Optional:            true,
 							NestedObject: schema.NestedAttributeObject{
-								Attributes: core.EnvVarAttributes(),
+								Attributes: core.EnvVarAttributes(armadaSetValidator, "spec.override[?].env[?]"),
 							},
 						},
 						"labels": schema.MapAttribute{

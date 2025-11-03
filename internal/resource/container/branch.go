@@ -8,11 +8,16 @@ import (
 	"github.com/gamefabric/gf-apiclient/tools/patch"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-apiserver/registry/generic"
+	containerv1 "github.com/gamefabric/gf-core/pkg/api/container/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	branchreg "github.com/gamefabric/gf-core/pkg/apiserver/registry/container/branch"
+	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -27,6 +32,13 @@ var (
 	_ resource.ResourceWithConfigure   = &branch{}
 	_ resource.ResourceWithImportState = &branch{}
 )
+
+var branchValidator = validators.NewGameFabricValidator[*containerv1.Branch, branchModel](func() validators.StoreValidator {
+	storage, _ := branchreg.New(generic.StoreOptions{Config: generic.Config{
+		StorageFactory: registrytest.FakeStorageFactory{},
+	}})
+	return storage.Store.Strategy
+})
 
 // branch is the branch resource.
 type branch struct {
@@ -59,6 +71,7 @@ func (r *branch) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Computed:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},
+					validators.GFFieldString(branchValidator, "metadata.name"),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -96,32 +109,50 @@ func (r *branch) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "RetentionPolicyRules are the rules that define how images are retained.",
 				MarkdownDescription: "RetentionPolicyRules are the rules that define how images are retained.",
 				Required:            true,
+				Validators: []validator.List{
+					listvalidator.SizeAtMost(10),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
 							Description:         "Name is the name of the image retention policy.",
 							MarkdownDescription: "Name is the name of the image retention policy.",
 							Required:            true,
+							Validators: []validator.String{
+								validators.GFFieldString(branchValidator, "spec.retentionPolicyRules[?].name"),
+							},
 						},
 						"image_regex": schema.StringAttribute{
 							Description:         "ImageRegex is the optional regex selector for images that this policy applies to.",
 							MarkdownDescription: "ImageRegex is the optional regex selector for images that this policy applies to.",
 							Optional:            true,
+							Validators: []validator.String{
+								validators.GFFieldString(branchValidator, "spec.retentionPolicyRules[?].imageRegex"),
+							},
 						},
 						"tag_regex": schema.StringAttribute{
 							Description:         "TagRegex is the optional regex selector for tags that this policy applies to.",
 							MarkdownDescription: "TagRegex is the optional regex selector for tags that this policy applies to.",
 							Optional:            true,
+							Validators: []validator.String{
+								validators.GFFieldString(branchValidator, "spec.retentionPolicyRules[?].tagRegex"),
+							},
 						},
 						"keep_count": schema.Int64Attribute{
 							Description:         "KeepCount is the minimum number of tags to keep per image.",
 							MarkdownDescription: "KeepCount is the minimum number of tags to keep per image.",
 							Optional:            true,
+							Validators: []validator.Int64{
+								validators.GFFieldInt64(branchValidator, "spec.retentionPolicyRules[?].keepCount"),
+							},
 						},
 						"keep_days": schema.Int64Attribute{
 							Description:         "KeepDays is the minimum number of days an image tag must be kept for.",
 							MarkdownDescription: "KeepDays is the minimum number of days an image tag must be kept for.",
 							Optional:            true,
+							Validators: []validator.Int64{
+								validators.GFFieldInt64(branchValidator, "spec.retentionPolicyRules[?].keepDays"),
+							},
 						},
 					},
 				},
