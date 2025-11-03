@@ -84,13 +84,18 @@ func (v *gamefabricStoreValidator[T, M]) Validate(ctx context.Context, req GameF
 	for _, err := range v.val.Validate(model.ToObject()) {
 		errMsg := err.Error()
 		idx := strings.Index(errMsg, p)
-		if idx == -1 || idx > len(errMsg)/2 || len(p) > len(errMsg)/2 || errMsg[idx+len(p)] != ' ' || (idx > 0 && errMsg[idx-1] != ' ') {
+		if idx == -1 || idx > len(errMsg)/2 {
 			// Slight hack. It is possible for the path to appear in another error message,
 			// but in general it should appear near the start of the message if it is relevant.
 			// So if it is not found or is found too far in, we skip it.
-			// The whitespace check is to avoid matching substrings.
 			continue
 		}
+
+		if !strings.HasPrefix(errMsg, p+" ") && !strings.HasSuffix(errMsg, " "+p) && !strings.Contains(errMsg, " "+p+" ") {
+			// Avoid matching substrings.
+			continue
+		}
+
 		errMsg = errMsg[idx+len(p)+1:]
 
 		// Replace path expressions with actual paths including variable values for better diagnostics.
