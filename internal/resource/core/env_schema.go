@@ -1,8 +1,6 @@
 package core
 
 import (
-	"strings"
-
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -13,7 +11,6 @@ import (
 
 // EnvVarAttributes returns the schema attributes for an environment variable.
 func EnvVarAttributes(val validators.GameFabricValidator, pathPrefix string) map[string]schema.Attribute {
-	pathPrefix = strings.TrimSuffix(pathPrefix, ".")
 	return map[string]schema.Attribute{
 		"name": schema.StringAttribute{
 			Description:         "Name is the name of the environment variable.",

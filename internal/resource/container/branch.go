@@ -109,6 +109,9 @@ func (r *branch) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "RetentionPolicyRules are the rules that define how images are retained.",
 				MarkdownDescription: "RetentionPolicyRules are the rules that define how images are retained.",
 				Required:            true,
+				Validators: []validator.List{
+					listvalidator.SizeAtMost(10),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
@@ -152,9 +155,6 @@ func (r *branch) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 							},
 						},
 					},
-				},
-				Validators: []validator.List{
-					listvalidator.SizeAtMost(10),
 				},
 			},
 		},
