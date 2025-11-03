@@ -9,7 +9,11 @@ import (
 	"github.com/gamefabric/gf-apiclient/tools/patch"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-apiserver/registry/generic"
+	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	configfilereg "github.com/gamefabric/gf-core/pkg/apiserver/registry/core/configfile"
+	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
@@ -28,6 +32,13 @@ var (
 	_ resource.ResourceWithConfigure   = &configFile{}
 	_ resource.ResourceWithImportState = &configFile{}
 )
+
+var configFileValidator = validators.NewGameFabricValidator[*corev1.ConfigFile, configFileModel](func() validators.StoreValidator {
+	storage, _ := configfilereg.New(generic.StoreOptions{Config: generic.Config{
+		StorageFactory: registrytest.FakeStorageFactory{},
+	}})
+	return storage.Store.Strategy
+})
 
 type configFile struct {
 	clientSet clientset.Interface
@@ -58,6 +69,7 @@ func (r *configFile) Schema(_ context.Context, _ resource.SchemaRequest, resp *r
 				Required:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},
+					validators.GFFieldString(configFileValidator, "metadata.name"),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -101,6 +113,9 @@ func (r *configFile) Schema(_ context.Context, _ resource.SchemaRequest, resp *r
 				Description:         "The content of the config file.",
 				MarkdownDescription: "The content of the config file.",
 				Required:            true,
+				Validators: []validator.String{
+					validators.GFFieldString(configFileValidator, "data"),
+				},
 			},
 		},
 	}

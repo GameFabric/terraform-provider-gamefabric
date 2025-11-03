@@ -1,6 +1,8 @@
 package mps
 
 import (
+	"strings"
+
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
@@ -14,6 +16,7 @@ import (
 
 // ContainersAttributes returns the schema attributes for containers.
 func ContainersAttributes(val validators.GameFabricValidator, pathPrefix string) schema.NestedAttributeObject {
+	pathPrefix = strings.TrimSuffix(pathPrefix, ".")
 	return schema.NestedAttributeObject{
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
@@ -135,7 +138,7 @@ func ContainersAttributes(val validators.GameFabricValidator, pathPrefix string)
 					validators.GFFieldList(val, pathPrefix+".env"),
 				},
 				NestedObject: schema.NestedAttributeObject{
-					Attributes: core.EnvVarAttributes(),
+					Attributes: core.EnvVarAttributes(val, pathPrefix+".env[?]"),
 				},
 			},
 			"ports": schema.ListNestedAttribute{

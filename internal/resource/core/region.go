@@ -9,7 +9,11 @@ import (
 	"github.com/gamefabric/gf-apiclient/tools/patch"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-apiserver/registry/generic"
+	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	regionreg "github.com/gamefabric/gf-core/pkg/apiserver/registry/core/region"
+	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
@@ -30,6 +34,13 @@ var (
 	_ resource.ResourceWithConfigure   = &region{}
 	_ resource.ResourceWithImportState = &region{}
 )
+
+var regionValidator = validators.NewGameFabricValidator[*corev1.Region, regionModel](func() validators.StoreValidator {
+	storage, _ := regionreg.New(generic.StoreOptions{Config: generic.Config{
+		StorageFactory: registrytest.FakeStorageFactory{},
+	}})
+	return storage.Store.Strategy
+})
 
 type region struct {
 	clientSet clientset.Interface
@@ -60,6 +71,7 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Required:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},
+					validators.GFFieldString(regionValidator, "metadata.name"),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -123,13 +135,16 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 							MarkdownDescription: "Locations defines the locations for a type.",
 							Required:            true,
 							ElementType:         types.StringType,
+							Validators: []validator.List{
+								listvalidator.ValueStringsAre(validators.GFFieldString(regionValidator, "spec.types[?].locations[?]")),
+							},
 						},
 						"envs": schema.ListNestedAttribute{
 							Description:         "Env is a list of environment variables to set on all containers in this region.",
 							MarkdownDescription: "Env is a list of environment variables to set on all containers in this region.",
 							Optional:            true,
 							NestedObject: schema.NestedAttributeObject{
-								Attributes: EnvVarAttributes(),
+								Attributes: EnvVarAttributes(regionValidator, "spec.types[?].template.env[?]"),
 							},
 						},
 						"scheduling": schema.StringAttribute{
