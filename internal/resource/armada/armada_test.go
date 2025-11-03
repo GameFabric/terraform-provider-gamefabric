@@ -420,8 +420,8 @@ func TestArmadaResourceGameFabricValidators(t *testing.T) {
 	arm := armada.NewArmada()
 	arm.Schema(t.Context(), tfresource.SchemaRequest{}, resp)
 
-	got := validatorstest.CollectPathExpressions(resp.Schema)
 	want := validatorstest.CollectJSONPaths(&v1.Armada{})
+	got := validatorstest.CollectPathExpressions(resp.Schema)
 
 	require.NotEmpty(t, got)
 	require.NotEmpty(t, want)
