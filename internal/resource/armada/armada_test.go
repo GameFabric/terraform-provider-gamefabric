@@ -1,7 +1,6 @@
 package armada_test
 
 import (
-	"context"
 	"fmt"
 	"regexp"
 	"strings"
@@ -12,9 +11,7 @@ import (
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/armada"
-	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators/validatorstest"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	tfresource "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -716,11 +713,4 @@ func testCheckArmadaDestroy(t *testing.T, cs clientset.Interface) func(s *terraf
 		}
 		return nil
 	}
-}
-
-type testGamefabricValidator struct{}
-
-func (v *testGamefabricValidator) Validate(ctx context.Context, req validators.GameFabricValidatorRequest) diag.Diagnostics {
-	//TODO implement me
-	panic("implement me")
 }
