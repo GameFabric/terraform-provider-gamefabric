@@ -49,17 +49,12 @@ func (n NameValidator) ValidateString(_ context.Context, req validator.StringReq
 
 	value := req.ConfigValue.ValueString()
 	switch {
-	case value == "":
-		resp.Diagnostics.Append(diag.NewErrorDiagnostic(
-			"Empty name",
-			"Name cannot be empty",
-		))
 	case len(value) > maxNameLength:
 		resp.Diagnostics.Append(diag.NewErrorDiagnostic(
 			"Invalid name length",
 			fmt.Sprintf("%s must be no more than %d characters", value, maxNameLength),
 		))
-	case !nameRegexp.MatchString(value):
+	case value != "" && !nameRegexp.MatchString(value):
 		resp.Diagnostics.Append(diag.NewErrorDiagnostic(
 			"Invalid name",
 			value+` is not a valid name`,

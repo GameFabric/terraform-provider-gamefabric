@@ -3,7 +3,6 @@ package armada
 import (
 	"context"
 	"fmt"
-	"regexp"
 
 	"github.com/gamefabric/gf-apiclient/rest"
 	"github.com/gamefabric/gf-apiclient/tools/cache"
@@ -22,10 +21,8 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -81,6 +78,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Required:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},
+					validators.GFFieldString(armadaValidator, "name"),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -142,6 +140,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Required:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},
+					validators.GFFieldString(armadaValidator, "spec.region"),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(), // Region is immutable.
@@ -218,13 +217,13 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
 				},
-				NestedObject: mps.ContainersAttributes(),
+				NestedObject: mps.ContainersAttributes(armadaValidator, "spec.template.spec.containers[?]"),
 			},
 			"health_checks": schema.SingleNestedAttribute{
 				Description:         "HealthChecks is the health checking configuration for Agones game servers.",
 				MarkdownDescription: "HealthChecks is the health checking configuration for Agones game servers.",
 				Optional:            true,
-				Attributes:          mps.HealthCheckAttributes(),
+				Attributes:          mps.HealthCheckAttributes(armadaValidator, "spec.template.spec.health"),
 			},
 			"termination_configuration": schema.SingleNestedAttribute{
 				Description:         "TerminationConfiguration defines the termination grace period for game servers.",
@@ -236,7 +235,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 						MarkdownDescription: "GracePeriodSeconds is the duration in seconds the game server needs to terminate gracefully.",
 						Optional:            true,
 						Validators: []validator.Int64{
-							int64validator.AtLeast(1),
+							validators.GFFieldInt64(armadaValidator, "spec.template.spec.terminationGracePeriodSeconds"),
 						},
 					},
 				},
@@ -245,6 +244,9 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "Strategy defines the rollout strategy for updating game servers. The default is RollingUpdate.",
 				MarkdownDescription: "Strategy defines the rollout strategy for updating game servers. The default is RollingUpdate.",
 				Optional:            true,
+				Validators: []validator.Object{
+					validators.GFFieldObject(armadaValidator, "spec.template.spec.strategy"),
+				},
 				Attributes: map[string]schema.Attribute{
 					"rolling_update": schema.SingleNestedAttribute{
 						Description:         "RollingUpdate defines the rolling update strategy, which gradually replaces game servers with new ones.",
@@ -252,6 +254,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 						Optional:            true,
 						Validators: []validator.Object{
 							objectvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("recreate")),
+							validators.GFFieldObject(armadaValidator, "spec.template.spec.strategy.rollingUpdate"),
 						},
 						Attributes: map[string]schema.Attribute{
 							"max_surge": schema.StringAttribute{
@@ -259,7 +262,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 								MarkdownDescription: "MaxSurge is the maximum number of game servers that can be created over the desired number of game servers during an update.",
 								Optional:            true,
 								Validators: []validator.String{
-									stringvalidator.RegexMatches(regexp.MustCompile(`^(\d{1,2}%|100%|\d+)$`), "must be a positive integer or percentage"),
+									validators.GFFieldString(armadaValidator, "spec.template.spec.strategy.rollingUpdate.maxSurge"),
 								},
 							},
 							"max_unavailable": schema.StringAttribute{
@@ -267,7 +270,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 								MarkdownDescription: "MaxUnavailable is the maximum number of game servers that can be unavailable during an update.",
 								Optional:            true,
 								Validators: []validator.String{
-									stringvalidator.RegexMatches(regexp.MustCompile(`^(\d{1,2}%|100%|\d+)$`), "must be a positive integer or percentage"),
+									validators.GFFieldString(armadaValidator, "spec.template.spec.strategy.rollingUpdate.maxUnavailable"),
 								},
 							},
 						},
@@ -286,6 +289,9 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "Volumes is a list of volumes that can be mounted by containers belonging to the game server.",
 				MarkdownDescription: "Volumes is a list of volumes that can be mounted by containers belonging to the game server.",
 				Optional:            true,
+				Validators: []validator.List{
+					validators.GFFieldList(armadaValidator, "spec.template.spec.volumes"),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
@@ -294,6 +300,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 							Required:            true,
 							Validators: []validator.String{
 								validators.NameValidator{},
+								validators.GFFieldString(armadaValidator, "spec.template.spec.volumes[?].name"),
 							},
 						},
 						"empty_dir": schema.SingleNestedAttribute{
@@ -307,6 +314,7 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 									Optional:            true,
 									Validators: []validator.String{
 										validators.QuantityValidator{},
+										validators.GFFieldString(armadaValidator, "spec.template.spec.volumes[?].sizeLimit"),
 									},
 								},
 							},
@@ -320,8 +328,10 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Optional:            true,
 				ElementType:         types.StringType,
 				Validators: []validator.List{
-					listvalidator.ValueStringsAre(validators.NameValidator{}),
-					listvalidator.UniqueValues(),
+					listvalidator.ValueStringsAre(
+						validators.NameValidator{},
+						validators.GFFieldString(armadaValidator, "spec.template.spec.gatewayPolicies[?]"),
+					),
 				},
 			},
 			"profiling_enabled": schema.BoolAttribute{
