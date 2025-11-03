@@ -1,16 +1,24 @@
 package armada_test
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strings"
 	"testing"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	v1 "github.com/gamefabric/gf-core/pkg/api/armada/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/armada"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators/validatorstest"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	tfresource "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/stretchr/testify/require"
 )
 
 func TestResourceArmada(t *testing.T) {
@@ -407,6 +415,24 @@ func TestResourceArmadaConfigValidates(t *testing.T) {
 	}
 }
 
+func TestArmadaResourceGameFabricValidators(t *testing.T) {
+	t.Parallel()
+
+	resp := &tfresource.SchemaResponse{}
+
+	arm := armada.NewArmada()
+	arm.Schema(t.Context(), tfresource.SchemaRequest{}, resp)
+
+	got := validatorstest.CollectPathExpressions(resp.Schema)
+	want := validatorstest.CollectJSONPaths(&v1.Armada{})
+
+	require.NotEmpty(t, got)
+	require.NotEmpty(t, want)
+	for _, path := range got {
+		require.Containsf(t, want, path, "The validator path %q was not found in the Armada API object", path)
+	}
+}
+
 func testResourceArmadaConfigEmpty() string {
 	return `resource "gamefabric_armada" "test" {}`
 }
@@ -690,4 +716,11 @@ func testCheckArmadaDestroy(t *testing.T, cs clientset.Interface) func(s *terraf
 		}
 		return nil
 	}
+}
+
+type testGamefabricValidator struct{}
+
+func (v *testGamefabricValidator) Validate(ctx context.Context, req validators.GameFabricValidatorRequest) diag.Diagnostics {
+	//TODO implement me
+	panic("implement me")
 }

@@ -137,6 +137,11 @@ type gamefabricAttributeValidator struct {
 	pathExpr string
 }
 
+// PathExpr returns the GameFabric path expression.
+func (v gamefabricAttributeValidator) PathExpr() string {
+	return v.pathExpr
+}
+
 func (v gamefabricAttributeValidator) Description(ctx context.Context) string {
 	return v.MarkdownDescription(ctx)
 }
