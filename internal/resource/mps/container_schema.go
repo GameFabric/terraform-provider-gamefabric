@@ -162,7 +162,7 @@ func ContainersAttributes(val validators.GameFabricValidator, pathPrefix string)
 							Required:            true,
 							Validators: []validator.String{
 								stringvalidator.OneOf("Dynamic", "Passthrough"),
-								validators.GFFieldString(val, pathPrefix+".policy"),
+								validators.GFFieldString(val, pathPrefix+".ports[?].policy"),
 							},
 						},
 						"container_port": schema.Int32Attribute{
