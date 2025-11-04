@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/gamefabric/gf-apicore/api/validation/field"
 	"github.com/gamefabric/gf-apicore/runtime"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -25,7 +26,7 @@ func CollectPathExpressions(s schema.Schema) []string {
 
 // CollectJSONPaths collects all JSON paths from the given runtime object.
 func CollectJSONPaths(obj runtime.Object) []string {
-	res := collectJSONPaths(reflect.TypeOf(obj), "")
+	res := collectJSONPaths(reflect.TypeOf(obj), nil)
 	slices.Sort(res)
 	return res
 }
@@ -88,59 +89,52 @@ func pathExprs(val validator.Describer) []string {
 	return []string{gfVal.PathExpr()}
 }
 
-func collectJSONPaths(t reflect.Type, prefix string) []string {
+func collectJSONPaths(t reflect.Type, path *field.Path) []string {
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
 
 	var res []string
-	if prefix != "" {
-		res = append(res, prefix)
+	if path != nil {
+		res = append(res, path.String())
 	}
 
 	// Special handling.
-	if strings.HasSuffix(prefix, ".resources") {
+	if strings.HasSuffix(path.String(), ".resources") {
 		res = append(res,
-			prefix+".limits.cpu",
-			prefix+".limits.memory",
-			prefix+".requests.cpu",
-			prefix+".requests.memory",
+			path.Child("limits").Child("cpu").String(),
+			path.Child("limits").Child("memory").String(),
+			path.Child("requests").Child("cpu").String(),
+			path.Child("requests").Child("memory").String(),
 		)
 		return res
 	}
 
 	switch t.Kind() {
-	case reflect.String, reflect.Bool, reflect.Float32, reflect.Float64, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint16:
+	case reflect.String, reflect.Bool, reflect.Float32, reflect.Float64, reflect.Map,
+		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint16:
 	case reflect.Struct:
 		for i := range t.NumField() {
-			field := t.Field(i)
-			json := field.Tag.Get("json")
-			if json == "-" || field.Tag == "" {
+			fld := t.Field(i)
+			json := fld.Tag.Get("json")
+			if json == "-" || fld.Tag == "" {
 				continue
 			}
 			json, _, _ = strings.Cut(json, ",") // Cut omitempty or similar.
 
 			if json == "" {
-				res = append(res, collectJSONPaths(field.Type, prefix)...) // Embed.
+				res = append(res, collectJSONPaths(fld.Type, path)...) // Embed.
 				continue
 			}
 
-			res = append(res, collectJSONPaths(field.Type, joinPath(prefix, json))...)
+			res = append(res, collectJSONPaths(fld.Type, path.Child(json))...)
 		}
-	case reflect.Map:
-		res = append(res, collectJSONPaths(t.Elem(), prefix+"[?]")...)
 	case reflect.Slice:
-		res = append(res, collectJSONPaths(t.Elem(), prefix+"[?]")...)
+		path = field.NewPath(path.String() + "[?]")
+		res = append(res, collectJSONPaths(t.Elem(), path)...)
 	default:
 		panic("unhandled kind: " + t.Kind().String())
 	}
 
 	return res
-}
-
-func joinPath(a, b string) string {
-	if a == "" {
-		return b
-	}
-	return a + "." + b
 }

@@ -19,44 +19,54 @@ import (
 func TestCollectCollectJSONPaths(t *testing.T) {
 	t.Parallel()
 
-	assert.Equal(t,
-		[]string{
-			"apiVersion",
-			"data",
-			"description",
-			"kind",
-			"metadata",
-			"metadata.annotations",
-			"metadata.annotations[?]",
-			"metadata.createdTimestamp",
-			"metadata.deletedTimestamp",
-			"metadata.environment",
-			"metadata.finalizers",
-			"metadata.finalizers[?]",
-			"metadata.labels",
-			"metadata.labels[?]",
-			"metadata.name",
-			"metadata.ownerReferences",
-			"metadata.ownerReferences[?]",
-			"metadata.ownerReferences[?].apiVersion",
-			"metadata.ownerReferences[?].kind",
-			"metadata.ownerReferences[?].name",
-			"metadata.ownerReferences[?].uid",
-			"metadata.revision",
-			"metadata.uid",
-			"metadata.updatedTimestamp",
-			"status",
-			"status.lastDataChange",
-			"status.state",
-		},
-		validatorstest.CollectJSONPaths(&v1.ConfigFile{}),
-	)
+	want := []string{
+		"apiVersion",
+		"data",
+		"description",
+		"kind",
+		"metadata",
+		"metadata.annotations",
+		"metadata.createdTimestamp",
+		"metadata.deletedTimestamp",
+		"metadata.environment",
+		"metadata.finalizers",
+		"metadata.finalizers[?]",
+		"metadata.labels",
+		"metadata.name",
+		"metadata.ownerReferences",
+		"metadata.ownerReferences[?]",
+		"metadata.ownerReferences[?].apiVersion",
+		"metadata.ownerReferences[?].kind",
+		"metadata.ownerReferences[?].name",
+		"metadata.ownerReferences[?].uid",
+		"metadata.revision",
+		"metadata.uid",
+		"metadata.updatedTimestamp",
+		"status",
+		"status.lastDataChange",
+		"status.state",
+	}
+	got := validatorstest.CollectJSONPaths(&v1.ConfigFile{})
+
+	assert.Equal(t, want, got)
 }
 
 func TestCollectPathExpressions(t *testing.T) {
 	t.Parallel()
 
-	s := schema.Schema{
+	want := []string{
+		"spec.bool",
+		"spec.int32",
+		"spec.int64",
+		"spec.list",
+		"spec.listNested",
+		"spec.listNested.int64",
+		"spec.map",
+		"spec.singleNested",
+		"spec.singleNested.string",
+		"spec.string",
+	}
+	got := validatorstest.CollectPathExpressions(schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"string": schema.StringAttribute{
 				Validators: []validator.String{
@@ -118,23 +128,9 @@ func TestCollectPathExpressions(t *testing.T) {
 				},
 			},
 		},
-	}
+	})
 
-	assert.Equal(t,
-		[]string{
-			"spec.bool",
-			"spec.int32",
-			"spec.int64",
-			"spec.list",
-			"spec.listNested",
-			"spec.listNested.int64",
-			"spec.map",
-			"spec.singleNested",
-			"spec.singleNested.string",
-			"spec.string",
-		},
-		validatorstest.CollectPathExpressions(s),
-	)
+	assert.Equal(t, want, got)
 }
 
 type testValidator struct{}
