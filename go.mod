@@ -10,7 +10,7 @@ require (
 	github.com/gamefabric/gf-apiclient v0.2.0
 	github.com/gamefabric/gf-apicore v1.9.0
 	github.com/gamefabric/gf-apiserver v1.10.0
-	github.com/gamefabric/gf-core v0.29.0
+	github.com/gamefabric/gf-core v0.29.1-0.20251103073925-f39d6cbd0a08
 	github.com/google/uuid v1.6.0
 	github.com/hamba/pkg/v2 v2.14.0
 	github.com/hashicorp/terraform-plugin-framework v1.16.1
