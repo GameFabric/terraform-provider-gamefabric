@@ -111,8 +111,7 @@ func collectJSONPaths(t reflect.Type, path *field.Path) []string {
 	}
 
 	switch t.Kind() {
-	case reflect.String, reflect.Bool, reflect.Float32, reflect.Float64, reflect.Map,
-		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint16:
+	case reflect.String, reflect.Bool, reflect.Float32, reflect.Float64, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint16:
 	case reflect.Struct:
 		for i := range t.NumField() {
 			fld := t.Field(i)
@@ -129,6 +128,9 @@ func collectJSONPaths(t reflect.Type, path *field.Path) []string {
 
 			res = append(res, collectJSONPaths(fld.Type, path.Child(json))...)
 		}
+	case reflect.Map:
+		path = field.NewPath(path.String() + ".?")
+		res = append(res, collectJSONPaths(t.Elem(), path)...)
 	case reflect.Slice:
 		path = field.NewPath(path.String() + "[?]")
 		res = append(res, collectJSONPaths(t.Elem(), path)...)
