@@ -15,6 +15,7 @@ require (
 	github.com/gamefabric/tfutils v0.0.0-20250923125427-d3b835f8c62b
 	github.com/google/uuid v1.6.0
 	github.com/hamba/cmd/v3 v3.1.0
+	github.com/hamba/pkg/v2 v2.14.0
 	github.com/hashicorp/terraform-plugin-framework v1.16.1
 	github.com/hashicorp/terraform-plugin-framework-validators v0.19.0
 	github.com/hashicorp/terraform-plugin-go v0.29.0
