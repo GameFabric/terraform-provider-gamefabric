@@ -3,7 +3,6 @@ package core
 import (
 	"testing"
 
-	"agones.dev/agones/pkg/apis"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -63,7 +62,7 @@ var (
 								},
 							},
 						},
-						Scheduling: apis.Distributed,
+						Scheduling: "Distributed",
 					},
 				},
 				{
@@ -76,7 +75,7 @@ var (
 								Value: "cloud-value",
 							},
 						},
-						Scheduling: apis.Packed,
+						Scheduling: "Packed",
 					},
 				},
 			},

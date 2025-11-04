@@ -7,14 +7,11 @@ replace agones.dev/agones => agones.dev/agones v1.51.0
 require (
 	agones.dev/agones v1.52.2
 	github.com/cenkalti/backoff/v4 v4.3.0
-	github.com/ettle/strcase v0.2.0
 	github.com/gamefabric/gf-apiclient v0.2.0
 	github.com/gamefabric/gf-apicore v1.9.0
 	github.com/gamefabric/gf-apiserver v1.10.0
 	github.com/gamefabric/gf-core v0.29.1-0.20251103073925-f39d6cbd0a08
-	github.com/gamefabric/tfutils v0.0.0-20250923125427-d3b835f8c62b
 	github.com/google/uuid v1.6.0
-	github.com/hamba/cmd/v3 v3.1.0
 	github.com/hamba/pkg/v2 v2.14.0
 	github.com/hashicorp/terraform-plugin-framework v1.16.1
 	github.com/hashicorp/terraform-plugin-framework-validators v0.19.0
@@ -50,6 +47,7 @@ require (
 	github.com/coreos/go-systemd/v22 v22.6.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/emicklei/go-restful/v3 v3.13.0 // indirect
+	github.com/ettle/strcase v0.2.0 // indirect
 	github.com/evanphx/json-patch v5.9.11+incompatible // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
@@ -82,6 +80,7 @@ require (
 	github.com/grafana/pyroscope-go v1.2.7 // indirect
 	github.com/grafana/pyroscope-go/godeltaprof v0.1.9 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.3 // indirect
+	github.com/hamba/cmd/v3 v3.1.0 // indirect
 	github.com/hamba/logger/v2 v2.9.0 // indirect
 	github.com/hamba/statter/v2 v2.8.0 // indirect
 	github.com/hashicorp/cli v1.1.7 // indirect
