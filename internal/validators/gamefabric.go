@@ -70,7 +70,7 @@ func (v *gamefabricStoreValidator[T, M]) Validate(ctx context.Context, req GameF
 	})
 
 	// If the value is not known, delay the validation until it is known.
-	if req.ConfigValue.IsUnknown() {
+	if !req.Config.Raw.IsFullyKnown() {
 		return nil
 	}
 
