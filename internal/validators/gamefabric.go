@@ -91,7 +91,7 @@ func (v *gamefabricStoreValidator[T, M]) Validate(ctx context.Context, req GameF
 			continue
 		}
 
-		if !strings.HasPrefix(errMsg, p+" ") && !strings.HasSuffix(errMsg, " "+p) && !strings.Contains(errMsg, " "+p+" ") {
+		if !strings.HasPrefix(errMsg, p+" ") && !strings.Contains(errMsg, " "+p+" ") {
 			// Avoid matching substrings.
 			continue
 		}
