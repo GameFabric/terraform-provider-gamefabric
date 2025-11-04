@@ -11,7 +11,7 @@ require (
 	github.com/gamefabric/gf-apiclient v0.2.0
 	github.com/gamefabric/gf-apicore v1.9.0
 	github.com/gamefabric/gf-apiserver v1.10.0
-	github.com/gamefabric/gf-core v0.29.1-0.20251031090313-b0584d5b1dce
+	github.com/gamefabric/gf-core v0.29.1-0.20251103073925-f39d6cbd0a08
 	github.com/gamefabric/tfutils v0.0.0-20250923125427-d3b835f8c62b
 	github.com/google/uuid v1.6.0
 	github.com/hamba/cmd/v3 v3.1.0
