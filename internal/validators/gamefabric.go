@@ -53,7 +53,7 @@ func NewGameFabricValidator[T runtime.Object, M Model[T]](fn func() StoreValidat
 	return &gamefabricStoreValidator[T, M]{val: fn()}
 }
 
-func (v *gamefabricStoreValidator[T, M]) Validate(ctx context.Context, req GameFabricValidatorRequest) diag.Diagnostics { //nolint:cyclop
+func (v *gamefabricStoreValidator[T, M]) Validate(ctx context.Context, req GameFabricValidatorRequest) diag.Diagnostics {
 	v.pathExprOnce.Do(func() {
 		// The first time we run, we need to collect all path expressions from the schema.
 		tfutils.WalkResourceSchema(req.Config.Schema.(rschema.Schema), func(attr rschema.Attribute, p path.Path) {
