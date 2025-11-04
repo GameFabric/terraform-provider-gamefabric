@@ -218,7 +218,7 @@ resource "gamefabric_branch" "prod" {
 
 **ConfigFiles are a now supported in the GameFabric provider.** In the old Nitrado EC provider, configuration files were referenced in environment variables using `config_file_key_ref`, but they were not manageable Terraform resources.
 
-ConfigFiles are now a resources that you can manage with Terraform:
+ConfigFiles are now resources that you can manage with Terraform:
 
 **New (GameFabric):**
 ```terraform
