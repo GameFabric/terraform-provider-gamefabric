@@ -21,6 +21,8 @@ func TestGamefabricStoreValidator_Validate(t *testing.T) {
 	storeVal := fakeStoreValidator{errs: validation.Errors{
 		errors.New("field spec.b[0] should be better than spec.c"),
 		errors.New("field spec.b[0] should be more different than spec.a"),
+		errors.New("field not-spec.b[0] should be ignored"),
+		errors.New("field spec.b[0]-not should be ignored"),
 	}}
 	val := validators.NewGameFabricValidator[*TestObject, TestModel](func() validators.StoreValidator { return storeVal })
 
