@@ -90,6 +90,12 @@ func (v *gamefabricStoreValidator[T, M]) Validate(ctx context.Context, req GameF
 			// So if it is not found or is found too far in, we skip it.
 			continue
 		}
+
+		if !strings.HasPrefix(errMsg, p+" ") && !strings.Contains(errMsg, " "+p+" ") {
+			// Avoid matching substrings.
+			continue
+		}
+
 		errMsg = errMsg[idx+len(p)+1:]
 
 		// Replace path expressions with actual paths including variable values for better diagnostics.
