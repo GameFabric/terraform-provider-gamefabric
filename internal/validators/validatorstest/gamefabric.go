@@ -99,13 +99,19 @@ func collectJSONPaths(t reflect.Type, path *field.Path) []string {
 		res = append(res, path.String())
 	}
 
-	// Special handling.
-	if strings.HasSuffix(path.String(), ".resources") {
+	if p, name := path.String(), "resources"; p == name || strings.HasSuffix(p, "."+name) {
+		// We do not support claims and additionally
+		// cpu and memory can not be generated so we hard-code it.
+		// Warning: The expected field name is "resources", which is not a given.
 		res = append(res,
+			path.Child("limits").String(),
 			path.Child("limits").Child("cpu").String(),
 			path.Child("limits").Child("memory").String(),
+			path.Child("limits?").String(),
+			path.Child("requests").String(),
 			path.Child("requests").Child("cpu").String(),
 			path.Child("requests").Child("memory").String(),
+			path.Child("requests?").String(),
 		)
 		return res
 	}

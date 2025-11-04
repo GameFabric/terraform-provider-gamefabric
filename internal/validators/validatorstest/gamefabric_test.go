@@ -5,7 +5,8 @@ import (
 	"regexp"
 	"testing"
 
-	v1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
+	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators/validatorstest"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -14,6 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
+	kcorev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 func TestCollectCollectJSONPaths(t *testing.T) {
@@ -48,7 +51,39 @@ func TestCollectCollectJSONPaths(t *testing.T) {
 		"status.lastDataChange",
 		"status.state",
 	}
-	got := validatorstest.CollectJSONPaths(&v1.ConfigFile{})
+	got := validatorstest.CollectJSONPaths(&corev1.ConfigFile{})
+
+	assert.Equal(t, want, got)
+}
+
+func TestCollectCollectJSONPathsForResourceRequirements(t *testing.T) {
+	t.Parallel()
+
+	want := []string{
+		"apiVersion",
+		"kind",
+		"resources",
+		"resources.limits",
+		"resources.limits.cpu",
+		"resources.limits.memory",
+		"resources.limits?",
+		"resources.requests",
+		"resources.requests.cpu",
+		"resources.requests.memory",
+		"resources.requests?",
+	}
+	got := validatorstest.CollectJSONPaths(&testObject{
+		Resources: kcorev1.ResourceRequirements{
+			Limits: kcorev1.ResourceList{
+				kcorev1.ResourceCPU:    resource.MustParse("1"),
+				kcorev1.ResourceMemory: resource.MustParse("512Mi"),
+			},
+			Requests: kcorev1.ResourceList{
+				kcorev1.ResourceCPU:    resource.MustParse("100m"),
+				kcorev1.ResourceMemory: resource.MustParse("256Mi"),
+			},
+		},
+	})
 
 	assert.Equal(t, want, got)
 }
@@ -139,4 +174,9 @@ type testValidator struct{}
 
 func (v *testValidator) Validate(context.Context, validators.GameFabricValidatorRequest) diag.Diagnostics {
 	return nil
+}
+
+type testObject struct {
+	metav1.TypeMeta `json:""`
+	Resources       kcorev1.ResourceRequirements `json:"resources"`
 }
