@@ -8,7 +8,7 @@ description: |-
 # gamefabric_protection_gatewaypolicy (Resource)
 
 Gateway Policies allow you route traffic of your gameservers through gateways for specified destination CIDRs.
-For example if your gameserver relies on specific cloud services their endpoints can be accessed through the gateways instead of directly the node hosting the gameserver.
+For example if your gameserver relies on specific cloud services their endpoints can be accessed through the gateways instead of directly from the node hosting the gameserver.
 
 For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/multiplayer-services/server-protection/gateway-policies">GameFabric documentation</a>.
 
