@@ -38,7 +38,7 @@ data "gamefabric_image" "gameserver" {
 resource "gamefabric_armada" "this" {
   lifecycle {
     ignore_changes = [
-      containers[0].image, # Prevents terraform diffs when image is updated by the image updater
+      containers[0].image_ref, # Prevents terraform diffs when image is updated by the image updater
     ]
   }
   name        = "myarmada"
