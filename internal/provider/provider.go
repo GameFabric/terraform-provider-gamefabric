@@ -198,7 +198,6 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		container.NewImageUpdater,
 		formation.NewVessel,
 		protection.NewGatewayPolicy,
-		storage.NewVolume,
 		storage.NewVolumeStoreRetentionPolicy,
 	}
 }
