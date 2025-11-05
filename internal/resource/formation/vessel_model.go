@@ -1,8 +1,6 @@
 package formation
 
 import (
-	"cmp"
-
 	"github.com/gamefabric/gf-apiclient/tools/cache"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	formationv1 "github.com/gamefabric/gf-core/pkg/api/formation/v1"
@@ -12,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-const profilingAnnotation = "g8c.io/profiling"
+const profilingKey = "g8c.io/profiling"
 
 type vesselModel struct {
 	ID                    types.String                       `tfsdk:"id"`
@@ -43,15 +41,15 @@ func newVesselModel(obj *formationv1.Vessel) vesselModel {
 		Description:           conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
 		Suspend:               conv.OptionalFunc(obj.Spec.Suspend, types.BoolPointerValue, types.BoolNull),
 		Labels:                conv.ForEachMapItem(obj.Labels, types.StringValue),
-		Annotations:           conv.ForEachMapItem(conv.MapWithoutKey(obj.Annotations, profilingAnnotation), types.StringValue),
-		GameServerLabels:      conv.ForEachMapItem(obj.Spec.Template.Labels, types.StringValue),
+		Annotations:           conv.ForEachMapItem(obj.Annotations, types.StringValue),
+		GameServerLabels:      conv.ForEachMapItem(conv.MapWithoutKey(obj.Spec.Template.Labels, profilingKey), types.StringValue),
 		GameServerAnnotations: conv.ForEachMapItem(obj.Spec.Template.Annotations, types.StringValue),
 		Containers:            conv.ForEachSliceItem(obj.Spec.Template.Spec.Containers, mps.NewContainerForFormation),
 		HealthChecks:          mps.NewHealthChecks(obj.Spec.Template.Spec.Health),
 		TerminationConfig:     newTerminationConfig(obj.Spec.Template.Spec.TerminationGracePeriodSeconds, obj.Spec.TerminationGracePeriods),
 		Volumes:               conv.ForEachSliceItem(obj.Spec.Template.Spec.Volumes, newVolumeModel),
 		GatewayPolicies:       conv.ForEachSliceItem(obj.Spec.Template.Spec.GatewayPolicies, types.StringValue),
-		ProfilingEnabled:      conv.BoolFromMapKey(obj.Annotations, profilingAnnotation),
+		ProfilingEnabled:      conv.BoolFromMapKey(obj.Spec.Template.Labels, profilingKey, types.BoolValue(false)),
 		ImageUpdaterTarget:    container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeVessel, obj.Name, obj.Environment),
 	}
 }
@@ -62,10 +60,7 @@ func (m vesselModel) ToObject() *formationv1.Vessel {
 			Name:        m.Name.ValueString(),
 			Environment: m.Environment.ValueString(),
 			Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
-			Annotations: conv.ForEachMapItem(
-				conv.MapWithBool(m.Annotations, profilingAnnotation, m.ProfilingEnabled),
-				func(v types.String) string { return v.ValueString() },
-			),
+			Annotations: conv.ForEachMapItem(m.Annotations, func(v types.String) string { return v.ValueString() }),
 		},
 		Spec: formationv1.VesselSpec{
 			Description: m.Description.ValueString(),
@@ -73,14 +68,17 @@ func (m vesselModel) ToObject() *formationv1.Vessel {
 			Suspend:     m.Suspend.ValueBoolPointer(),
 			Template: formationv1.GameServerTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels:      conv.ForEachMapItem(m.GameServerLabels, func(v types.String) string { return v.ValueString() }),
+					Labels: conv.ForEachMapItem(
+						conv.MapWithBool(m.GameServerLabels, profilingKey, m.ProfilingEnabled),
+						func(v types.String) string { return v.ValueString() },
+					),
 					Annotations: conv.ForEachMapItem(m.GameServerAnnotations, func(v types.String) string { return v.ValueString() }),
 				},
 				Spec: formationv1.GameServerSpec{
 					GatewayPolicies:               conv.ForEachSliceItem(m.GatewayPolicies, func(v types.String) string { return v.ValueString() }),
 					Health:                        mps.ToHealthChecks(m.HealthChecks),
 					Containers:                    conv.ForEachSliceItem(m.Containers, mps.ToContainerForFormation),
-					TerminationGracePeriodSeconds: cmp.Or(m.TerminationConfig, &terminationConfigModel{}).GracePeriod.ValueInt64Pointer(),
+					TerminationGracePeriodSeconds: toTerminationGracePeriodSeconds(m.TerminationConfig),
 					Volumes:                       conv.ForEachSliceItem(m.Volumes, toVolume),
 				},
 			},
@@ -121,6 +119,13 @@ func newTerminationConfig(gracePeriod *int64, periods *formationv1.VesselTermina
 		term.UserInitiated = conv.OptionalFunc(periods.UserInitiated, types.Int64PointerValue, types.Int64Null)
 	}
 	return term
+}
+
+func toTerminationGracePeriodSeconds(cfg *terminationConfigModel) *int64 {
+	if cfg == nil || !conv.IsKnown(cfg.GracePeriod) {
+		return nil
+	}
+	return cfg.GracePeriod.ValueInt64Pointer()
 }
 
 type volumeModel struct {

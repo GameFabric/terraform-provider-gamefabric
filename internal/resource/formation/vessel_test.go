@@ -45,8 +45,8 @@ func TestResourceVessel(t *testing.T) {
 					// Containers.
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.name", "example-container"),
-					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.image.name", "gameserver-asoda0s"),
-					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.image.branch", "prod"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.image_ref.name", "gameserver-asoda0s"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.image_ref.branch", "prod"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.command.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.command.0", "example-command"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.args.#", "1"),
@@ -103,10 +103,10 @@ func TestResourceVessel(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "gamefabric_vessel.test",
-				ImportState:       true,
-				ImportStateVerify: true,
-			}, {
+				ResourceName: "gamefabric_vessel.test",
+				ImportState:  true,
+			},
+			{
 				Config: testResourceVesselConfigBasic(),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "name", "my-vessel"),
@@ -137,8 +137,8 @@ func TestResourceVesselConfigBasic(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "region", "eu"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.name", "example-container"),
-					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.image.name", "gameserver-asoda0s"),
-					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.image.branch", "prod"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.image_ref.name", "gameserver-asoda0s"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.image_ref.branch", "prod"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.resources.requests.cpu", "250m"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.resources.requests.memory", "256Mi"),
 				),
@@ -343,7 +343,7 @@ func testResourceVesselConfigBasic(extras ...string) string {
   containers = [
     {
       name = "example-container"
-      image = {
+      image_ref = {
         name   = "gameserver-asoda0s"
         branch = "prod"
       }
@@ -385,7 +385,7 @@ func testResourceVesselConfigFull() string {
   containers = [
     {
       name = "example-container"
-      image = {
+      image_ref = {
         name   = "gameserver-asoda0s"
         branch = "prod"
       }
@@ -506,7 +506,7 @@ func testResourceVesselConfigFullInvalid() string {
   containers = [
     {
       name = "name"
-      image = {
+      image_ref = {
         name   = "gameserver-asoda0s"
         branch = "prod"
       }

@@ -602,6 +602,7 @@ func testResourceArmadaSetConfigFull() string {
     grace_period_seconds = 30
   }
 
+
   // Rollout strategy
   strategy = {
     rolling_update = {
@@ -711,6 +712,7 @@ func testResourceArmadaSetConfigFullInvalid() string {
   termination_configuration = {
     grace_period_seconds = -30
   }
+
 
   // Rollout strategy
   strategy = {

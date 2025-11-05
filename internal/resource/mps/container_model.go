@@ -46,7 +46,7 @@ func NewContainerForArmada(obj armadav1.Container) ContainerModel {
 func NewContainerForFormation(obj formationv1.Container) ContainerModel {
 	return ContainerModel{
 		Name: types.StringValue(obj.Name),
-		Image: ImageModel{
+		ImageRef: ImageRefModel{
 			Name:   types.StringValue(obj.Image),
 			Branch: types.StringValue(obj.Branch),
 		},
@@ -80,8 +80,8 @@ func ToContainerForArmada(ctr ContainerModel) armadav1.Container {
 func ToContainerForFormation(ctr ContainerModel) formationv1.Container {
 	return formationv1.Container{
 		Name:         ctr.Name.ValueString(),
-		Image:        ctr.Image.Name.ValueString(),
-		Branch:       ctr.Image.Branch.ValueString(),
+		Image:        ctr.ImageRef.Name.ValueString(),
+		Branch:       ctr.ImageRef.Branch.ValueString(),
 		Command:      conv.ForEachSliceItem(ctr.Command, func(v types.String) string { return v.ValueString() }),
 		Args:         conv.ForEachSliceItem(ctr.Args, func(v types.String) string { return v.ValueString() }),
 		Resources:    toResourceRequirements(ctr.Resources),

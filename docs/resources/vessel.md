@@ -46,8 +46,8 @@ description: |-
 
 Required:
 
-- `image` (Attributes) (see [below for nested schema](#nestedatt--containers--image))
-- `name` (String) Name is the name of the container.
+- `image_ref` (Attributes) The reference to the image to run your container with. You should use the `image_ref` attribute of the `gamefabric_image` datasource to configure this attribute. (see [below for nested schema](#nestedatt--containers--image_ref))
+- `name` (String) Name is the name of the container. The primary gameserver container should be named `default`
 
 Optional:
 
@@ -56,16 +56,16 @@ Optional:
 - `config_files` (Attributes List) ConfigFiles is a list of configuration files to mount into the containers filesystem. (see [below for nested schema](#nestedatt--containers--config_files))
 - `envs` (Attributes List) Envs is a list of environment variables to set on all containers in this Armada. (see [below for nested schema](#nestedatt--containers--envs))
 - `ports` (Attributes List) Ports are the ports to expose from the container. (see [below for nested schema](#nestedatt--containers--ports))
-- `resources` (Attributes) Resources describes the compute resource requirements. (see [below for nested schema](#nestedatt--containers--resources))
+- `resources` (Attributes) Resources describes the compute resource requirements. See the <a href="https://docs.gamefabric.com/multiplayer-servers/multiplayer-services/resource-management">GameFabric documentation</a> for more details on how to configure resource requests and limits. (see [below for nested schema](#nestedatt--containers--resources))
 - `volume_mounts` (Attributes List) VolumeMounts are the volumes to mount into the container&#39;s filesystem. (see [below for nested schema](#nestedatt--containers--volume_mounts))
 
-<a id="nestedatt--containers--image"></a>
-### Nested Schema for `containers.image`
+<a id="nestedatt--containers--image_ref"></a>
+### Nested Schema for `containers.image_ref`
 
 Required:
 
-- `branch` (String) Branch is the branch of the image.
-- `name` (String) Name is the name of the image.
+- `branch` (String) Branch of the GameFabric image.
+- `name` (String) Name is the name of the GameFabric image.
 
 
 <a id="nestedatt--containers--config_files"></a>
@@ -104,8 +104,8 @@ Optional:
 
 Required:
 
-- `name` (String) Name is the name of the port.
-- `policy` (String) Policy defines the policy for how the HostPort is populated.
+- `name` (String) Name is the name of the port. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.
+- `policy` (String) Policy defines how the host port is populated. `Dynamic` (default) allocates a free host port and maps it to the `container_port` (required). The gameserver must report the external port (obtained via Agones SDK) to backends for client connections. `Passthrough` dynamically allocates a host port and sets `container_port` to match it. The gameserver must discover this port via Agones SDK and listen on it.
 
 Optional:
 
@@ -144,13 +144,10 @@ Optional:
 <a id="nestedatt--containers--volume_mounts"></a>
 ### Nested Schema for `containers.volume_mounts`
 
-Required:
+Optional:
 
 - `mount_path` (String) Path within the container at which the volume should be mounted.
 - `name` (String) Name is the name of the volume.
-
-Optional:
-
 - `sub_path` (String) Path within the volume from which the container's volume should be mounted.
 - `sub_path_expr` (String) Expanded path within the volume from which the container's volume should be mounted.
 
@@ -162,7 +159,7 @@ Optional:
 Optional:
 
 - `disabled` (Boolean) Disabled indicates whether Agones health checks are disabled.
-- `failure_threshold` (Number) FailureThreshold is the number of consecutive failures before the game server is marked unhealthy.
+- `failure_threshold` (Number) FailureThreshold is the number of consecutive failures before the game server is marked unhealthy and terminated.
 - `initial_delay_seconds` (Number) InitialDelaySeconds is the number of seconds to wait before performing the first check.
 - `period_seconds` (Number) PeriodSeconds is the number of seconds between checks.
 
@@ -172,7 +169,7 @@ Optional:
 
 Optional:
 
-- `grace_period_seconds` (Number) The duration in seconds the game server needs to terminate gracefully.
+- `grace_period_seconds` (Number) GracePeriodSeconds is the duration in seconds the game server needs to terminate gracefully.
 - `maintenance_seconds` (Number) The duration in seconds the game server needs to terminate gracefully when put into maintenance.
 - `spec_change_seconds` (Number) The duration in seconds the game server needs to terminate gracefully after Vessel specs have changed.
 - `user_initiated_seconds` (Number) The duration in seconds the game server needs to terminate gracefully after a user has initiated a termination.

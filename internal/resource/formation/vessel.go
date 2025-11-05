@@ -9,8 +9,14 @@ import (
 	"github.com/gamefabric/gf-apiclient/tools/patch"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-apiserver/registry/generic"
+	formationv1 "github.com/gamefabric/gf-core/pkg/api/formation/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	vesselreg "github.com/gamefabric/gf-core/pkg/apiserver/registry/formation/vessel"
+	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
@@ -33,6 +39,13 @@ var (
 	_ resource.ResourceWithConfigure   = &vessel{}
 	_ resource.ResourceWithImportState = &vessel{}
 )
+
+var vesselValidator = validators.NewGameFabricValidator[*formationv1.Vessel, vesselModel](func() validators.StoreValidator {
+	storage, _ := vesselreg.New(generic.StoreOptions{Config: generic.Config{
+		StorageFactory: registrytest.FakeStorageFactory{},
+	}}, nil)
+	return storage.Store.Strategy
+})
 
 type vessel struct {
 	clientSet clientset.Interface
@@ -152,15 +165,13 @@ func (r *vessel) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
 				},
-				NestedObject: mps.ContainersAttributes(),
+				NestedObject: mps.ContainersAttributes(vesselValidator, "spec.template.spec.containers[?]"),
 			},
 			"health_checks": schema.SingleNestedAttribute{
 				Description:         "HealthChecks is the health checking configuration for Agones game servers.",
 				MarkdownDescription: "HealthChecks is the health checking configuration for Agones game servers.",
 				Optional:            true,
-				Computed:            true,
-				Default:             mps.HealthChecksModel{}.Default(),
-				Attributes:          mps.HealthCheckAttributes(),
+				Attributes:          mps.HealthCheckAttributes(vesselValidator, "spec.template.spec.health"),
 			},
 			"termination_configuration": schema.SingleNestedAttribute{
 				Description:         "TerminationConfiguration defines the termination grace period for game servers.",
@@ -168,11 +179,11 @@ func (r *vessel) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"grace_period_seconds": schema.Int64Attribute{
-						Description:         "The duration in seconds the game server needs to terminate gracefully.",
-						MarkdownDescription: "The duration in seconds the game server needs to terminate gracefully.",
+						Description:         "GracePeriodSeconds is the duration in seconds the game server needs to terminate gracefully.",
+						MarkdownDescription: "GracePeriodSeconds is the duration in seconds the game server needs to terminate gracefully.",
 						Optional:            true,
 						Validators: []validator.Int64{
-							int64validator.AtLeast(0),
+							validators.GFFieldInt64(vesselValidator, "spec.template.spec.terminationGracePeriodSeconds"),
 						},
 					},
 					"maintenance_seconds": schema.Int64Attribute{
@@ -181,6 +192,7 @@ func (r *vessel) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 						Optional:            true,
 						Validators: []validator.Int64{
 							int64validator.AtLeast(0),
+							validators.GFFieldInt64(vesselValidator, "spec.template.spec.terminationGracePeriodSeconds"),
 						},
 					},
 					"spec_change_seconds": schema.Int64Attribute{
@@ -189,6 +201,7 @@ func (r *vessel) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 						Optional:            true,
 						Validators: []validator.Int64{
 							int64validator.AtLeast(0),
+							validators.GFFieldInt64(vesselValidator, "spec.template.spec.terminationGracePeriodSeconds"),
 						},
 					},
 					"user_initiated_seconds": schema.Int64Attribute{
@@ -197,6 +210,7 @@ func (r *vessel) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 						Optional:            true,
 						Validators: []validator.Int64{
 							int64validator.AtLeast(0),
+							validators.GFFieldInt64(vesselValidator, "spec.template.spec.terminationGracePeriodSeconds"),
 						},
 					},
 				},
@@ -260,8 +274,10 @@ func (r *vessel) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Optional:            true,
 				ElementType:         types.StringType,
 				Validators: []validator.List{
-					validators.NameValidator{},
-					listvalidator.UniqueValues(),
+					listvalidator.ValueStringsAre(
+						validators.NameValidator{},
+						validators.GFFieldString(vesselValidator, "spec.template.spec.gatewayPolicies[?]"),
+					),
 				},
 			},
 			"profiling_enabled": schema.BoolAttribute{
@@ -334,6 +350,7 @@ func (r *vessel) Create(ctx context.Context, req resource.CreateRequest, resp *r
 	}
 
 	plan = newVesselModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -359,6 +376,7 @@ func (r *vessel) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 	}
 
 	state = newVesselModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
@@ -386,8 +404,7 @@ func (r *vessel) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	outObj, err := r.clientSet.FormationV1().Vessels(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
-	if err != nil {
+	if _, err = r.clientSet.FormationV1().Vessels(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Vessel",
 			fmt.Sprintf("Could not patch for Vessel: %v", err),
@@ -395,7 +412,8 @@ func (r *vessel) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	plan = newVesselModel(outObj)
+	plan.ID = types.StringValue(cache.NewObjectName(newObj.Environment, newObj.Name).String())
+	plan.ImageUpdaterTarget = container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeVessel, oldObj.Name, oldObj.Environment)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

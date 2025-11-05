@@ -231,13 +231,10 @@ Optional:
 <a id="nestedatt--containers--volume_mounts"></a>
 ### Nested Schema for `containers.volume_mounts`
 
-Required:
+Optional:
 
 - `mount_path` (String) Path within the container at which the volume should be mounted.
 - `name` (String) Name is the name of the volume.
-
-Optional:
-
 - `sub_path` (String) Path within the volume from which the container's volume should be mounted.
 - `sub_path_expr` (String) Expanded path within the volume from which the container's volume should be mounted.
 
