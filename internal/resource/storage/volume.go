@@ -54,7 +54,7 @@ func (r *volume) Metadata(_ context.Context, req resource.MetadataRequest, resp 
 	resp.TypeName = req.ProviderTypeName + "_volume"
 }
 
-// Schema defines the schema for this data source.
+// Schema defines the schema for this resource.
 func (r *volume) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -223,7 +223,7 @@ func (r *volume) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 	if _, err = r.clientSet.StorageV1Beta1().Volumes(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Volume",
-			fmt.Sprintf("Could not patch for Volume: %v", err),
+			fmt.Sprintf("Could not patch Volume: %v", err),
 		)
 		return
 	}
@@ -243,7 +243,7 @@ func (r *volume) Delete(ctx context.Context, req resource.DeleteRequest, resp *r
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting Volume",
-			fmt.Sprintf("Could not delete for Volume: %v", err),
+			fmt.Sprintf("Could not delete Volume: %v", err),
 		)
 		return
 	}
