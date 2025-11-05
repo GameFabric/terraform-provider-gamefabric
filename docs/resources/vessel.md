@@ -26,8 +26,8 @@ description: |-
 
 - `annotations` (Map of String) Annotations is an unstructured map of keys and values stored on an object.
 - `description` (String) Description is the optional description of the vessel.
-- `gameserver_annotations` (Map of String) Annotations is an unstructured map of keys and values stored on an object.
-- `gameserver_labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
+- `gameserver_annotations` (Map of String) Annotations for the game server pods.
+- `gameserver_labels` (Map of String) Labels for the game server pods.
 - `gateway_policies` (List of String) GatewayPolicies is a list of gateway policies to apply to the Vessel.
 - `health_checks` (Attributes) HealthChecks is the health checking configuration for Agones game servers. (see [below for nested schema](#nestedatt--health_checks))
 - `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.

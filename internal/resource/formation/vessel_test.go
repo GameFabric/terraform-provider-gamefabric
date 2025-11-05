@@ -7,10 +7,15 @@ import (
 	"testing"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	formationv1 "github.com/gamefabric/gf-core/pkg/api/formation/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/formation"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators/validatorstest"
+	tfresource "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/stretchr/testify/require"
 )
 
 func TestResourceVessel(t *testing.T) {
@@ -68,9 +73,11 @@ func TestResourceVessel(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.ports.0.container_port", "8080"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.ports.0.policy", "Passthrough"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.ports.0.protection_protocol", "something"),
-					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.volume_mounts.#", "1"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.volume_mounts.#", "2"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.volume_mounts.0.name", "example-volume"),
-					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.volume_mounts.0.mount_path", "/data"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.volume_mounts.0.mount_path", "/data/empty"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.volume_mounts.1.name", "persistent-volume"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.volume_mounts.1.mount_path", "/data/pers"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.config_files.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.config_files.0.name", "example-config-file"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.config_files.0.mount_path", "/config/example-config-file"),
@@ -177,6 +184,11 @@ func TestResourceVessel_Validates(t *testing.T) {
 			name:        "validates name",
 			config:      testResourceVesselConfigFullInvalid(),
 			expectError: regexp.MustCompile(regexp.QuoteMeta(`invalid_name!`)),
+		},
+		{
+			name:        "validates empty name",
+			config:      testResourceVesselConfigBasicNamed("", "test"),
+			expectError: regexp.MustCompile(regexp.QuoteMeta(`name is required`)),
 		},
 		{
 			name:        "validates environment",
@@ -329,14 +341,32 @@ func TestResourceVessel_Validates(t *testing.T) {
 	}
 }
 
+func TestVesselResourceGameFabricValidators(t *testing.T) {
+	t.Parallel()
+
+	resp := &tfresource.SchemaResponse{}
+
+	arm := formation.NewVessel()
+	arm.Schema(t.Context(), tfresource.SchemaRequest{}, resp)
+
+	want := validatorstest.CollectJSONPaths(&formationv1.Vessel{})
+	got := validatorstest.CollectPathExpressions(resp.Schema)
+
+	require.NotEmpty(t, got)
+	require.NotEmpty(t, want)
+	for _, path := range got {
+		require.Containsf(t, want, path, "The validator path %q was not found in the Vessel API object", path)
+	}
+}
+
 func testResourceVesselConfigEmpty() string {
 	return `resource "gamefabric_vessel" "test" {}`
 }
 
-func testResourceVesselConfigBasic(extras ...string) string {
+func testResourceVesselConfigBasicNamed(name, env string, extras ...string) string {
 	return fmt.Sprintf(`resource "gamefabric_vessel" "test" {
-  name        = "my-vessel"
-  environment = "test"
+  name        = %q
+  environment = %q
   description = "My New Vessel Description"
   region = "eu"
 
@@ -357,9 +387,12 @@ func testResourceVesselConfigBasic(extras ...string) string {
   ]
 
   %s
-}`, strings.Join(extras, "\n"))
+}`, name, env, strings.Join(extras, "\n"))
 }
 
+func testResourceVesselConfigBasic(extras ...string) string {
+	return testResourceVesselConfigBasicNamed("my-vessel", "test", extras...)
+}
 func testResourceVesselConfigFull() string {
 	return `resource "gamefabric_vessel" "test" {
   name        = "my-vessel"
@@ -431,7 +464,11 @@ func testResourceVesselConfigFull() string {
       volume_mounts = [
         {
           name          = "example-volume"
-          mount_path    = "/data"
+          mount_path    = "/data/empty"
+        },
+        {
+          name          = "persistent-volume"
+          mount_path    = "/data/pers"
         }
       ]
       config_files = [

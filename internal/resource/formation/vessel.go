@@ -79,6 +79,7 @@ func (r *vessel) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Required:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},
+					validators.GFFieldString(vesselValidator, "metadata.name"),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -94,7 +95,6 @@ func (r *vessel) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"description": schema.StringAttribute{
@@ -135,14 +135,15 @@ func (r *vessel) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Required:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},
+					validators.GFFieldString(vesselValidator, "spec.region"),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(), // Region is immutable.
 				},
 			},
 			"gameserver_labels": schema.MapAttribute{
-				Description:         "A map of keys and values that can be used to organize and categorize objects.",
-				MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
+				Description:         "Labels for the game server pods.",
+				MarkdownDescription: "Labels for the game server pods.",
 				Optional:            true,
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
@@ -150,8 +151,8 @@ func (r *vessel) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				},
 			},
 			"gameserver_annotations": schema.MapAttribute{
-				Description:         "Annotations is an unstructured map of keys and values stored on an object.",
-				MarkdownDescription: "Annotations is an unstructured map of keys and values stored on an object.",
+				Description:         "Annotations for the game server pods.",
+				MarkdownDescription: "Annotations for the game server pods.",
 				Optional:            true,
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
@@ -192,7 +193,7 @@ func (r *vessel) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 						Optional:            true,
 						Validators: []validator.Int64{
 							int64validator.AtLeast(0),
-							validators.GFFieldInt64(vesselValidator, "spec.template.spec.terminationGracePeriodSeconds"),
+							validators.GFFieldInt64(vesselValidator, "spec.terminationGracePeriods.maintenance"),
 						},
 					},
 					"spec_change_seconds": schema.Int64Attribute{
@@ -201,7 +202,7 @@ func (r *vessel) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 						Optional:            true,
 						Validators: []validator.Int64{
 							int64validator.AtLeast(0),
-							validators.GFFieldInt64(vesselValidator, "spec.template.spec.terminationGracePeriodSeconds"),
+							validators.GFFieldInt64(vesselValidator, "spec.terminationGracePeriods.specChange"),
 						},
 					},
 					"user_initiated_seconds": schema.Int64Attribute{
@@ -210,7 +211,7 @@ func (r *vessel) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 						Optional:            true,
 						Validators: []validator.Int64{
 							int64validator.AtLeast(0),
-							validators.GFFieldInt64(vesselValidator, "spec.template.spec.terminationGracePeriodSeconds"),
+							validators.GFFieldInt64(vesselValidator, "spec.terminationGracePeriods.userInitiated"),
 						},
 					},
 				},
@@ -219,6 +220,9 @@ func (r *vessel) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "Volumes is a list of volumes that can be mounted by containers belonging to the game server.",
 				MarkdownDescription: "Volumes is a list of volumes that can be mounted by containers belonging to the game server.",
 				Optional:            true,
+				Validators: []validator.List{
+					validators.GFFieldList(vesselValidator, "spec.template.spec.volumes"),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
@@ -227,6 +231,7 @@ func (r *vessel) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 							Required:            true,
 							Validators: []validator.String{
 								validators.NameValidator{},
+								validators.GFFieldString(vesselValidator, "spec.template.spec.volumes[?].name"),
 							},
 						},
 						"empty_dir": schema.SingleNestedAttribute{
@@ -243,6 +248,7 @@ func (r *vessel) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 									Optional:            true,
 									Validators: []validator.String{
 										validators.QuantityValidator{},
+										validators.GFFieldString(vesselValidator, "spec.template.spec.volumes[?].emptyDir.sizeLimit"),
 									},
 								},
 							},
@@ -261,6 +267,7 @@ func (r *vessel) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 									Optional:            true,
 									Validators: []validator.String{
 										validators.NameValidator{},
+										validators.GFFieldString(vesselValidator, "spec.template.spec.volumes[?].persistent.volumeName"),
 									},
 								},
 							},
