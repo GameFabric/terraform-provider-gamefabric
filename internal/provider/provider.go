@@ -18,6 +18,7 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/formation"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/protection"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/storage"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -192,6 +193,7 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		container.NewImageUpdater,
 		formation.NewVessel,
 		protection.NewGatewayPolicy,
+		storage.NewVolumeStoreRetentionPolicy,
 	}
 }
 
