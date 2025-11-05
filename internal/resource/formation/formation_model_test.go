@@ -3,10 +3,10 @@ package formation
 import (
 	"testing"
 
-	v3 "agones.dev/agones/pkg/apis/agones/v1"
+	agonesv1 "agones.dev/agones/pkg/apis/agones/v1"
 	"github.com/gamefabric/gf-apiclient/tools/cache"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
-	v1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
+	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	formationv1 "github.com/gamefabric/gf-core/pkg/api/formation/v1"
 	"github.com/gamefabric/gf-core/pkg/api/storage/v1beta1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
@@ -15,7 +15,7 @@ import (
 	"github.com/hamba/pkg/v2/ptr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
-	v2 "k8s.io/api/core/v1"
+	kcorev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
@@ -71,7 +71,7 @@ var (
 							{
 								Command: []string{"/bin/sh"},
 								Args:    []string{"-c", "echo hello"},
-								Env: []v1.EnvVar{
+								Env: []corev1.EnvVar{
 									{
 										Name:  "OVERRIDE_ENV",
 										Value: "override-value",
@@ -99,7 +99,7 @@ var (
 							Branch:  "test-branch",
 							Command: []string{"/app"},
 							Args:    []string{"--arg1", "value1"},
-							Env: []v1.EnvVar{
+							Env: []corev1.EnvVar{
 								{
 									Name:  "TEST_ENV",
 									Value: "test-value",
@@ -110,29 +110,29 @@ var (
 									Name:               "http",
 									Policy:             "Passthrough",
 									ContainerPort:      8080,
-									Protocol:           v2.ProtocolTCP,
+									Protocol:           kcorev1.ProtocolTCP,
 									ProtectionProtocol: ptr.Of("example-protocol"),
 								},
 							},
-							VolumeMounts: []v2.VolumeMount{
+							VolumeMounts: []kcorev1.VolumeMount{
 								{
 									Name:      "test-volume",
 									MountPath: "/data",
 								},
 							},
-							Resources: v2.ResourceRequirements{
-								Limits: v2.ResourceList{
-									v2.ResourceCPU:    resource.MustParse("500m"),
-									v2.ResourceMemory: resource.MustParse("512Mi"),
+							Resources: kcorev1.ResourceRequirements{
+								Limits: kcorev1.ResourceList{
+									kcorev1.ResourceCPU:    resource.MustParse("500m"),
+									kcorev1.ResourceMemory: resource.MustParse("512Mi"),
 								},
-								Requests: v2.ResourceList{
-									v2.ResourceCPU:    resource.MustParse("250m"),
-									v2.ResourceMemory: resource.MustParse("256Mi"),
+								Requests: kcorev1.ResourceList{
+									kcorev1.ResourceCPU:    resource.MustParse("250m"),
+									kcorev1.ResourceMemory: resource.MustParse("256Mi"),
 								},
 							},
 						},
 					},
-					Health: v3.Health{
+					Health: agonesv1.Health{
 						Disabled:            true,
 						PeriodSeconds:       10,
 						FailureThreshold:    20,
