@@ -188,17 +188,12 @@ func newPortModelForArmada(obj armadav1.Port) PortModel {
 }
 
 func newPortModelForFormation(obj formationv1.Port) PortModel {
-	prot := types.StringNull()
-	if obj.ProtectionProtocol != nil {
-		prot = conv.OptionalFunc(*obj.ProtectionProtocol, types.StringValue, types.StringNull)
-	}
-
 	return PortModel{
 		Name:               types.StringValue(obj.Name),
 		Protocol:           types.StringValue(string(obj.Protocol)),
 		ContainerPort:      types.Int32Value(int32(obj.ContainerPort)),
 		Policy:             types.StringValue(string(obj.Policy)),
-		ProtectionProtocol: prot,
+		ProtectionProtocol: conv.OptionalFunc(*obj.ProtectionProtocol, types.StringValue, types.StringNull),
 	}
 }
 
