@@ -4,6 +4,7 @@ import (
 	agonesv1 "agones.dev/agones/pkg/apis/agones/v1"
 	armadav1 "github.com/gamefabric/gf-core/pkg/api/armada/v1"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
+	formationv1 "github.com/gamefabric/gf-core/pkg/api/formation/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -41,6 +42,24 @@ func NewContainerForArmada(obj armadav1.Container) ContainerModel {
 	}
 }
 
+// NewContainerForFormation converts the backend resource into the terraform model.
+func NewContainerForFormation(obj formationv1.Container) ContainerModel {
+	return ContainerModel{
+		Name: types.StringValue(obj.Name),
+		ImageRef: ImageRefModel{
+			Name:   types.StringValue(obj.Image),
+			Branch: types.StringValue(obj.Branch),
+		},
+		Command:      conv.ForEachSliceItem(obj.Command, types.StringValue),
+		Args:         conv.ForEachSliceItem(obj.Args, types.StringValue),
+		Resources:    newResourcesModel(obj.Resources),
+		Envs:         conv.ForEachSliceItem(obj.Env, core.NewEnvVarModel),
+		Ports:        conv.ForEachSliceItem(obj.Ports, newPortModelForFormation),
+		VolumeMounts: conv.ForEachSliceItem(obj.VolumeMounts, newVolumeMountModel),
+		ConfigFiles:  conv.ForEachSliceItem(obj.ConfigFiles, newConfigFileModelForFormation),
+	}
+}
+
 // ToContainerForArmada converts the terraform model into the backend resource.
 func ToContainerForArmada(ctr ContainerModel) armadav1.Container {
 	return armadav1.Container{
@@ -53,7 +72,23 @@ func ToContainerForArmada(ctr ContainerModel) armadav1.Container {
 		Env:          conv.ForEachSliceItem(ctr.Envs, func(item core.EnvVarModel) corev1.EnvVar { return item.ToObject() }),
 		Ports:        conv.ForEachSliceItem(ctr.Ports, toPortForArmada),
 		VolumeMounts: conv.ForEachSliceItem(ctr.VolumeMounts, toVolumeMount),
-		ConfigFiles:  conv.ForEachSliceItem(ctr.ConfigFiles, toConfigFile),
+		ConfigFiles:  conv.ForEachSliceItem(ctr.ConfigFiles, toConfigFileForArmada),
+	}
+}
+
+// ToContainerForFormation converts the terraform model into the backend resource.
+func ToContainerForFormation(ctr ContainerModel) formationv1.Container {
+	return formationv1.Container{
+		Name:         ctr.Name.ValueString(),
+		Image:        ctr.ImageRef.Name.ValueString(),
+		Branch:       ctr.ImageRef.Branch.ValueString(),
+		Command:      conv.ForEachSliceItem(ctr.Command, func(v types.String) string { return v.ValueString() }),
+		Args:         conv.ForEachSliceItem(ctr.Args, func(v types.String) string { return v.ValueString() }),
+		Resources:    toResourceRequirements(ctr.Resources),
+		Env:          conv.ForEachSliceItem(ctr.Envs, func(item core.EnvVarModel) corev1.EnvVar { return item.ToObject() }),
+		Ports:        conv.ForEachSliceItem(ctr.Ports, toPortForFormation),
+		VolumeMounts: conv.ForEachSliceItem(ctr.VolumeMounts, toVolumeMount),
+		ConfigFiles:  conv.ForEachSliceItem(ctr.ConfigFiles, toConfigFileForFormation),
 	}
 }
 
@@ -152,8 +187,28 @@ func newPortModelForArmada(obj armadav1.Port) PortModel {
 	}
 }
 
+func newPortModelForFormation(obj formationv1.Port) PortModel {
+	return PortModel{
+		Name:               types.StringValue(obj.Name),
+		Protocol:           types.StringValue(string(obj.Protocol)),
+		ContainerPort:      types.Int32Value(int32(obj.ContainerPort)),
+		Policy:             types.StringValue(string(obj.Policy)),
+		ProtectionProtocol: conv.OptionalFunc(*obj.ProtectionProtocol, types.StringValue, types.StringNull),
+	}
+}
+
 func toPortForArmada(p PortModel) armadav1.Port {
 	return armadav1.Port{
+		Name:               p.Name.ValueString(),
+		Policy:             agonesv1.PortPolicy(p.Policy.ValueString()),
+		ContainerPort:      uint16(p.ContainerPort.ValueInt32()), //nolint:gosec // Keep it simple.
+		Protocol:           kcorev1.Protocol(p.Protocol.ValueString()),
+		ProtectionProtocol: p.ProtectionProtocol.ValueStringPointer(),
+	}
+}
+
+func toPortForFormation(p PortModel) formationv1.Port {
+	return formationv1.Port{
 		Name:               p.Name.ValueString(),
 		Policy:             agonesv1.PortPolicy(p.Policy.ValueString()),
 		ContainerPort:      uint16(p.ContainerPort.ValueInt32()), //nolint:gosec // Keep it simple.
@@ -201,8 +256,22 @@ func newConfigFileModelForArmada(obj armadav1.ConfigFileMount) ConfigFileModel {
 	}
 }
 
-func toConfigFile(file ConfigFileModel) armadav1.ConfigFileMount {
+func newConfigFileModelForFormation(obj formationv1.ConfigFileMount) ConfigFileModel {
+	return ConfigFileModel{
+		Name:      types.StringValue(obj.Name),
+		MountPath: types.StringValue(obj.MountPath),
+	}
+}
+
+func toConfigFileForArmada(file ConfigFileModel) armadav1.ConfigFileMount {
 	return armadav1.ConfigFileMount{
+		Name:      file.Name.ValueString(),
+		MountPath: file.MountPath.ValueString(),
+	}
+}
+
+func toConfigFileForFormation(file ConfigFileModel) formationv1.ConfigFileMount {
+	return formationv1.ConfigFileMount{
 		Name:      file.Name.ValueString(),
 		MountPath: file.MountPath.ValueString(),
 	}
