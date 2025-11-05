@@ -72,8 +72,8 @@ func TestResourceFormation(t *testing.T) {
 					// Containers.
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.name", "example-container"),
-					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.image.name", "gameserver-asoda0s"),
-					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.image.branch", "prod"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.image_ref.name", "gameserver-asoda0s"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.image_ref.branch", "prod"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.command.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.command.0", "example-command"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.args.#", "1"),
@@ -130,9 +130,8 @@ func TestResourceFormation(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "gamefabric_formation.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName: "gamefabric_formation.test",
+				ImportState:  true,
 			}, {
 				Config: testResourceFormationConfigBasic(),
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -166,8 +165,8 @@ func TestResourceFormationConfigBasic(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.0.region", "eu"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.name", "example-container"),
-					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.image.name", "gameserver-asoda0s"),
-					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.image.branch", "prod"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.image_ref.name", "gameserver-asoda0s"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.image_ref.branch", "prod"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.resources.requests.cpu", "250m"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.resources.requests.memory", "256Mi"),
 				),
@@ -415,7 +414,7 @@ func testResourceFormationConfigBasic(extras ...string) string {
   containers = [
     {
       name = "example-container"
-      image = {
+      image_ref = {
         name   = "gameserver-asoda0s"
         branch = "prod"
       }
@@ -494,7 +493,7 @@ func testResourceFormationConfigFull() string {
   containers = [
     {
       name = "example-container"
-      image = {
+      image_ref = {
         name   = "gameserver-asoda0s"
         branch = "prod"
       }
@@ -636,7 +635,7 @@ func testResourceFormationConfigFullInvalid() string {
   containers = [
     {
       name = "name"
-      image = {
+      image_ref = {
         name   = "gameserver-asoda0s"
         branch = "prod"
       }

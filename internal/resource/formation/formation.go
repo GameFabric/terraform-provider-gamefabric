@@ -9,8 +9,14 @@ import (
 	"github.com/gamefabric/gf-apiclient/tools/patch"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-apiserver/registry/generic"
+	formationv1 "github.com/gamefabric/gf-core/pkg/api/formation/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	formationreg "github.com/gamefabric/gf-core/pkg/apiserver/registry/formation/formation"
+	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
@@ -35,6 +41,13 @@ var (
 	_ resource.ResourceWithConfigure   = &formation{}
 	_ resource.ResourceWithImportState = &formation{}
 )
+
+var formationValidator = validators.NewGameFabricValidator[*formationv1.Formation, formationModel](func() validators.StoreValidator {
+	storage, _ := formationreg.New(generic.StoreOptions{Config: generic.Config{
+		StorageFactory: registrytest.FakeStorageFactory{},
+	}})
+	return storage.Store.Strategy
+})
 
 type formation struct {
 	clientSet clientset.Interface
@@ -163,7 +176,6 @@ func (r *formation) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 							Required:            true,
 							Validators: []validator.String{
 								validators.NameValidator{},
-								validators.Unique(path.MatchRelative().AtParent().AtParent().AtAnyListIndex().AtName("name")),
 							},
 						},
 						"region": schema.StringAttribute{
@@ -225,7 +237,7 @@ func (r *formation) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 												MarkdownDescription: "Envs is a list of environment variables to set on all containers in this Armada.",
 												Optional:            true,
 												NestedObject: schema.NestedAttributeObject{
-													Attributes: core.EnvVarAttributes(),
+													Attributes: core.EnvVarAttributes(formationValidator, "spec.vessels[?].override.containers[?].env[?]"),
 												},
 											},
 										},
@@ -261,15 +273,13 @@ func (r *formation) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
 				},
-				NestedObject: mps.ContainersAttributes(),
+				NestedObject: mps.ContainersAttributes(formationValidator, "spec.template.spec.containers[?]"),
 			},
 			"health_checks": schema.SingleNestedAttribute{
 				Description:         "HealthChecks is the health checking configuration for Agones game servers.",
 				MarkdownDescription: "HealthChecks is the health checking configuration for Agones game servers.",
 				Optional:            true,
-				Computed:            true,
-				Default:             mps.HealthChecksModel{}.Default(),
-				Attributes:          mps.HealthCheckAttributes(),
+				Attributes:          mps.HealthCheckAttributes(formationValidator, "spec.template.spec.health"),
 			},
 			"termination_configuration": schema.SingleNestedAttribute{
 				Description:         "TerminationConfiguration defines the termination grace period for game servers.",
@@ -369,8 +379,10 @@ func (r *formation) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Optional:            true,
 				ElementType:         types.StringType,
 				Validators: []validator.List{
-					validators.NameValidator{},
-					listvalidator.UniqueValues(),
+					listvalidator.ValueStringsAre(
+						validators.NameValidator{},
+						validators.GFFieldString(formationValidator, "spec.template.spec.gatewayPolicies[?]"),
+					),
 				},
 			},
 			"profiling_enabled": schema.BoolAttribute{
@@ -443,6 +455,7 @@ func (r *formation) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	plan = newFormationModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -468,6 +481,7 @@ func (r *formation) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	state = newFormationModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
@@ -495,8 +509,7 @@ func (r *formation) Update(ctx context.Context, req resource.UpdateRequest, resp
 		return
 	}
 
-	outObj, err := r.clientSet.FormationV1().Formations(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
-	if err != nil {
+	if _, err = r.clientSet.FormationV1().Formations(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Formation",
 			fmt.Sprintf("Could not patch for Formation: %v", err),
@@ -504,7 +517,8 @@ func (r *formation) Update(ctx context.Context, req resource.UpdateRequest, resp
 		return
 	}
 
-	plan = newFormationModel(outObj)
+	plan.ID = types.StringValue(cache.NewObjectName(newObj.Environment, newObj.Name).String())
+	plan.ImageUpdaterTarget = container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeFormation, oldObj.Name, oldObj.Environment)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

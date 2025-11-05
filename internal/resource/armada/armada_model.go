@@ -241,7 +241,7 @@ func toVolume(vol volumeModel) armadav1.Volume {
 		Name: vol.Name.ValueString(),
 	}
 	if vol.EmptyDir != nil {
-		res.SizeLimit = conv.QuantityPointer(vol.EmptyDir.SizeLimit)
+		res.SizeLimit = conv.Quantity(vol.EmptyDir.SizeLimit)
 	}
 	return res
 }

@@ -42,17 +42,17 @@ func newFormationModel(obj *formationv1.Formation) formationModel {
 		Environment:           types.StringValue(obj.Environment),
 		Description:           conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
 		Labels:                conv.ForEachMapItem(obj.Labels, types.StringValue),
-		Annotations:           conv.ForEachMapItem(conv.MapWithoutKey(obj.Annotations, profilingAnnotation), types.StringValue),
+		Annotations:           conv.ForEachMapItem(obj.Annotations, types.StringValue),
 		VolumeTemplates:       conv.ForEachSliceItem(obj.Spec.VolumeTemplates, newVolumeTemplate),
 		Vessels:               conv.ForEachSliceItem(obj.Spec.Vessels, newVesselTemplateModel),
-		GameServerLabels:      conv.ForEachMapItem(obj.Spec.Template.Labels, types.StringValue),
+		GameServerLabels:      conv.ForEachMapItem(conv.MapWithoutKey(obj.Spec.Template.Labels, profilingKey), types.StringValue),
 		GameServerAnnotations: conv.ForEachMapItem(obj.Spec.Template.Annotations, types.StringValue),
 		Containers:            conv.ForEachSliceItem(obj.Spec.Template.Spec.Containers, mps.NewContainerForFormation),
 		HealthChecks:          mps.NewHealthChecks(obj.Spec.Template.Spec.Health),
 		TerminationConfig:     newTerminationConfig(obj.Spec.Template.Spec.TerminationGracePeriodSeconds, obj.Spec.TerminationGracePeriods),
 		Volumes:               conv.ForEachSliceItem(obj.Spec.Template.Spec.Volumes, newVolumeModel),
 		GatewayPolicies:       conv.ForEachSliceItem(obj.Spec.Template.Spec.GatewayPolicies, types.StringValue),
-		ProfilingEnabled:      conv.BoolFromMapKey(obj.Annotations, profilingAnnotation),
+		ProfilingEnabled:      conv.BoolFromMapKey(obj.Spec.Template.Labels, profilingKey, types.BoolValue(false)),
 		ImageUpdaterTarget:    container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeFormation, obj.Name, obj.Environment),
 	}
 }
@@ -63,17 +63,17 @@ func (m formationModel) ToObject() *formationv1.Formation {
 			Name:        m.Name.ValueString(),
 			Environment: m.Environment.ValueString(),
 			Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
-			Annotations: conv.ForEachMapItem(
-				conv.MapWithBool(m.Annotations, profilingAnnotation, m.ProfilingEnabled),
-				func(v types.String) string { return v.ValueString() },
-			),
+			Annotations: conv.ForEachMapItem(m.Annotations, func(v types.String) string { return v.ValueString() }),
 		},
 		Spec: formationv1.FormationSpec{
 			Description: m.Description.ValueString(),
 			Vessels:     conv.ForEachSliceItem(m.Vessels, toVesselTemplateModel),
 			Template: formationv1.GameServerTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels:      conv.ForEachMapItem(m.GameServerLabels, func(v types.String) string { return v.ValueString() }),
+					Labels: conv.ForEachMapItem(
+						conv.MapWithBool(m.GameServerLabels, profilingKey, m.ProfilingEnabled),
+						func(v types.String) string { return v.ValueString() },
+					),
 					Annotations: conv.ForEachMapItem(m.GameServerAnnotations, func(v types.String) string { return v.ValueString() }),
 				},
 				Spec: formationv1.GameServerSpec{
@@ -115,7 +115,7 @@ func toVolumeTemplateModel(m VolumeTemplateModel) formationv1.VolumeTemplate {
 		Spec: formationv1.VolumeTemplateSpec{
 			VolumeSpec: v1beta1.VolumeSpec{
 				VolumeStoreName: m.VolumeStoreName.ValueString(),
-				Capacity:        conv.Quantity(m.Capacity),
+				Capacity:        *conv.Quantity(m.Capacity),
 			},
 			ReclaimPolicy: formationv1.VolumeTemplateReclaimPolicy(m.ReclaimPolicy.ValueString()),
 		},
