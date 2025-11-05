@@ -40,12 +40,10 @@ var (
 			},
 		},
 		Spec: formationv1.VesselSpec{
-
 			Description: "Test Vessel Description",
 			Region:      "us-west",
 			Suspend:     ptr.Of(true),
 			Template: formationv1.GameServerTemplateSpec{
-
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
 						"gameserver-label-key": "gameserver-label-value",
