@@ -135,13 +135,9 @@ func (r *formation) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 							},
 						},
 						"reclaim_policy": schema.StringAttribute{
-							Description: "The reclaim policy for a volume created by a Formation.",
-							MarkdownDescription: `The reclaim policy for a volume created by a Formation.
-
-**Delete:** (recommended) This means that a backing Kubernetes volume is automatically deleted when the user deletes the persistent volume.
-
-**Retain:** If a user deletes the persistent volume, the backing Kubernetes volume will not be deleted. Instead, it is moved to the Released phase, where all of its data can be manually recovered by Nitrado for an undetermined time.`,
-							Required: true,
+							Description:         "The reclaim policy for a volume created by a Formation.",
+							MarkdownDescription: "The reclaim policy for a volume created by a Formation.",
+							Required:            true,
 							Validators: []validator.String{
 								stringvalidator.OneOf("Retain", "Delete"),
 							},
@@ -209,7 +205,7 @@ func (r *formation) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 							MarkdownDescription: "Override is the optional override configuration for Vessels.",
 							Optional:            true,
 							Attributes: map[string]schema.Attribute{
-								"gameserver_labels": schema.MapAttribute{
+								"labels": schema.MapAttribute{
 									Description:         "A map of keys and values that can be used to organize and categorize objects.",
 									MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
 									Optional:            true,
