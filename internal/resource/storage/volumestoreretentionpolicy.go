@@ -266,7 +266,7 @@ func (r *volumeStoreRetentionPolicy) Delete(ctx context.Context, req resource.De
 		return
 	}
 
-	if err = wait.PollUntilNotFound(ctx, r.clientSet.CoreV1().Regions(state.Environment.ValueString()), state.Name.ValueString()); err != nil {
+	if err = wait.PollUntilNotFound(ctx, r.clientSet.StorageV1Beta1().VolumeStoreRetentionPolicies(state.Environment.ValueString()), state.Name.ValueString()); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Waiting for VolumeStoreRetentionPolicy Deletion",
 			fmt.Sprintf("Timed out waiting for deletion of VolumeStoreRetentionPolicy: %v", err),
