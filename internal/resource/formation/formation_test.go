@@ -7,10 +7,15 @@ import (
 	"testing"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	formationv1 "github.com/gamefabric/gf-core/pkg/api/formation/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/formation"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators/validatorstest"
+	tfresource "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/stretchr/testify/require"
 )
 
 func TestResourceFormation(t *testing.T) {
@@ -392,6 +397,24 @@ func TestResourceFormation_Validates(t *testing.T) {
 				},
 			})
 		})
+	}
+}
+
+func TestFormationResourceGameFabricValidators(t *testing.T) {
+	t.Parallel()
+
+	resp := &tfresource.SchemaResponse{}
+
+	arm := formation.NewFormation()
+	arm.Schema(t.Context(), tfresource.SchemaRequest{}, resp)
+
+	want := validatorstest.CollectJSONPaths(&formationv1.Formation{})
+	got := validatorstest.CollectPathExpressions(resp.Schema)
+
+	require.NotEmpty(t, got)
+	require.NotEmpty(t, want)
+	for _, path := range got {
+		require.Containsf(t, want, path, "The validator path %q was not found in the Formation API object", path)
 	}
 }
 
