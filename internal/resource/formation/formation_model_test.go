@@ -3,6 +3,7 @@ package formation
 import (
 	"testing"
 
+	v3 "agones.dev/agones/pkg/apis/agones/v1"
 	"github.com/gamefabric/gf-apiclient/tools/cache"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	v1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
@@ -11,8 +12,10 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
+	"github.com/hamba/pkg/v2/ptr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
+	v2 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
@@ -27,14 +30,6 @@ func TestFormationModel_ToObject(t *testing.T) {
 }
 
 var (
-	testGracePeriod       = int64(30)
-	testMaintenance       = int64(60)
-	testSpecChange        = int64(90)
-	testUserInitiated     = int64(120)
-	testSuspend           = false
-	testQuantity5Gi       = resource.MustParse("5Gi")
-	testSizeLimitQuantity = resource.MustParse("1Gi")
-
 	testFormationObject = &formationv1.Formation{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        "test-formation",
@@ -56,7 +51,7 @@ var (
 					Spec: formationv1.VolumeTemplateSpec{
 						VolumeSpec: v1beta1.VolumeSpec{
 							VolumeStoreName: "test-volume-store",
-							Capacity:        testQuantity5Gi,
+							Capacity:        resource.MustParse("5Gi"),
 						},
 						ReclaimPolicy: formationv1.VolumeTemplateReclaimPolicyRetain,
 					},
@@ -67,7 +62,7 @@ var (
 					Name:        "test-vessel",
 					Region:      "test-region",
 					Description: "Test Vessel Description",
-					Suspend:     &testSuspend,
+					Suspend:     ptr.Of(true),
 					Override: formationv1.VesselOverride{
 						Labels: map[string]string{
 							"override-label-key": "override-label-value",
@@ -97,13 +92,11 @@ var (
 					},
 				},
 				Spec: formationv1.GameServerSpec{
-					Containers: []v1.Container{
+					Containers: []formationv1.Container{
 						{
-							Name: "test-container",
-							ImageRef: v1.ImageRef{
-								Name:   "test-image",
-								Branch: "test-branch",
-							},
+							Name:    "test-container",
+							Image:   "test-image",
+							Branch:  "test-branch",
 							Command: []string{"/app"},
 							Args:    []string{"--arg1", "value1"},
 							Env: []v1.EnvVar{
@@ -112,51 +105,46 @@ var (
 									Value: "test-value",
 								},
 							},
-							Ports: []v1.ContainerPort{
+							Ports: []formationv1.Port{
 								{
-									Name:          "http",
-									Protocol:      v1.ProtocolTCP,
-									ContainerPort: 8080,
+									Name:               "http",
+									Policy:             "Passthrough",
+									ContainerPort:      8080,
+									Protocol:           v2.ProtocolTCP,
+									ProtectionProtocol: ptr.Of("example-protocol"),
 								},
 							},
-							VolumeMounts: []v1.VolumeMount{
+							VolumeMounts: []v2.VolumeMount{
 								{
 									Name:      "test-volume",
 									MountPath: "/data",
 								},
 							},
-							Resources: v1.ResourceRequirements{
-								Limits: v1.ResourceList{
-									v1.ResourceCPU:    resource.MustParse("500m"),
-									v1.ResourceMemory: resource.MustParse("512Mi"),
+							Resources: v2.ResourceRequirements{
+								Limits: v2.ResourceList{
+									v2.ResourceCPU:    resource.MustParse("500m"),
+									v2.ResourceMemory: resource.MustParse("512Mi"),
 								},
-								Requests: v1.ResourceList{
-									v1.ResourceCPU:    resource.MustParse("250m"),
-									v1.ResourceMemory: resource.MustParse("256Mi"),
+								Requests: v2.ResourceList{
+									v2.ResourceCPU:    resource.MustParse("250m"),
+									v2.ResourceMemory: resource.MustParse("256Mi"),
 								},
 							},
 						},
 					},
-					Health: &formationv1.HealthChecks{
-						Startup: &formationv1.HealthCheck{
-							Enabled: true,
-							Probe: v1.Probe{
-								HTTPGet: &v1.HTTPGetAction{
-									Port: v1.IntOrString{IntVal: 8080},
-									Path: "/startup",
-								},
-								InitialDelaySeconds: 5,
-								PeriodSeconds:       10,
-							},
-						},
+					Health: v3.Health{
+						Disabled:            true,
+						PeriodSeconds:       10,
+						FailureThreshold:    20,
+						InitialDelaySeconds: 30,
 					},
-					TerminationGracePeriodSeconds: &testGracePeriod,
+					TerminationGracePeriodSeconds: ptr.Of[int64](100),
 					Volumes: []formationv1.Volume{
 						{
 							Name: "test-volume",
 							Type: formationv1.VolumeTypeEmptyDir,
 							EmptyDir: &formationv1.EmptyDirVolumeSource{
-								SizeLimit: &testSizeLimitQuantity,
+								SizeLimit: ptr.Of(resource.MustParse("1Gi")),
 							},
 						},
 					},
@@ -164,9 +152,9 @@ var (
 				},
 			},
 			TerminationGracePeriods: &formationv1.VesselTerminationGracePeriods{
-				Maintenance:   &testMaintenance,
-				SpecChange:    &testSpecChange,
-				UserInitiated: &testUserInitiated,
+				Maintenance:   ptr.Of[int64](120),
+				SpecChange:    ptr.Of[int64](240),
+				UserInitiated: ptr.Of[int64](360),
 			},
 		},
 	}
@@ -195,7 +183,7 @@ var (
 				Name:        types.StringValue("test-vessel"),
 				Region:      types.StringValue("test-region"),
 				Description: types.StringValue("Test Vessel Description"),
-				Suspend:     types.BoolValue(false),
+				Suspend:     types.BoolValue(true),
 				Override: &VesselOverrideModel{
 					Labels: map[string]types.String{
 						"override-label-key": types.StringValue("override-label-value"),
@@ -229,7 +217,7 @@ var (
 		Containers: []mps.ContainerModel{
 			{
 				Name: types.StringValue("test-container"),
-				ImageRef: &container.ImageRefModel{
+				ImageRef: mps.ImageRefModel{
 					Name:   types.StringValue("test-image"),
 					Branch: types.StringValue("test-branch"),
 				},
@@ -246,11 +234,13 @@ var (
 						Value: types.StringValue("test-value"),
 					},
 				},
-				Ports: []mps.ContainerPortModel{
+				Ports: []mps.PortModel{
 					{
-						Name:          types.StringValue("http"),
-						Protocol:      types.StringValue("TCP"),
-						ContainerPort: types.Int64Value(8080),
+						Name:               types.StringValue("http"),
+						Protocol:           types.StringValue("TCP"),
+						ContainerPort:      types.Int32Value(8080),
+						Policy:             types.StringValue("Passthrough"),
+						ProtectionProtocol: types.StringValue("example-protocol"),
 					},
 				},
 				VolumeMounts: []mps.VolumeMountModel{
@@ -259,12 +249,12 @@ var (
 						MountPath: types.StringValue("/data"),
 					},
 				},
-				Resources: &mps.ResourceRequirementsModel{
-					Limits: &mps.ResourceListModel{
+				Resources: &mps.ResourcesModel{
+					Limits: &mps.ResourceSpecModel{
 						CPU:    types.StringValue("500m"),
 						Memory: types.StringValue("512Mi"),
 					},
-					Requests: &mps.ResourceListModel{
+					Requests: &mps.ResourceSpecModel{
 						CPU:    types.StringValue("250m"),
 						Memory: types.StringValue("256Mi"),
 					},
@@ -272,21 +262,16 @@ var (
 			},
 		},
 		HealthChecks: &mps.HealthChecksModel{
-			Startup: &mps.HealthCheckModel{
-				Enabled: types.BoolValue(true),
-				HTTPGet: &mps.HTTPGetActionModel{
-					Port: types.Int64Value(8080),
-					Path: types.StringValue("/startup"),
-				},
-				InitialDelaySeconds: types.Int64Value(5),
-				PeriodSeconds:       types.Int64Value(10),
-			},
+			Disabled:            types.BoolValue(true),
+			PeriodSeconds:       types.Int32Value(10),
+			FailureThreshold:    types.Int32Value(20),
+			InitialDelaySeconds: types.Int32Value(30),
 		},
 		TerminationConfig: &terminationConfigModel{
-			GracePeriod:   types.Int64Value(30),
-			Maintenance:   types.Int64Value(60),
-			SpecChange:    types.Int64Value(90),
-			UserInitiated: types.Int64Value(120),
+			GracePeriod:   types.Int64Value(100),
+			Maintenance:   types.Int64Value(120),
+			SpecChange:    types.Int64Value(240),
+			UserInitiated: types.Int64Value(360),
 		},
 		Volumes: []volumeModel{
 			{
