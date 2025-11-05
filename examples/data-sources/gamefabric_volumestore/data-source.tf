@@ -7,4 +7,3 @@ data "gamefabric_volumestore" "by_name" {
 data "gamefabric_volumestore" "by_region" {
   region = "eu"
 }
-
