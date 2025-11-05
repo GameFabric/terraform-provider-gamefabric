@@ -181,6 +181,7 @@ func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource
 		dsprotection.NewProtocols,
 		dsstorage.NewVolume,
 		dsstorage.NewVolumes,
+		dsstorage.NewVolumeStore,
 	}
 }
 
