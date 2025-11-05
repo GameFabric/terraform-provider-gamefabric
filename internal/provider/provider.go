@@ -182,6 +182,7 @@ func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource
 		dsstorage.NewVolume,
 		dsstorage.NewVolumes,
 		dsstorage.NewVolumeStore,
+		dsstorage.NewVolumeStores,
 	}
 }
 
