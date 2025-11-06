@@ -149,7 +149,7 @@ func toVesselTemplateModel(m VesselTemplateModel) formationv1.VesselTemplate {
 		Description: m.Description.ValueString(),
 		Suspend:     m.Suspend.ValueBoolPointer(),
 		Override: formationv1.VesselOverride{
-			Labels:     conv.ForEachMapItem(ovr.Labels, func(v types.String) string { return v.ValueString() }),
+			Labels:     conv.ForEachMapItem(ovr.GameServerLabels, func(v types.String) string { return v.ValueString() }),
 			Containers: conv.ForEachSliceItem(ovr.Containers, toContainerOverrideModel),
 		},
 	}
@@ -157,8 +157,8 @@ func toVesselTemplateModel(m VesselTemplateModel) formationv1.VesselTemplate {
 
 // VesselOverrideModel represents overrides for a vessel.
 type VesselOverrideModel struct {
-	Labels     map[string]types.String        `tfsdk:"labels"`
-	Containers []VesselContainerOverrideModel `tfsdk:"containers"`
+	GameServerLabels map[string]types.String        `tfsdk:"gameserver_labels"`
+	Containers       []VesselContainerOverrideModel `tfsdk:"containers"`
 }
 
 func newVesselOverrideModel(obj formationv1.VesselOverride) *VesselOverrideModel {
@@ -166,8 +166,8 @@ func newVesselOverrideModel(obj formationv1.VesselOverride) *VesselOverrideModel
 		return nil
 	}
 	return &VesselOverrideModel{
-		Labels:     conv.ForEachMapItem(obj.Labels, types.StringValue),
-		Containers: conv.ForEachSliceItem(obj.Containers, newContainerOverrideModel),
+		GameServerLabels: conv.ForEachMapItem(obj.Labels, types.StringValue),
+		Containers:       conv.ForEachSliceItem(obj.Containers, newContainerOverrideModel),
 	}
 }
 
