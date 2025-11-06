@@ -173,7 +173,7 @@ Optional:
 Optional:
 
 - `containers` (Attributes List) Containers is a list of containers belonging to the game server. (see [below for nested schema](#nestedatt--vessels--override--containers))
-- `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
+- `gameserver_labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
 
 <a id="nestedatt--vessels--override--containers"></a>
 ### Nested Schema for `vessels.override.containers`
