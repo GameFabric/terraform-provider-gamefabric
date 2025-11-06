@@ -62,8 +62,8 @@ func TestResourceFormation(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.0.region", "eu"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.0.description", "Default vessel description"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.0.suspend", "false"),
-					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.0.override.labels.%", "1"),
-					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.0.override.labels.vessel-override-label", "override-value"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.0.override.gameserver_labels.%", "1"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.0.override.gameserver_labels.vessel-override-label", "override-value"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.0.override.containers.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.0.override.containers.0.command.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.0.override.containers.0.command.0", "start.sh"),
@@ -496,7 +496,7 @@ func testResourceFormationConfigFull() string {
       description = "Default vessel description"
       suspend = false
       override = { 
-        labels = {
+        gameserver_labels = {
           "vessel-override-label": "override-value"
         }
         containers = [{
@@ -647,7 +647,7 @@ func testResourceFormationConfigFullInvalid() string {
       name = "invalid_vessel_name!"
       region = "invalid_region!"
       override = { 
-        labels = {
+        gameserver_labels = {
           "invalid_override_label_key!": "vessel-label"
           "example5": "invalid_override_label_value!"
         }
