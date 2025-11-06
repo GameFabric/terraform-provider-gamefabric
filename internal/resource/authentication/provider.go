@@ -85,8 +85,8 @@ func (r *provider) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Optional:            true,
 			},
 			"oidc": schema.SingleNestedAttribute{
-				Description:         "Autoscaling configuration for the game servers.",
-				MarkdownDescription: "Autoscaling configuration for the game servers.",
+				Description:         "OIDC (OpenID Connect) provider configuration for the authentication provider.",
+				MarkdownDescription: "OIDC (OpenID Connect) provider configuration for the authentication provider.",
 				Required:            true,
 				Attributes: map[string]schema.Attribute{
 					"client_id": schema.StringAttribute{
@@ -111,11 +111,11 @@ func (r *provider) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 						Required:            true,
 					},
 					"acr_values": schema.ListAttribute{
-						Description: "ACRValues (Authentication Context Class Reference Values) that specifies the Authentication Context Class " + "" +
-							"Values within the Authentication Request that the Authorization Server is being requested to use for" +
+						Description: "ACRValues (Authentication Context Class Reference Values) that specifies the Authentication Context Class " +
+							"Values within the Authentication Request that the Authorization Server is being requested to use for " +
 							"processing requests from this Client, with the values appearing in order of preference.",
-						MarkdownDescription: "ACRValues (Authentication Context Class Reference Values) that specifies the Authentication Context Class " + "" +
-							"Values within the Authentication Request that the Authorization Server is being requested to use for" +
+						MarkdownDescription: "ACRValues (Authentication Context Class Reference Values) that specifies the Authentication Context Class " +
+							"Values within the Authentication Request that the Authorization Server is being requested to use for " +
 							"processing requests from this Client, with the values appearing in order of preference.",
 						Optional:    true,
 						ElementType: types.StringType,
@@ -217,11 +217,11 @@ func (r *provider) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 					},
 					"hosted_domains": schema.ListAttribute{
 						Description: "HostedDomains was an optional list of whitelisted domains when using the OIDC provider with Google. " +
-							"Only users from a whitelisted domain were allowed to log in." +
+							"Only users from a whitelisted domain were allowed to log in. " +
 							"Support for this option was removed from the OIDC provider. " +
 							"Consider switching to the Google provider which supports this option.",
 						MarkdownDescription: "HostedDomains was an optional list of whitelisted domains when using the OIDC provider with Google. " +
-							"Only users from a whitelisted domain were allowed to log in." +
+							"Only users from a whitelisted domain were allowed to log in. " +
 							"Support for this option was removed from the OIDC provider. " +
 							"Consider switching to the Google provider which supports this option.",
 						Optional:    true,

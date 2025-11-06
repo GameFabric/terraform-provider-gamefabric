@@ -17,7 +17,7 @@ description: |-
 
 ### Required
 
-- `oidc` (Attributes) Autoscaling configuration for the game servers. (see [below for nested schema](#nestedatt--oidc))
+- `oidc` (Attributes) OIDC (OpenID Connect) provider configuration for the authentication provider. (see [below for nested schema](#nestedatt--oidc))
 
 ### Optional
 
@@ -40,7 +40,7 @@ Required:
 
 Optional:
 
-- `acr_values` (List of String) ACRValues (Authentication Context Class Reference Values) that specifies the Authentication Context Class Values within the Authentication Request that the Authorization Server is being requested to use forprocessing requests from this Client, with the values appearing in order of preference.
+- `acr_values` (List of String) ACRValues (Authentication Context Class Reference Values) that specifies the Authentication Context Class Values within the Authentication Request that the Authorization Server is being requested to use for processing requests from this Client, with the values appearing in order of preference.
 - `allowed_groups` (List of String) AllowedGroups is a list of groups that are allowed to authenticate with this provider.
 - `basic_auth_unsupported` (Boolean) Basic auth unsupported causes client_secret to be passed as POST parameters instead of basic auth. This is specifically "NOT RECOMMENDED" by the OAuth2 RFC, but some providers require it.
 
@@ -48,7 +48,7 @@ https://tools.ietf.org/html/rfc6749#section-2.3.1
 - `claim_mapping` (Attributes) Claim mapping contains the claim mapping options. (see [below for nested schema](#nestedatt--oidc--claim_mapping))
 - `claim_modification` (Attributes) Claim modification contains all claim mutations options. (see [below for nested schema](#nestedatt--oidc--claim_modification))
 - `get_user_info` (Boolean) GetUserInfo uses the userinfo endpoint to get additional claims for the token. This is especially useful where upstreams return "thin" id tokens.
-- `hosted_domains` (List of String) HostedDomains was an optional list of whitelisted domains when using the OIDC provider with Google. Only users from a whitelisted domain were allowed to log in.Support for this option was removed from the OIDC provider. Consider switching to the Google provider which supports this option.
+- `hosted_domains` (List of String) HostedDomains was an optional list of whitelisted domains when using the OIDC provider with Google. Only users from a whitelisted domain were allowed to log in. Support for this option was removed from the OIDC provider. Consider switching to the Google provider which supports this option.
 - `insecure_enable_groups` (Boolean) InsecureEnableGroups enables groups claims.
 - `insecure_skip_email_verified` (Boolean) Insecure skip email verified overrides the value of email_verified to true in the returned claims.
 - `insecure_skip_verify` (Boolean) Insecure skip verify disabled certificate verification. Use with caution.
