@@ -107,6 +107,9 @@ func (r *volume) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "The volume store used to store the volume in.",
 				MarkdownDescription: "The volume store used to store the volume in.",
 				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(), // Immutable.
+				},
 			},
 			"capacity": schema.StringAttribute{
 				Description:         "The size of the volume.",
