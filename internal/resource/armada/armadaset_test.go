@@ -57,8 +57,8 @@ func TestResourceArmadaSet(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.envs.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.envs.0.name", "REGION_ENV"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.envs.0.value", "eu_value"),
-					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.labels.%", "1"),
-					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.labels.region-label-key", "region-label-value"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.gameserver_labels.%", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.gameserver_labels.region-label-key", "region-label-value"),
 
 					// Game server labels & annotations.
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "gameserver_labels.%", "1"),
@@ -515,7 +515,7 @@ func testResourceArmadaSetConfigFull() string {
           value = "eu_value"
         }
       ]
-      labels = {
+      gameserver_labels = {
         "region-label-key" = "region-label-value"
       }
     }
@@ -658,7 +658,7 @@ func testResourceArmadaSetConfigFullInvalid() string {
           value = "valid_value"
         }
       ]
-      labels = {
+      gameserver_labels = {
         "invalid-region-label-key!" = "region-label"
         "valid-region-label-key" = "invalid-region-label-value!"
       }

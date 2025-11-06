@@ -220,7 +220,7 @@ var (
 						Value: types.StringValue("override_value"),
 					},
 				},
-				Labels: map[string]types.String{
+				GameServerLabels: map[string]types.String{
 					"override-label-key": types.StringValue("override-label-value"),
 				},
 			},

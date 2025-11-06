@@ -211,7 +211,7 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 								Attributes: core.EnvVarAttributes(armadaSetValidator, "spec.override[?].env[?]"),
 							},
 						},
-						"labels": schema.MapAttribute{
+						"gameserver_labels": schema.MapAttribute{
 							Description:         "A map of keys and values that can be used to organize and categorize objects.",
 							MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
 							Optional:            true,
