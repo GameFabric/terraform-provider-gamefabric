@@ -112,17 +112,17 @@ func newRegionModels(spec armadav1.ArmadaSetSpec) []regionModel {
 
 		reg := regs[idx]
 		reg.Envs = conv.ForEachSliceItem(val.Env, core.NewEnvVarModel)
-		reg.Labels = conv.ForEachMapItem(val.Labels, types.StringValue)
+		reg.GameServerLabels = conv.ForEachMapItem(val.Labels, types.StringValue)
 		regs[idx] = reg
 	}
 	return regs
 }
 
 type regionModel struct {
-	Name     types.String            `tfsdk:"name"`
-	Replicas []replicaModel          `tfsdk:"replicas"`
-	Envs     []core.EnvVarModel      `tfsdk:"envs"`
-	Labels   map[string]types.String `tfsdk:"labels"`
+	Name             types.String            `tfsdk:"name"`
+	Replicas         []replicaModel          `tfsdk:"replicas"`
+	Envs             []core.EnvVarModel      `tfsdk:"envs"`
+	GameServerLabels map[string]types.String `tfsdk:"gameserver_labels"`
 }
 
 func toArmadaTemplate(reg regionModel) armadav1.ArmadaTemplate {
@@ -143,6 +143,6 @@ func toArmadaOverride(reg regionModel) armadav1.ArmadaOverride {
 	return armadav1.ArmadaOverride{
 		Region: reg.Name.ValueString(),
 		Env:    conv.ForEachSliceItem(reg.Envs, func(item core.EnvVarModel) corev1.EnvVar { return item.ToObject() }),
-		Labels: conv.ForEachMapItem(reg.Labels, func(v types.String) string { return v.ValueString() }),
+		Labels: conv.ForEachMapItem(reg.GameServerLabels, func(v types.String) string { return v.ValueString() }),
 	}
 }
