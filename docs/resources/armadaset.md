@@ -330,7 +330,7 @@ Required:
 Optional:
 
 - `envs` (Attributes List) Environment variables for the region. (see [below for nested schema](#nestedatt--regions--envs))
-- `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
+- `gameserver_labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
 
 <a id="nestedatt--regions--replicas"></a>
 ### Nested Schema for `regions.replicas`
