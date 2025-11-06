@@ -205,7 +205,7 @@ func (r *formation) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 							MarkdownDescription: "Override is the optional override configuration for Vessels.",
 							Optional:            true,
 							Attributes: map[string]schema.Attribute{
-								"labels": schema.MapAttribute{
+								"gameserver_labels": schema.MapAttribute{
 									Description:         "A map of keys and values that can be used to organize and categorize objects.",
 									MarkdownDescription: "A map of keys and values that can be used to organize and categorize objects.",
 									Optional:            true,
