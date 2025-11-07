@@ -42,7 +42,7 @@ func (r *group) Metadata(_ context.Context, req resource.MetadataRequest, resp *
 	resp.TypeName = req.ProviderTypeName + "_group"
 }
 
-// Schema defines the schema for this data source.
+// Schema defines the schema for this resource.
 func (r *group) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
