@@ -11,7 +11,7 @@ A Vessel manages a single, unique game server instance with its own identity. Ea
 
 Vessels are ideal for game servers that maintain persistent state, have unique identities (often with custom names), or appear in server lists. They're commonly used for dedicated servers where players expect to reconnect to the same specific instance.
 
-For games with persistent state that require persistent storage, please contact your Customer Success Manager to discuss your use case and enable this alpha feature.
+For games with persistent state that require persistent storage, please contact your Customer Success Manager to discuss your use case and enable this beta feature.
 
 For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/getting-started/glossary#vessel">GameFabric documentation</a>.
 
