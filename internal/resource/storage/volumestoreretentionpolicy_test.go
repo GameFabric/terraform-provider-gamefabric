@@ -20,7 +20,6 @@ import (
 func TestVolumeStoreRetentionPolicy(t *testing.T) {
 	t.Parallel()
 
-	name := "test-retention-policy"
 	pf, cs := providertest.ProtoV6ProviderFactories(t)
 
 	resource.Test(t, resource.TestCase{
@@ -29,9 +28,8 @@ func TestVolumeStoreRetentionPolicy(t *testing.T) {
 		CheckDestroy:             testResourceVolumeStoreRetentionPolicyDestroy(t, cs),
 		Steps: []resource.TestStep{
 			{
-				Config: testResourceVolumeStoreRetentionPolicyConfigBasic(name),
+				Config: testResourceVolumeStoreRetentionPolicyConfigBasic(),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("gamefabric_volumestore_retention_policy.test", "name", name),
 					resource.TestCheckResourceAttr("gamefabric_volumestore_retention_policy.test", "environment", "dflt"),
 					resource.TestCheckResourceAttr("gamefabric_volumestore_retention_policy.test", "volume_store", "default-volumestore"),
 					resource.TestCheckResourceAttr("gamefabric_volumestore_retention_policy.test", "offline_snapshot.count", "12"),
@@ -43,9 +41,8 @@ func TestVolumeStoreRetentionPolicy(t *testing.T) {
 				ImportState:  true,
 			},
 			{
-				Config: testResourceVolumeStoreRetentionPolicyConfigBasicWithOnline(name),
+				Config: testResourceVolumeStoreRetentionPolicyConfigBasicWithOnline(),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("gamefabric_volumestore_retention_policy.test", "name", name),
 					resource.TestCheckResourceAttr("gamefabric_volumestore_retention_policy.test", "environment", "dflt"),
 					resource.TestCheckResourceAttr("gamefabric_volumestore_retention_policy.test", "volume_store", "default-volumestore"),
 					resource.TestCheckResourceAttr("gamefabric_volumestore_retention_policy.test", "online_snapshot.count", "12"),
@@ -74,28 +71,26 @@ func TestVolumeStoreRetentionPolicyResourceGameFabricValidators(t *testing.T) {
 	}
 }
 
-func testResourceVolumeStoreRetentionPolicyConfigBasic(name string) string {
-	return fmt.Sprintf(`resource "gamefabric_volumestore_retention_policy" "test" {
-  name = "%s"
+func testResourceVolumeStoreRetentionPolicyConfigBasic() string {
+	return `resource "gamefabric_volumestore_retention_policy" "test" {
   environment = "dflt"
   volume_store = "default-volumestore"
   offline_snapshot = {
     count = 12
     days = 30
   }
-}`, name)
+}`
 }
 
-func testResourceVolumeStoreRetentionPolicyConfigBasicWithOnline(name string) string {
-	return fmt.Sprintf(`resource "gamefabric_volumestore_retention_policy" "test" {
-  name = "%s"
+func testResourceVolumeStoreRetentionPolicyConfigBasicWithOnline() string {
+	return `resource "gamefabric_volumestore_retention_policy" "test" {
   environment = "dflt"
   volume_store = "default-volumestore"
   online_snapshot = {
     count = 12
     days = 30
   }
-}`, name)
+}`
 }
 
 func testResourceVolumeStoreRetentionPolicyDestroy(t *testing.T, cs clientset.Interface) func(s *terraform.State) error {
