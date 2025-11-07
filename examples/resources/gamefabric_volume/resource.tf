@@ -40,26 +40,6 @@ resource "gamefabric_vessel" "this" {
     {
       name      = "default" # the gameserver container should always be named "default"
       image_ref = data.gamefabric_image.gameserver.image_ref
-      resources = {
-        requests = {
-          cpu    = "250m"
-          memory = "256Mi"
-        }
-      }
-      envs = [
-        {
-          name  = "SERVER_NAME"
-          value = "My Server ${data.gamefabric_region.europe.display_name}"
-        }
-      ]
-      ports = [
-        {
-          name           = "game"
-          protocol       = "TCP"
-          container_port = 27015
-          policy         = "Dynamic"
-        }
-      ]
       volume_mounts = [
         {
           name       = gamefabric_volume.example.name
