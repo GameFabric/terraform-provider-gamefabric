@@ -185,7 +185,7 @@ var (
 				Description: types.StringValue("Test Vessel Description"),
 				Suspend:     types.BoolValue(true),
 				Override: &VesselOverrideModel{
-					Labels: map[string]types.String{
+					GameServerLabels: map[string]types.String{
 						"override-label-key": types.StringValue("override-label-value"),
 					},
 					Containers: []VesselContainerOverrideModel{
