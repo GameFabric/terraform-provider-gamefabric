@@ -75,8 +75,8 @@ func (r *volumeStoreRetentionPolicy) Schema(_ context.Context, _ resource.Schema
 				},
 			},
 			"volume_store": schema.StringAttribute{
-				Description:         "The name of the volume to find snapshots on.",
-				MarkdownDescription: "The name of the volume to find snapshots on.",
+				Description:         "The name of the volume store to apply retention policy to.",
+				MarkdownDescription: "The name of the volume store to apply retention policy to.",
 				Required:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},
