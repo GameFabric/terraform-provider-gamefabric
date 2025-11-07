@@ -18,12 +18,12 @@ description: |-
 ### Required
 
 - `name` (String) The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.
-- `users` (List of String) The users that are part of the group.
 
 ### Optional
 
 - `annotations` (Map of String) Annotations is an unstructured map of keys and values stored on an object.
 - `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
+- `users` (List of String) The users that are part of the group.
 
 ### Read-Only
 
