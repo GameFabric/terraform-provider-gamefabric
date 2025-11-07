@@ -18,7 +18,7 @@ description: |-
 ### Required
 
 - `environment` (String) The name of the environment the object belongs to.
-- `volume_store` (String) The name of the volume to find snapshots on.
+- `volume_store` (String) The name of the volume store to apply retention policy to.
 
 ### Optional
 
