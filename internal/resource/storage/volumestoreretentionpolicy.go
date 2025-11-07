@@ -258,7 +258,7 @@ func (r *volumeStoreRetentionPolicy) Delete(ctx context.Context, req resource.De
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting VolumeStoreRetentionPolicy",
-			fmt.Sprintf("Could not delete VolumeStoreRetentionPolicy: %v", err),
+			fmt.Sprintf("Could not delete VolumeStoreRetentionPolicy for volume store %q: %v", state.VolumeStore.ValueString(), err),
 		)
 		return
 	}
