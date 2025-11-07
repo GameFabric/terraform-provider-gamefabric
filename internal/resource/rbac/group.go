@@ -183,7 +183,7 @@ func (r *group) Update(ctx context.Context, req resource.UpdateRequest, resp *re
 	if _, err = r.clientSet.RBACV1().Groups().Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Group",
-			fmt.Sprintf("Could not patch for Group: %v", err),
+			fmt.Sprintf("Could not patch Group: %v", err),
 		)
 		return
 	}
