@@ -21,7 +21,7 @@ This example sets up a minimal armada in a single region for europe and creates 
 resource "gamefabric_imageupdater" "name" {
   branch = data.gamefabric_branch.prod.name
   image  = data.gamefabric_image.gameserver.image
-  target = gamefabric_armada.this.imageupdater_target
+  target = gamefabric_armada.this.image_updater_target
 }
 
 
