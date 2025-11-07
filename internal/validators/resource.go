@@ -29,12 +29,18 @@ func (v QuantityValidator) ValidateString(_ context.Context, req validator.Strin
 	}
 
 	val := req.ConfigValue.ValueString()
-	_, err := resource.ParseQuantity(val)
+	qty, err := resource.ParseQuantity(val)
 	if err != nil {
 		res.Diagnostics.AddError(
 			"Invalid resource quantity",
 			fmt.Sprintf("Resource quantity %q is invalid: %s", val, err.Error()),
 		)
 		return
+	}
+	if qty.String() != val {
+		res.Diagnostics.AddError(
+			"Invalid resource quantity format",
+			fmt.Sprintf("Resource quantity %q is not in canonical form, should be %q", val, qty.String()),
+		)
 	}
 }
