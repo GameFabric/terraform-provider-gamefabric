@@ -84,7 +84,7 @@ func (r *group) Schema(_ context.Context, _ resource.SchemaRequest, resp *resour
 			"users": schema.ListAttribute{
 				Description:         "The users that are part of the group.",
 				MarkdownDescription: "The users that are part of the group.",
-				Required:            true,
+				Optional:            true,
 				ElementType:         types.StringType,
 			},
 		},

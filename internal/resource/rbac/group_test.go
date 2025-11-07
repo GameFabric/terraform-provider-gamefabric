@@ -45,8 +45,6 @@ func TestGroup(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("gamefabric_group.test", "name", name),
 					resource.TestCheckResourceAttr("gamefabric_group.test", "labels.foo", "bar"),
-					resource.TestCheckResourceAttr("gamefabric_group.test", "users.#", "1"),
-					resource.TestCheckResourceAttr("gamefabric_group.test", "users.0", "user1@example.com"),
 				),
 			},
 		},
@@ -72,7 +70,6 @@ func testResourceGroupConfigBasicModified(name string) string {
   labels = {
 	foo = "bar"
   }
-  users = ["user1@example.com"]
 }`, name)
 }
 
