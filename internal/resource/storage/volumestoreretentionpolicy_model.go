@@ -12,7 +12,6 @@ import (
 
 type volumeStoreRetentionPolicyModel struct {
 	ID              types.String                        `tfsdk:"id"`
-	Name            types.String                        `tfsdk:"name"`
 	Environment     types.String                        `tfsdk:"environment"`
 	VolumeStore     types.String                        `tfsdk:"volume_store"`
 	OfflineSnapshot *volumeStoreRetentionPolicySnapshot `tfsdk:"offline_snapshot"`
@@ -22,7 +21,6 @@ type volumeStoreRetentionPolicyModel struct {
 func newVolumeStoreRetentionPolicyModel(obj *storagev1beta1.VolumeStoreRetentionPolicy) volumeStoreRetentionPolicyModel {
 	model := volumeStoreRetentionPolicyModel{
 		ID:          types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String()),
-		Name:        types.StringValue(obj.Name),
 		Environment: types.StringValue(obj.Environment),
 		VolumeStore: types.StringValue(obj.Spec.VolumeStoreName),
 	}
@@ -42,7 +40,7 @@ func newVolumeStoreRetentionPolicyModel(obj *storagev1beta1.VolumeStoreRetention
 func (m volumeStoreRetentionPolicyModel) ToObject() *storagev1beta1.VolumeStoreRetentionPolicy {
 	obj := &storagev1beta1.VolumeStoreRetentionPolicy{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        m.Name.ValueString(),
+			Name:        m.VolumeStore.ValueString(),
 			Environment: m.Environment.ValueString(),
 		},
 		Spec: storagev1beta1.VolumeStoreRetentionPolicySpec{

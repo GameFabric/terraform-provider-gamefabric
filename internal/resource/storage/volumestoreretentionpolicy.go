@@ -63,17 +63,6 @@ func (r *volumeStoreRetentionPolicy) Schema(_ context.Context, _ resource.Schema
 				MarkdownDescription: "The unique Terraform identifier.",
 				Computed:            true,
 			},
-			"name": schema.StringAttribute{
-				Description:         "The unique object name within its scope.",
-				MarkdownDescription: "The unique object name within its scope.",
-				Required:            true,
-				Validators: []validator.String{
-					validators.NameValidator{},
-				},
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
 			"environment": schema.StringAttribute{
 				Description:         "The name of the environment the object belongs to.",
 				MarkdownDescription: "The name of the environment the object belongs to.",
@@ -86,9 +75,15 @@ func (r *volumeStoreRetentionPolicy) Schema(_ context.Context, _ resource.Schema
 				},
 			},
 			"volume_store": schema.StringAttribute{
-				Description:         "The name of the volume to find snapshots on.",
-				MarkdownDescription: "The name of the volume to find snapshots on.",
+				Description:         "The name of the volume store to apply retention policy to.",
+				MarkdownDescription: "The name of the volume store to apply retention policy to.",
 				Required:            true,
+				Validators: []validator.String{
+					validators.NameValidator{},
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"offline_snapshot": schema.SingleNestedAttribute{
 				Description:         "The retention policy for offline snapshots.",
@@ -191,7 +186,9 @@ func (r *volumeStoreRetentionPolicy) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	outObj, err := r.clientSet.StorageV1Beta1().VolumeStoreRetentionPolicies(state.Environment.ValueString()).Get(ctx, state.Name.ValueString(), metav1.GetOptions{})
+	outObj, err := r.clientSet.StorageV1Beta1().
+		VolumeStoreRetentionPolicies(state.Environment.ValueString()).
+		Get(ctx, state.VolumeStore.ValueString(), metav1.GetOptions{})
 	if err != nil {
 		switch {
 		case apierrors.IsNotFound(err):
@@ -199,7 +196,7 @@ func (r *volumeStoreRetentionPolicy) Read(ctx context.Context, req resource.Read
 		default:
 			resp.Diagnostics.AddError(
 				"Error Reading VolumeStoreRetentionPolicy",
-				fmt.Sprintf("Could not read VolumeStoreRetentionPolicy %q: %v", state.Name.ValueString(), err),
+				fmt.Sprintf("Could not read VolumeStoreRetentionPolicy for volume store %q: %v", state.VolumeStore.ValueString(), err),
 			)
 		}
 		return
@@ -257,16 +254,16 @@ func (r *volumeStoreRetentionPolicy) Delete(ctx context.Context, req resource.De
 
 	err := r.clientSet.StorageV1Beta1().
 		VolumeStoreRetentionPolicies(state.Environment.ValueString()).
-		Delete(ctx, state.Name.ValueString(), metav1.DeleteOptions{})
+		Delete(ctx, state.VolumeStore.ValueString(), metav1.DeleteOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting VolumeStoreRetentionPolicy",
-			fmt.Sprintf("Could not delete for VolumeStoreRetentionPolicy: %v", err),
+			fmt.Sprintf("Could not delete VolumeStoreRetentionPolicy for volume store %q: %v", state.VolumeStore.ValueString(), err),
 		)
 		return
 	}
 
-	if err = wait.PollUntilNotFound(ctx, r.clientSet.StorageV1Beta1().VolumeStoreRetentionPolicies(state.Environment.ValueString()), state.Name.ValueString()); err != nil {
+	if err = wait.PollUntilNotFound(ctx, r.clientSet.StorageV1Beta1().VolumeStoreRetentionPolicies(state.Environment.ValueString()), state.VolumeStore.ValueString()); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Waiting for VolumeStoreRetentionPolicy Deletion",
 			fmt.Sprintf("Timed out waiting for deletion of VolumeStoreRetentionPolicy: %v", err),
@@ -281,6 +278,6 @@ func (r *volumeStoreRetentionPolicy) ImportState(ctx context.Context, req resour
 	}
 
 	env, name := cache.SplitMetaNamespaceKey(req.ID)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), name)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("volume_store"), name)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("environment"), env)...)
 }

@@ -24,7 +24,7 @@ func TestVolumeStoreRetentionPolicyModel_ToObject(t *testing.T) {
 var (
 	testVolumeRetentionPolicyObject = &storagev1beta1.VolumeStoreRetentionPolicy{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        "test-volume",
+			Name:        "test-volume-store",
 			Environment: "dflt",
 		},
 		Spec: storagev1beta1.VolumeStoreRetentionPolicySpec{
@@ -39,8 +39,7 @@ var (
 	}
 
 	testVolumeStoreRetentionPolicyModel = volumeStoreRetentionPolicyModel{
-		ID:          types.StringValue("dflt/test-volume"),
-		Name:        types.StringValue("test-volume"),
+		ID:          types.StringValue("dflt/test-volume-store"),
 		Environment: types.StringValue("dflt"),
 		VolumeStore: types.StringValue("test-volume-store"),
 		OfflineSnapshot: &volumeStoreRetentionPolicySnapshot{
