@@ -19,9 +19,9 @@ func newGroupModel(obj *rbacv1.Group) groupModel {
 	return groupModel{
 		ID:          types.StringValue(obj.Name),
 		Name:        types.StringValue(obj.Name),
-		Labels:      conv.ForEachMapItem(obj.Labels, func(item string) types.String { return types.StringValue(item) }),
-		Annotations: conv.ForEachMapItem(obj.Annotations, func(item string) types.String { return types.StringValue(item) }),
-		Users:       conv.ForEachSliceItem(obj.Users, func(item string) types.String { return types.StringValue(item) }),
+		Labels:      conv.ForEachMapItem(obj.Labels, types.StringValue),
+		Annotations: conv.ForEachMapItem(obj.Annotations, types.StringValue),
+		Users:       conv.ForEachSliceItem(obj.Users, types.StringValue),
 	}
 }
 
