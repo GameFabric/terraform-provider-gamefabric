@@ -203,7 +203,7 @@ func (r *group) Delete(ctx context.Context, req resource.DeleteRequest, resp *re
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting Group",
-			fmt.Sprintf("Could not delete for Group: %v", err),
+			fmt.Sprintf("Could not delete Group: %v", err),
 		)
 		return
 	}
