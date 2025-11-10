@@ -7,7 +7,7 @@ description: |-
 
 # gamefabric_volumestore_retention_policy (Resource)
 
-Volumestore Retention polices allow to limit the retention of volume snapshots within a volumestore for a specific environment.
+Volumestore retention policies allow you to limit the retention of volume snapshots within a volumestore for a specific environment.
 This is required to automatically clean up old snapshots and save storage costs.
 
 This is currently a beta feature. Please contact your Customer Success Manager to discuss your use case and enable this feature.
