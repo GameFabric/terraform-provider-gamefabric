@@ -46,11 +46,10 @@ resource "gamefabric_formation" "this" {
   name        = "my-formation"
   environment = data.gamefabric_environment.prod.name
 
-  region = data.gamefabric_region.europe.name
-
   vessels = [
     {
       name = "vessel-1"
+      region = data.gamefabric_region.europe.name
     }
   ]
 
