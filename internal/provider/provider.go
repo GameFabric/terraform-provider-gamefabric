@@ -9,6 +9,7 @@ import (
 
 	"github.com/gamefabric/gf-apiclient/rest"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	dsauthentication "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/authentication"
 	dscontainer "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/container"
 	dscore "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/core"
 	dsprotection "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/protection"
@@ -16,6 +17,7 @@ import (
 	dsstorage "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/storage"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/armada"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/authentication"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/formation"
@@ -187,6 +189,7 @@ func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource
 		dsstorage.NewVolumes,
 		dsstorage.NewVolumeStore,
 		dsstorage.NewVolumeStores,
+		dsauthentication.NewServiceAccount,
 	}
 }
 
@@ -195,6 +198,7 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		armada.NewArmada,
 		armada.NewArmadaSet,
+		authentication.NewProvider,
 		core.NewConfigFile,
 		core.NewEnvironment,
 		core.NewRegion,
