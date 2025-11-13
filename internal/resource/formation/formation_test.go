@@ -46,15 +46,11 @@ func TestResourceFormation(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "gameserver_annotations.example4", "gameserver-annotation"),
 
 					// Volume templates.
-					resource.TestCheckResourceAttr("gamefabric_formation.test", "volume_templates.#", "2"),
-					resource.TestCheckResourceAttr("gamefabric_formation.test", "volume_templates.0.name", "volume-template1"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "volume_templates.#", "1"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "volume_templates.0.name", "perm-vol"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "volume_templates.0.reclaim_policy", "Retain"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "volume_templates.0.volume_store_name", "example-volume-store"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "volume_templates.0.capacity", "5Gi"),
-					resource.TestCheckResourceAttr("gamefabric_formation.test", "volume_templates.1.name", "volume-template2"),
-					resource.TestCheckResourceAttr("gamefabric_formation.test", "volume_templates.1.reclaim_policy", "Delete"),
-					resource.TestCheckResourceAttr("gamefabric_formation.test", "volume_templates.1.volume_store_name", "example-volume-store"),
-					resource.TestCheckResourceAttr("gamefabric_formation.test", "volume_templates.1.capacity", "100Mi"),
 
 					// Vessels.
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.#", "1"),
@@ -100,9 +96,11 @@ func TestResourceFormation(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.ports.0.container_port", "8080"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.ports.0.policy", "Passthrough"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.ports.0.protection_protocol", "something"),
-					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.volume_mounts.#", "1"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.volume_mounts.#", "2"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.volume_mounts.0.name", "example-volume"),
-					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.volume_mounts.0.mount_path", "/data"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.volume_mounts.0.mount_path", "/data/temp"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.volume_mounts.1.name", "persistent-volume"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.volume_mounts.1.mount_path", "/data/save_files"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.config_files.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.config_files.0.name", "example-config-file"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.config_files.0.mount_path", "/config/example-config-file"),
@@ -476,17 +474,11 @@ func testResourceFormationConfigFull() string {
 
   volume_templates = [
     {
-      name = "volume-template1"
+      name = "perm-vol"
       reclaim_policy = "Retain"
       volume_store_name = "example-volume-store"
       capacity = "5Gi"
-    },
-    {
-      name = "volume-template2"
-      reclaim_policy = "Delete"
-      volume_store_name = "example-volume-store"
-      capacity = "100Mi"
-    },
+    }
   ]
 
   vessels = [
@@ -562,7 +554,11 @@ func testResourceFormationConfigFull() string {
       volume_mounts = [
         {
           name          = "example-volume"
-          mount_path    = "/data"
+          mount_path    = "/data/temp"
+        },
+        {
+          name          = "persistent-volume"
+          mount_path    = "/data/save_files"
         }
       ]
       config_files = [
