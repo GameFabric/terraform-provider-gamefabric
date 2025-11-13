@@ -22,6 +22,7 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/formation"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/protection"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/rbac"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/storage"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
