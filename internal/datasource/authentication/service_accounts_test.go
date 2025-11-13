@@ -49,3 +49,42 @@ func TestServiceAccounts(t *testing.T) {
 		},
 	})
 }
+
+func TestServiceAccounts_NoLabels(t *testing.T) {
+	t.Parallel()
+
+	sa := authv1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "user-nolabel",
+			// Labels is nil
+		},
+		Spec: authv1.ServiceAccountSpec{
+			Username: "user-nolabel",
+			Email:    "nolabel@example.com",
+		},
+		Status: authv1.ServiceAccountStatus{
+			State:    authv1.ServiceAccountStateApplied,
+			Password: "pw2",
+		},
+	}
+
+	pf, _ := providertest.ProtoV6ProviderFactories(t, &sa)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		Steps: []resource.TestStep{
+			{
+				Config: `data "gamefabric_service_accounts" "all" { }
+`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("data.gamefabric_service_accounts.all", "service_accounts.#", "1"),
+					resource.TestCheckResourceAttr("data.gamefabric_service_accounts.all", "service_accounts.0.name", "user-nolabel"),
+					resource.TestCheckResourceAttr("data.gamefabric_service_accounts.all", "service_accounts.0.email", "nolabel@example.com"),
+					// labels map should be empty (0 entries)
+					resource.TestCheckResourceAttr("data.gamefabric_service_accounts.all", "service_accounts.0.labels.%", "0"),
+				),
+			},
+		},
+	})
+}
