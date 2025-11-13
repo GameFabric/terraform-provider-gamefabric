@@ -33,9 +33,9 @@ func TestRoleBindingResource(t *testing.T) {
 			},
 			{
 				Config: `resource "gamefabric_role_binding" "test" {
-	role   = "example-role"
-	groups = ["group1","group2"]
-	users  = ["user1@example.com"]
+  role   = "example-role"
+  groups = ["group1", "group2"]
+  users  = ["user1@example.com"]
 }`,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("gamefabric_role_binding.test", "role", "example-role"),

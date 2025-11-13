@@ -8,11 +8,15 @@ import (
 	"github.com/gamefabric/gf-apiclient/tools/patch"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-apiserver/registry/generic"
+	rbacv1 "github.com/gamefabric/gf-core/pkg/api/rbac/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	"github.com/gamefabric/gf-core/pkg/apiserver/registry/rbac/rolebinding"
+	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
-	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -27,6 +31,13 @@ var (
 	_ resource.ResourceWithConfigure   = &roleBinding{}
 	_ resource.ResourceWithImportState = &roleBinding{}
 )
+
+var roleBindingValidator = validators.NewGameFabricValidator[*rbacv1.RoleBinding, roleBindingModel](func() validators.StoreValidator {
+	storage, _ := rolebinding.New(generic.StoreOptions{Config: generic.Config{
+		StorageFactory: registrytest.FakeStorageFactory{},
+	}})
+	return storage.Store.Strategy
+})
 
 type roleBinding struct {
 	clientSet clientset.Interface
@@ -66,16 +77,16 @@ func (r *roleBinding) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Optional:            true,
 				ElementType:         types.StringType,
 				Validators: []validator.List{
-					validators.NameValidator{},
+					validators.GFFieldList(roleBindingValidator, "groups"),
 				},
 			},
 			"users": schema.ListAttribute{
 				Description:         "A set of users this role binding applies to.",
 				MarkdownDescription: "The users this role binding applies to.",
-				ElementType:         types.StringType,
 				Optional:            true,
+				ElementType:         types.StringType,
 				Validators: []validator.List{
-					validators.NameValidator{},
+					validators.GFFieldList(roleBindingValidator, "users"),
 				},
 			},
 		},
@@ -106,7 +117,7 @@ func (r *roleBinding) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 
-	obj := plan.ToObject(uuid.New().String())
+	obj := plan.ToObject()
 	_, err := r.clientSet.RBACV1().RoleBindings().Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError("Error Creating Role Binding", fmt.Sprintf("Could not create Role Binding: %s", err))
@@ -139,22 +150,23 @@ func (r *roleBinding) Read(ctx context.Context, req resource.ReadRequest, resp *
 	}
 
 	updatedState := newRoleBindingModel(obj)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &updatedState)...) // Update the state
+	resp.Diagnostics.Append(normalize.Model(ctx, &updatedState, req.State)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &updatedState)...)
 }
 
 func (r *roleBinding) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state roleBindingModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...) // Retrieve the plan
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...) // Retrieve the current state
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	oldObj := state.ToObject(state.ID.ValueString())
-	newObj := plan.ToObject(state.ID.ValueString())
+	oldObj := state.ToObject()
+	newObj := plan.ToObject()
 
 	pb, err := patch.Create(oldObj, newObj)
 	if err != nil {
@@ -165,7 +177,7 @@ func (r *roleBinding) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	if _, err = r.clientSet.RBACV1().RoleBindings().Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
+	if _, err = r.clientSet.RBACV1().RoleBindings().Patch(ctx, oldObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Role Binding",
 			fmt.Sprintf("Could not patch Role Binding: %v", err),
@@ -173,7 +185,6 @@ func (r *roleBinding) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	plan.ID = types.StringValue(oldObj.Name)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

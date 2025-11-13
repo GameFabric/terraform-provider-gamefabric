@@ -54,7 +54,6 @@ func (r *role) Schema(_ context.Context, _ resource.SchemaRequest, resp *resourc
 				},
 			},
 			"name": schema.StringAttribute{
-				Required:    true,
 				Description:         "The unique name of the role.",
 				MarkdownDescription: "The unique name of the role.",
 				Required:            true,

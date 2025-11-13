@@ -200,6 +200,7 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		armada.NewArmada,
 		armada.NewArmadaSet,
 		authentication.NewProvider,
+		authentication.NewServiceAccountResource,
 		core.NewConfigFile,
 		core.NewEnvironment,
 		core.NewRegion,
@@ -208,14 +209,11 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		formation.NewFormation,
 		formation.NewVessel,
 		protection.NewGatewayPolicy,
-		authentication.NewServiceAccountResource,
 		rbac.NewRole,
 		rbac.NewGroup,
 		rbac.NewRoleBinding,
 		storage.NewVolume,
 		storage.NewVolumeStoreRetentionPolicy,
-		authentication.NewServiceAccountResource,
-		authentication.NewServiceAccountResource,
 	}
 }
 
