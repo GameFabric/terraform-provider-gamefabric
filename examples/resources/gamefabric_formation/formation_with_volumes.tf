@@ -6,7 +6,7 @@ resource "gamefabric_formation" "formation_with_volumes" {
 
   volume_templates = [
     {
-      name              = "perist-save-files"
+      name              = "persist-save-files"
       volume_store_name = "eu" # Required to exist.
       capacity          = "1Gi"
     }
