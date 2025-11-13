@@ -1,9 +1,6 @@
 package armada
 
 import (
-	"maps"
-	"strconv"
-
 	"github.com/gamefabric/gf-apiclient/tools/cache"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	armadav1 "github.com/gamefabric/gf-core/pkg/api/armada/v1"
@@ -15,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-const profilingAnnotation = "g8c.io/profiling"
+const profilingKey = "g8c.io/profiling"
 
 type armadaModel struct {
 	ID                    types.String                       `tfsdk:"id"`
@@ -46,11 +43,11 @@ func newArmadaModel(obj *armadav1.Armada) armadaModel {
 		Environment:           types.StringValue(obj.Environment),
 		Description:           conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
 		Labels:                conv.ForEachMapItem(obj.Labels, types.StringValue),
-		Annotations:           newAnnotations(obj.Annotations),
+		Annotations:           conv.ForEachMapItem(obj.Annotations, types.StringValue),
 		Autoscaling:           newAutoscalingModel(obj.Spec.Autoscaling),
 		Region:                types.StringValue(obj.Spec.Region),
 		Replicas:              conv.ForEachSliceItem(obj.Spec.Distribution, newReplicas),
-		GameServerLabels:      conv.ForEachMapItem(obj.Spec.Template.Labels, types.StringValue),
+		GameServerLabels:      conv.ForEachMapItem(conv.MapWithoutKey(obj.Spec.Template.Labels, profilingKey), types.StringValue),
 		GameServerAnnotations: conv.ForEachMapItem(obj.Spec.Template.Annotations, types.StringValue),
 		Containers:            conv.ForEachSliceItem(obj.Spec.Template.Spec.Containers, mps.NewContainerForArmada),
 		HealthChecks:          mps.NewHealthChecks(obj.Spec.Template.Spec.Health),
@@ -58,7 +55,7 @@ func newArmadaModel(obj *armadav1.Armada) armadaModel {
 		Strategy:              newStrategyModel(obj.Spec.Template.Spec.Strategy),
 		Volumes:               conv.ForEachSliceItem(obj.Spec.Template.Spec.Volumes, newVolumeModel),
 		GatewayPolicies:       conv.ForEachSliceItem(obj.Spec.Template.Spec.GatewayPolicies, types.StringValue),
-		ProfilingEnabled:      newProfilingEnabled(obj.Annotations),
+		ProfilingEnabled:      conv.BoolFromMapKey(obj.Spec.Template.Labels, profilingKey, types.BoolValue(false)),
 		ImageUpdaterTarget:    container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeArmada, obj.Name, obj.Environment),
 	}
 }
@@ -69,10 +66,7 @@ func (m armadaModel) ToObject() *armadav1.Armada {
 			Name:        m.Name.ValueString(),
 			Environment: m.Environment.ValueString(),
 			Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
-			Annotations: conv.ForEachMapItem(
-				toAnnotations(m.Annotations, m.ProfilingEnabled),
-				func(v types.String) string { return v.ValueString() },
-			),
+			Annotations: conv.ForEachMapItem(m.Annotations, func(v types.String) string { return v.ValueString() }),
 		},
 		Spec: armadav1.ArmadaSpec{
 			Description: m.Description.ValueString(),
@@ -90,7 +84,10 @@ func (m armadaModel) ToObject() *armadav1.Armada {
 			},
 			Template: armadav1.FleetTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels:      conv.ForEachMapItem(m.GameServerLabels, func(v types.String) string { return v.ValueString() }),
+					Labels: conv.ForEachMapItem(
+						conv.MapWithBool(m.GameServerLabels, profilingKey, m.ProfilingEnabled),
+						func(v types.String) string { return v.ValueString() },
+					),
 					Annotations: conv.ForEachMapItem(m.GameServerAnnotations, func(v types.String) string { return v.ValueString() }),
 				},
 				Spec: armadav1.FleetSpec{
@@ -106,40 +103,18 @@ func (m armadaModel) ToObject() *armadav1.Armada {
 	}
 }
 
-func newTerminationConfig(seconds *int64) *terminationConfigModel {
-	if seconds == nil {
-		return nil
-	}
-	return &terminationConfigModel{
-		GracePeriodSeconds: conv.OptionalFunc(*seconds, types.Int64Value, types.Int64Null),
-	}
-}
-
-func toAnnotations(annots map[string]types.String, profilingEnabled types.Bool) map[string]types.String {
-	if !conv.IsKnown(profilingEnabled) {
-		return annots
-	}
-
-	res := maps.Clone(annots)
-	if res == nil {
-		res = make(map[string]types.String)
-	}
-	res[profilingAnnotation] = types.StringValue(strconv.FormatBool(profilingEnabled.ValueBool()))
-	return res
-}
-
 func toStrategy(strat *strategyModel) appsv1.DeploymentStrategy {
 	switch {
-	case strat != nil && conv.IsKnown(strat.Recreate):
+	case strat == nil:
+		return appsv1.DeploymentStrategy{}
+	case conv.IsKnown(strat.Recreate):
 		return appsv1.DeploymentStrategy{
 			Type: appsv1.RecreateDeploymentStrategyType,
 		}
-	case strat == nil:
-		return appsv1.DeploymentStrategy{
-			Type:          appsv1.RollingUpdateDeploymentStrategyType,
-			RollingUpdate: &appsv1.RollingUpdateDeployment{},
-		}
 	default:
+		if strat.RollingUpdate == nil {
+			return appsv1.DeploymentStrategy{}
+		}
 		return appsv1.DeploymentStrategy{
 			Type: appsv1.RollingUpdateDeploymentStrategyType,
 			RollingUpdate: &appsv1.RollingUpdateDeployment{
@@ -158,51 +133,25 @@ func toIntOrString(val types.String) *intstr.IntOrString {
 	return &is
 }
 
-func toFixedInterval(scaling *autoscalingModel) *armadav1.ArmadaFixInterval {
-	if scaling == nil || !conv.IsKnown(scaling.FixedIntervalSeconds) {
-		return &armadav1.ArmadaFixInterval{}
-	}
-	return &armadav1.ArmadaFixInterval{
-		Seconds: scaling.FixedIntervalSeconds.ValueInt32(),
-	}
-}
-
-func newProfilingEnabled(annots map[string]string) types.Bool {
-	if annots == nil {
-		return types.BoolNull()
-	}
-
-	val, known := annots[profilingAnnotation]
-	if !known {
-		return types.BoolNull()
-	}
-	return types.BoolValue(val == "true")
-}
-
-func newAnnotations(annots map[string]string) map[string]types.String {
-	if len(annots) == 0 {
-		return nil
-	}
-
-	annots = maps.Clone(annots)
-	delete(annots, profilingAnnotation)
-	if len(annots) == 0 {
-		return nil
-	}
-
-	return conv.ForEachMapItem(annots, types.StringValue)
-}
-
 type autoscalingModel struct {
 	FixedIntervalSeconds types.Int32 `tfsdk:"fixed_interval_seconds"`
 }
 
 func newAutoscalingModel(obj armadav1.ArmadaAutoscaling) *autoscalingModel {
-	if obj.FixedInterval == nil || obj.FixedInterval.Seconds == 0 {
+	if obj.FixedInterval == nil {
 		return nil
 	}
 	return &autoscalingModel{
 		FixedIntervalSeconds: types.Int32Value(obj.FixedInterval.Seconds),
+	}
+}
+
+func toFixedInterval(scaling *autoscalingModel) *armadav1.ArmadaFixInterval {
+	if scaling == nil || !conv.IsKnown(scaling.FixedIntervalSeconds) {
+		return nil
+	}
+	return &armadav1.ArmadaFixInterval{
+		Seconds: scaling.FixedIntervalSeconds.ValueInt32(),
 	}
 }
 
@@ -226,6 +175,15 @@ type terminationConfigModel struct {
 	GracePeriodSeconds types.Int64 `tfsdk:"grace_period_seconds"`
 }
 
+func newTerminationConfig(seconds *int64) *terminationConfigModel {
+	if seconds == nil {
+		return nil
+	}
+	return &terminationConfigModel{
+		GracePeriodSeconds: types.Int64Value(*seconds),
+	}
+}
+
 func toTerminationGracePeriodSeconds(cfg *terminationConfigModel) *int64 {
 	if cfg == nil || !conv.IsKnown(cfg.GracePeriodSeconds) {
 		return nil
@@ -241,19 +199,18 @@ type strategyModel struct {
 func newStrategyModel(obj appsv1.DeploymentStrategy) *strategyModel {
 	switch obj.Type {
 	case appsv1.RollingUpdateDeploymentStrategyType:
-		if obj.RollingUpdate == nil || (obj.RollingUpdate.MaxSurge == nil && obj.RollingUpdate.MaxUnavailable == nil) {
-			return nil
-		}
 		return &strategyModel{
 			RollingUpdate: &rollingUpdateModel{
 				MaxSurge:       conv.FromIntOrString(obj.RollingUpdate.MaxSurge),
 				MaxUnavailable: conv.FromIntOrString(obj.RollingUpdate.MaxUnavailable),
 			},
 		}
-	default:
+	case appsv1.RecreateDeploymentStrategyType:
 		return &strategyModel{
 			Recreate: types.ObjectValueMust(nil, nil),
 		}
+	default:
+		return nil
 	}
 }
 

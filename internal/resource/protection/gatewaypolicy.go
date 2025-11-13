@@ -9,6 +9,7 @@ import (
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
@@ -54,20 +55,19 @@ func (r *gatewayPolicy) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Computed:            true,
 			},
 			"name": schema.StringAttribute{
-				Description:         "The unique object name within its scope.",
-				MarkdownDescription: "The unique object name within its scope.",
+				Description:         "The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.",
+				MarkdownDescription: "The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.",
 				Required:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description:         "Display name is the friendly name of the gateway policy.",
-				MarkdownDescription: "Display name is the friendly name of the gateway policy.",
+				Description:         "The user-friendly name of the gateway policy.",
+				MarkdownDescription: "The user-friendly name of the gateway policy.",
 				Required:            true,
 			},
 			"labels": schema.MapAttribute{
@@ -89,8 +89,8 @@ func (r *gatewayPolicy) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				},
 			},
 			"description": schema.StringAttribute{
-				Description:         "Description is the description of the gateway policy.",
-				MarkdownDescription: "Description is the description of the gateway policy.",
+				Description:         "Description is the optional description of the gateway policy.",
+				MarkdownDescription: "Description is the optional description of the gateway policy.",
 				Optional:            true,
 			},
 			"destination_cidrs": schema.ListAttribute{
@@ -133,7 +133,7 @@ func (r *gatewayPolicy) Create(ctx context.Context, req resource.CreateRequest, 
 	}
 
 	obj := plan.ToObject()
-	_, err := r.clientSet.ProtectionV1().GatewayPolicies().Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.ProtectionV1().GatewayPolicies().Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Gateway Policy",
@@ -142,7 +142,8 @@ func (r *gatewayPolicy) Create(ctx context.Context, req resource.CreateRequest, 
 		return
 	}
 
-	plan.ID = types.StringValue(obj.Name)
+	plan = newGatewayPolicyModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -168,6 +169,7 @@ func (r *gatewayPolicy) Read(ctx context.Context, req resource.ReadRequest, resp
 	}
 
 	state = newGatewayPolicyModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 

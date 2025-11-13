@@ -38,8 +38,8 @@ func TestImage(t *testing.T) {
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.gamefabric_image.test1", "image_target.name", "test-image"),
-					resource.TestCheckResourceAttr("data.gamefabric_image.test1", "image_target.branch", "test-branch"),
+					resource.TestCheckResourceAttr("data.gamefabric_image.test1", "image_ref.name", "test-image"),
+					resource.TestCheckResourceAttr("data.gamefabric_image.test1", "image_ref.branch", "test-branch"),
 				),
 			},
 		},
@@ -96,8 +96,8 @@ func TestImage_Latest(t *testing.T) {
 					resource.TestCheckResourceAttr("data.gamefabric_image.test1", "branch", "test-branch"),
 					resource.TestCheckResourceAttr("data.gamefabric_image.test1", "image", "my-image"),
 					resource.TestCheckResourceAttr("data.gamefabric_image.test1", "tag", "latest"),
-					resource.TestCheckResourceAttr("data.gamefabric_image.test1", "image_target.name", "test-image2"),
-					resource.TestCheckResourceAttr("data.gamefabric_image.test1", "image_target.branch", "test-branch"),
+					resource.TestCheckResourceAttr("data.gamefabric_image.test1", "image_ref.name", "test-image2"),
+					resource.TestCheckResourceAttr("data.gamefabric_image.test1", "image_ref.branch", "test-branch"),
 				),
 			},
 		},

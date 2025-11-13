@@ -18,13 +18,9 @@ data "gamefabric_environments" "all" {
 }
 
 # Get environments filtered by labels.
-
-# Note:
-# - Only environments that have ALL specified labels with exact matching values are returned.
 data "gamefabric_environments" "dev_stage" {
   label_filter = {
-    environment_type = "non-prod"
-    stage            = "dev"
+    stage = "dev"
   }
 }
 ```
@@ -34,7 +30,7 @@ data "gamefabric_environments" "dev_stage" {
 
 ### Optional
 
-- `label_filter` (Map of String) A map of keys and values that is used to filter environments.
+- `label_filter` (Map of String) A map of keys and values that is used to filter environments. Only items with all specified labels (exact matches) will be returned.
 
 ### Read-Only
 
@@ -45,7 +41,7 @@ data "gamefabric_environments" "dev_stage" {
 
 Read-Only:
 
-- `description` (String) Description is the description of the environment.
-- `display_name` (String) DisplayName is friendly name of the environment.
+- `description` (String) The description of the environment.
+- `display_name` (String) The user-friendly name of the environment.
 - `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
-- `name` (String) The unique object name within its scope.
+- `name` (String) The unique environment object name.

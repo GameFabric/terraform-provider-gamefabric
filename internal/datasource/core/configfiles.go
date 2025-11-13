@@ -42,16 +42,16 @@ func (r *configFiles) Schema(_ context.Context, _ datasource.SchemaRequest, resp
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"environment": schema.StringAttribute{
-				Description:         "The name of the environment the object belongs to.",
-				MarkdownDescription: "The name of the environment the object belongs to.",
+				Description:         "The name of the environment the resource belongs to.",
+				MarkdownDescription: "The name of the environment the resource belongs to.",
 				Required:            true,
 				Validators: []validator.String{
 					validators.EnvironmentValidator{},
 				},
 			},
 			"label_filter": schema.MapAttribute{
-				Description:         "A map of keys and values that is used to filter config files.",
-				MarkdownDescription: "A map of keys and values that is used to filter config files.",
+				Description:         "A map of keys and values that is used to filter config files. Only items with all specified labels (exact matches) will be returned.",
+				MarkdownDescription: "A map of keys and values that is used to filter config files. Only items with all specified labels (exact matches) will be returned.",
 				Optional:            true,
 				ElementType:         types.StringType,
 			},
@@ -62,18 +62,18 @@ func (r *configFiles) Schema(_ context.Context, _ datasource.SchemaRequest, resp
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
-							Description:         "The unique object name.",
-							MarkdownDescription: "The unique object name.",
+							Description:         "The unique config file name within its environment.",
+							MarkdownDescription: "The unique config file name within its environment.",
 							Computed:            true,
 						},
 						"environment": schema.StringAttribute{
-							Description:         "The name of the environment the object belongs to.",
-							MarkdownDescription: "The name of the environment the object belongs to.",
+							Description:         "The name of the environment the resource belongs to.",
+							MarkdownDescription: "The name of the environment the resource belongs to.",
 							Computed:            true,
 						},
 						"data": schema.StringAttribute{
-							Description:         "The config file data.",
-							MarkdownDescription: "The config file data.",
+							Description:         "The content of the config file.",
+							MarkdownDescription: "The content of the config file.",
 							Computed:            true,
 						},
 					},

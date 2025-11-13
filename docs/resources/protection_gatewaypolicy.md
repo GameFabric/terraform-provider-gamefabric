@@ -8,7 +8,7 @@ description: |-
 # gamefabric_protection_gatewaypolicy (Resource)
 
 Gateway Policies allow you route traffic of your gameservers through gateways for specified destination CIDRs.
-For example if your gameserver relies on specific cloud services their endpoints can be accessed through the gateways instead of directly the node hosting the gameserver.
+For example if your gameserver relies on specific cloud services their endpoints can be accessed through the gateways instead of directly from the node hosting the gameserver.
 
 For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/multiplayer-services/server-protection/gateway-policies">GameFabric documentation</a>.
 
@@ -37,13 +37,13 @@ resource "gamefabric_protection_gatewaypolicy" "game_backend" {
 ### Required
 
 - `destination_cidrs` (List of String) The CIDRs that should use the gateway for outbound traffic, rather than the game server node.
-- `display_name` (String) Display name is the friendly name of the gateway policy.
-- `name` (String) The unique object name within its scope.
+- `display_name` (String) The user-friendly name of the gateway policy.
+- `name` (String) The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.
 
 ### Optional
 
 - `annotations` (Map of String) A map of keys and values that can be used to organize and categorize objects.
-- `description` (String) Description is the description of the gateway policy.
+- `description` (String) Description is the optional description of the gateway policy.
 - `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
 
 ### Read-Only

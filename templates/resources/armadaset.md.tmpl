@@ -1,0 +1,44 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+An ArmadaSet is a templating resource that creates and manages Armadas across multiple regions with a single configuration. It allows you to define common settings while enabling region-specific overrides for environment variables and other configurations.
+
+This simplifies multi-region deployments by eliminating the need to duplicate Armada configurations. You define your game server deployment settings once in the ArmadaSet, specify which regions to deploy to, and customize per-region settings where needed.
+
+When you update an ArmadaSet, it updates all associated Armadas, creating new revisions for each. This versioning system allows you to safely roll back configurations if needed, or run multiple versions simultaneously during gradual rollouts to minimize disruption to your players.
+
+For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/getting-started/glossary#armadaset">GameFabric documentation</a>.
+
+
+## Example Usage - Simple Armadaset
+
+This example sets up a minimal armadaset for two regions europe and us which each use baremetal and cloud locations.
+
+{{ tffile "examples/resources/gamefabric_armadaset/simple_armadaset.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+{{- if or .HasImport .HasImportIDConfig .HasImportIdentityConfig }}
+
+## Import
+
+Import is supported using the following syntax:
+{{- end }}
+
+{{- if .HasImportIDConfig }}
+
+In Terraform v1.5.0 and later, the [`import` block](https://developer.hashicorp.com/terraform/language/import) can be used with the `id` attribute, for example:
+
+{{tffile .ImportIDConfigFile }}
+{{- end }}
+{{- if .HasImport }}
+
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
+{{codefile "shell" .ImportFile }}
+{{- end }}

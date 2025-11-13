@@ -18,10 +18,10 @@ data "gamefabric_environment" "dev" {
   name = "dev"
 }
 
-# Get a branch by display name.
+# Get an environment by display name.
 # Note:
 # - Only one of 'name' or 'display_name' should be specified.
-# - If multiple branches share the same display name, an error will occur.
+# - If multiple environments share the same display name, an error will occur.
 data "gamefabric_environment" "prod" {
   display_name = "Production Environment"
 }
@@ -32,10 +32,10 @@ data "gamefabric_environment" "prod" {
 
 ### Optional
 
-- `display_name` (String) A user-friendly name for the environment, shown in GameFabric. Unlike the technical 'name' field, this can be freely chosen and does not have strict constraints.
+- `display_name` (String) The user-friendly name of the environment.
 - `name` (String) The unique environment object name.
 
 ### Read-Only
 
-- `description` (String) Description is the description of the environment.
+- `description` (String) The description of the environment.
 - `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.

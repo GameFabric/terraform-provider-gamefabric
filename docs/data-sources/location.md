@@ -23,4 +23,4 @@ data "gamefabric_location" "frankfurt" {
 
 ### Required
 
-- `name` (String) The unique object name of the location.
+- `name` (String) The unique location object name.

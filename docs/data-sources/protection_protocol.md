@@ -27,8 +27,8 @@ data "gamefabric_protection_protocol" "protocol_by_displayname" {
 
 ### Optional
 
-- `display_name` (String) DisplayName is the user-friendly name of a protection protocol.
-- `name` (String) The unique object name.
+- `display_name` (String) The user-friendly name of the protection protocol.
+- `name` (String) The unique protection protocol object name.
 
 ### Read-Only
 
