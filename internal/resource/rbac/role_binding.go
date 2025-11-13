@@ -10,11 +10,15 @@ import (
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -44,20 +48,35 @@ func (r *roleBinding) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Description:         "The unique identifier of the role binding.",
 				MarkdownDescription: "The unique identifier of the role binding.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"role": schema.StringAttribute{
-				Required:    true,
-				Description: "The name of the role this binding applies to.",
+				Description:         "The name of the role this binding applies to.",
+				MarkdownDescription: "The name of the role this binding applies to.",
+				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"groups": schema.ListAttribute{
-				ElementType: types.StringType,
-				Required:    true,
-				Description: "A set of groups this role binding applies to.",
+				Description:         "A set of groups this role binding applies to.",
+				MarkdownDescription: "The groups this role binding applies to.",
+				Optional:            true,
+				ElementType:         types.StringType,
+				Validators: []validator.List{
+					validators.NameValidator{},
+				},
 			},
 			"users": schema.ListAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-				Description: "A set of users this role binding applies to.",
+				Description:         "A set of users this role binding applies to.",
+				MarkdownDescription: "The users this role binding applies to.",
+				ElementType:         types.StringType,
+				Optional:            true,
+				Validators: []validator.List{
+					validators.NameValidator{},
+				},
 			},
 		},
 	}
@@ -95,12 +114,12 @@ func (r *roleBinding) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 
 	plan.ID = types.StringValue(obj.Name)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...) // Update the state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *roleBinding) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state roleBindingModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...) // Retrieve the current state
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
