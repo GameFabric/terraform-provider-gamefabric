@@ -94,6 +94,7 @@ resource "gamefabric_region" "europe" {
 - `city` (String) The city used to filter locations.
 - `continent` (String) The continent used to filter locations.
 - `country` (String) The country used to filter locations.
+- `label_filter` (Map of String) A map of keys and values that is used to filter locations. Only items with all specified labels (exact matches) will be returned. Can be combined with other filters.
 - `name_regex` (String) The regex used to filter locations by their name.
 - `type` (String) The type used to filter locations.
 
