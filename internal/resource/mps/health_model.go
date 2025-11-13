@@ -19,9 +19,8 @@ func NewHealthChecks(obj agonesv1.Health) *HealthChecksModel {
 	if obj == (agonesv1.Health{}) {
 		return nil
 	}
-
 	return &HealthChecksModel{
-		Disabled:            types.BoolValue(obj.Disabled),
+		Disabled:            conv.OptionalFunc(obj.Disabled, types.BoolValue, types.BoolNull),
 		InitialDelaySeconds: conv.OptionalFunc(obj.InitialDelaySeconds, types.Int32Value, types.Int32Null),
 		PeriodSeconds:       conv.OptionalFunc(obj.PeriodSeconds, types.Int32Value, types.Int32Null),
 		FailureThreshold:    conv.OptionalFunc(obj.FailureThreshold, types.Int32Value, types.Int32Null),

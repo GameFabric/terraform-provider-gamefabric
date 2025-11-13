@@ -40,24 +40,21 @@ resource "gamefabric_region" "europe" {
   name         = "europe"
   display_name = "Europe"
   environment  = data.gamefabric_environment.prod.name
-  types = {
-    "baremetal" = {
+  types = [
+    {
+      name      = "baremetal"
       locations = data.gamefabric_locations.baremetal_europe.names
       envs = [
         {
           name = "REGION"
           value_from = {
-            field_ref = {
-              field_path = "metadata.regionName" # e.g., "europe"
-            }
+            field_path = "metadata.regionName" # e.g., "europe"
           }
         },
         {
           name = "REGION_TYPE"
           value_from = {
-            field_ref = {
-              field_path = "metadata.regionTypeName" # e.g., "baremetal"
-            }
+            field_path = "metadata.regionTypeName" # e.g., "baremetal"
           }
         },
         {
@@ -67,31 +64,26 @@ resource "gamefabric_region" "europe" {
         {
           name = "BACKEND_TOKEN"
           value_from = {
-            config_file_key_ref = {
-              name = "eu-token" # Reference a ConfigFile named "eu-token"
-            }
+            config_file = "eu-token-file.txt"
           }
         }
       ]
       scheduling = "Distributed"
     },
-    "cloud" = {
+    {
+      name      = "cloud"
       locations = data.gamefabric_locations.cloud_europe.names
       envs = [
         {
           name = "REGION"
           value_from = {
-            field_ref = {
-              field_path = "metadata.regionName" # e.g., "europe"
-            }
+            field_path = "metadata.regionName" # e.g., "europe"
           }
         },
         {
           name = "REGION_TYPE"
           value_from = {
-            field_ref = {
-              field_path = "metadata.regionTypeName" # e.g., "cloud"
-            }
+            field_path = "metadata.regionTypeName" # e.g., "cloud"
           }
         },
         {
@@ -101,15 +93,13 @@ resource "gamefabric_region" "europe" {
         {
           name = "BACKEND_TOKEN"
           value_from = {
-            config_file_key_ref = {
-              name = "eu-token" # Reference a ConfigFile named "eu-token"
-            }
+            config_file = "eu-token-file.txt"
           }
         }
       ]
       scheduling = "Packed"
     }
-  }
+  ]
 }
 ```
 
@@ -119,10 +109,10 @@ resource "gamefabric_region" "europe" {
 
 ### Required
 
-- `display_name` (String) DisplayName is the user-friendly name of a region.
-- `environment` (String) The name of the environment the object belongs to.
-- `name` (String) The unique object name within its scope.
-- `types` (Attributes Map) Types defines the types on infrastructure available in the region. (see [below for nested schema](#nestedatt--types))
+- `display_name` (String) The user-friendly name of the region.
+- `environment` (String) The name of the environment the resource belongs to.
+- `name` (String) The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 24 characters.
+- `types` (Attributes List) Types defines the types on infrastructure available in the region. (see [below for nested schema](#nestedatt--types))
 
 ### Optional
 
@@ -140,6 +130,7 @@ resource "gamefabric_region" "europe" {
 Required:
 
 - `locations` (List of String) Locations defines the locations for a type.
+- `name` (String) Name of the region type.
 
 Optional:
 
@@ -178,7 +169,7 @@ In Terraform v1.5.0 and later, the [`import` block](https://developer.hashicorp.
 
 ```terraform
 import {
-  id = "{{ environment }}/regions/{{ name }}"
+  id = "{{ environment }}/{{ name }}"
   to = gamefabric_region.europe
 }
 ```
@@ -186,5 +177,5 @@ import {
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import gamefabric_region.europe "{{ environment }}/regions/{{ name }}"
+terraform import gamefabric_region.europe "{{ environment }}/{{ name }}"
 ```

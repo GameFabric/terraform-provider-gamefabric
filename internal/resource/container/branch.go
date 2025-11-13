@@ -8,10 +8,16 @@ import (
 	"github.com/gamefabric/gf-apiclient/tools/patch"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-apiserver/registry/generic"
+	containerv1 "github.com/gamefabric/gf-core/pkg/api/container/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	branchreg "github.com/gamefabric/gf-core/pkg/apiserver/registry/container/branch"
+	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -26,6 +32,13 @@ var (
 	_ resource.ResourceWithConfigure   = &branch{}
 	_ resource.ResourceWithImportState = &branch{}
 )
+
+var branchValidator = validators.NewGameFabricValidator[*containerv1.Branch, branchModel](func() validators.StoreValidator {
+	storage, _ := branchreg.New(generic.StoreOptions{Config: generic.Config{
+		StorageFactory: registrytest.FakeStorageFactory{},
+	}})
+	return storage.Store.Strategy
+})
 
 // branch is the branch resource.
 type branch struct {
@@ -52,21 +65,21 @@ func (r *branch) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Computed:            true,
 			},
 			"name": schema.StringAttribute{
-				Description:         "The unique object name within its scope.",
-				MarkdownDescription: "The unique object name within its scope.",
+				Description:         "The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.",
+				MarkdownDescription: "The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.",
 				Optional:            true,
 				Computed:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},
+					validators.GFFieldString(branchValidator, "metadata.name"),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description:         "DisplayName is the display name of the branch.",
-				MarkdownDescription: "DisplayName is the display name of the branch.",
+				Description:         "The user-friendly name of the branch.",
+				MarkdownDescription: "The user-friendly name of the branch.",
 				Optional:            true,
 			},
 			"labels": schema.MapAttribute{
@@ -96,32 +109,50 @@ func (r *branch) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "RetentionPolicyRules are the rules that define how images are retained.",
 				MarkdownDescription: "RetentionPolicyRules are the rules that define how images are retained.",
 				Required:            true,
+				Validators: []validator.List{
+					listvalidator.SizeAtMost(10),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
 							Description:         "Name is the name of the image retention policy.",
 							MarkdownDescription: "Name is the name of the image retention policy.",
 							Required:            true,
+							Validators: []validator.String{
+								validators.GFFieldString(branchValidator, "spec.retentionPolicyRules[?].name"),
+							},
 						},
 						"image_regex": schema.StringAttribute{
 							Description:         "ImageRegex is the optional regex selector for images that this policy applies to.",
 							MarkdownDescription: "ImageRegex is the optional regex selector for images that this policy applies to.",
 							Optional:            true,
+							Validators: []validator.String{
+								validators.GFFieldString(branchValidator, "spec.retentionPolicyRules[?].imageRegex"),
+							},
 						},
 						"tag_regex": schema.StringAttribute{
 							Description:         "TagRegex is the optional regex selector for tags that this policy applies to.",
 							MarkdownDescription: "TagRegex is the optional regex selector for tags that this policy applies to.",
 							Optional:            true,
+							Validators: []validator.String{
+								validators.GFFieldString(branchValidator, "spec.retentionPolicyRules[?].tagRegex"),
+							},
 						},
 						"keep_count": schema.Int64Attribute{
 							Description:         "KeepCount is the minimum number of tags to keep per image.",
 							MarkdownDescription: "KeepCount is the minimum number of tags to keep per image.",
 							Optional:            true,
+							Validators: []validator.Int64{
+								validators.GFFieldInt64(branchValidator, "spec.retentionPolicyRules[?].keepCount"),
+							},
 						},
 						"keep_days": schema.Int64Attribute{
 							Description:         "KeepDays is the minimum number of days an image tag must be kept for.",
 							MarkdownDescription: "KeepDays is the minimum number of days an image tag must be kept for.",
 							Optional:            true,
+							Validators: []validator.Int64{
+								validators.GFFieldInt64(branchValidator, "spec.retentionPolicyRules[?].keepDays"),
+							},
 						},
 					},
 				},
@@ -157,7 +188,7 @@ func (r *branch) Create(ctx context.Context, req resource.CreateRequest, resp *r
 	}
 
 	obj := plan.ToObject()
-	_, err := r.clientSet.ContainerV1().Branches().Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.ContainerV1().Branches().Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Create Error",
@@ -165,14 +196,15 @@ func (r *branch) Create(ctx context.Context, req resource.CreateRequest, resp *r
 		)
 		return
 	}
-	plan.ID = types.StringValue(obj.Name)
+	plan = newBranchModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *branch) Read(ctx context.Context, request resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *branch) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state branchModel
-	resp.Diagnostics.Append(request.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -191,18 +223,19 @@ func (r *branch) Read(ctx context.Context, request resource.ReadRequest, resp *r
 		return
 	}
 
-	newState := newBranchModel(obj)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
+	state = newBranchModel(obj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *branch) Update(ctx context.Context, request resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *branch) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state branchModel
-	resp.Diagnostics.Append(request.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(request.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -231,9 +264,9 @@ func (r *branch) Update(ctx context.Context, request resource.UpdateRequest, res
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *branch) Delete(ctx context.Context, request resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *branch) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state branchModel
-	resp.Diagnostics.Append(request.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

@@ -39,8 +39,8 @@ func (r *gatewayPolicies) Schema(_ context.Context, _ datasource.SchemaRequest, 
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"label_filter": schema.MapAttribute{
-				Description:         "A map of keys and values that is used to filter gateway policies.",
-				MarkdownDescription: "A map of keys and values that is used to filter gateway policies.",
+				Description:         "A map of keys and values that is used to filter gateway policies. Only items with all specified labels (exact matches) will be returned.",
+				MarkdownDescription: "A map of keys and values that is used to filter gateway policies. Only items with all specified labels (exact matches) will be returned.",
 				Optional:            true,
 				ElementType:         types.StringType,
 			},

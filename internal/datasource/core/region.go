@@ -42,8 +42,8 @@ func (r *region) Schema(_ context.Context, _ datasource.SchemaRequest, resp *dat
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
-				Description:         "The unique object name.",
-				MarkdownDescription: "The unique object name.",
+				Description:         "The unique region name within its environment.",
+				MarkdownDescription: "The unique region name within its environment.",
 				Optional:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},
@@ -51,16 +51,16 @@ func (r *region) Schema(_ context.Context, _ datasource.SchemaRequest, resp *dat
 				},
 			},
 			"environment": schema.StringAttribute{
-				Description:         "The name of the environment the object belongs to.",
-				MarkdownDescription: "The name of the environment the object belongs to.",
+				Description:         "The name of the environment the resource belongs to.",
+				MarkdownDescription: "The name of the environment the resource belongs to.",
 				Required:            true,
 				Validators: []validator.String{
 					validators.EnvironmentValidator{},
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description:         "DisplayName is the user-friendly name of a region.",
-				MarkdownDescription: "DisplayName is the user-friendly name of a region.",
+				Description:         "The user-friendly name of the region.",
+				MarkdownDescription: "The user-friendly name of the region.",
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("name")),

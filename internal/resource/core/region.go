@@ -9,11 +9,16 @@ import (
 	"github.com/gamefabric/gf-apiclient/tools/patch"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-apiserver/registry/generic"
+	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	regionreg "github.com/gamefabric/gf-core/pkg/apiserver/registry/core/region"
+	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
-	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -29,6 +34,13 @@ var (
 	_ resource.ResourceWithConfigure   = &region{}
 	_ resource.ResourceWithImportState = &region{}
 )
+
+var regionValidator = validators.NewGameFabricValidator[*corev1.Region, regionModel](func() validators.StoreValidator {
+	storage, _ := regionreg.New(generic.StoreOptions{Config: generic.Config{
+		StorageFactory: registrytest.FakeStorageFactory{},
+	}})
+	return storage.Store.Strategy
+})
 
 type region struct {
 	clientSet clientset.Interface
@@ -54,27 +66,26 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Computed:            true,
 			},
 			"name": schema.StringAttribute{
-				Description:         "The unique object name within its scope.",
-				MarkdownDescription: "The unique object name within its scope.",
+				Description:         "The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 24 characters.",
+				MarkdownDescription: "The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 24 characters.",
 				Required:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},
+					validators.GFFieldString(regionValidator, "metadata.name"),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"environment": schema.StringAttribute{
-				Description:         "The name of the environment the object belongs to.",
-				MarkdownDescription: "The name of the environment the object belongs to.",
+				Description:         "The name of the environment the resource belongs to.",
+				MarkdownDescription: "The name of the environment the resource belongs to.",
 				Required:            true,
 				Validators: []validator.String{
 					validators.EnvironmentValidator{},
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"labels": schema.MapAttribute{
@@ -96,8 +107,8 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description:         "DisplayName is the user-friendly name of a region.",
-				MarkdownDescription: "DisplayName is the user-friendly name of a region.",
+				Description:         "The user-friendly name of the region.",
+				MarkdownDescription: "The user-friendly name of the region.",
 				Required:            true,
 			},
 			"description": schema.StringAttribute{
@@ -105,24 +116,35 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				MarkdownDescription: "Description is the optional description of the region.",
 				Optional:            true,
 			},
-			"types": schema.MapNestedAttribute{
+			"types": schema.ListNestedAttribute{
 				Description:         "Types defines the types on infrastructure available in the region.",
 				MarkdownDescription: "Types defines the types on infrastructure available in the region.",
 				Required:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
+						"name": schema.StringAttribute{
+							Description:         "Name of the region type.",
+							MarkdownDescription: "Name of the region type.",
+							Required:            true,
+							Validators: []validator.String{
+								validators.NameValidator{},
+							},
+						},
 						"locations": schema.ListAttribute{
 							Description:         "Locations defines the locations for a type.",
 							MarkdownDescription: "Locations defines the locations for a type.",
 							Required:            true,
 							ElementType:         types.StringType,
+							Validators: []validator.List{
+								listvalidator.ValueStringsAre(validators.GFFieldString(regionValidator, "spec.types[?].locations[?]")),
+							},
 						},
 						"envs": schema.ListNestedAttribute{
 							Description:         "Env is a list of environment variables to set on all containers in this region.",
 							MarkdownDescription: "Env is a list of environment variables to set on all containers in this region.",
 							Optional:            true,
 							NestedObject: schema.NestedAttributeObject{
-								Attributes: EnvVarAttributes(),
+								Attributes: EnvVarAttributes(regionValidator, "spec.types[?].template.env[?]"),
 							},
 						},
 						"scheduling": schema.StringAttribute{
@@ -139,8 +161,8 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 						},
 					},
 				},
-				Validators: []validator.Map{
-					mapvalidator.SizeAtLeast(1),
+				Validators: []validator.List{
+					listvalidator.SizeAtLeast(1),
 				},
 			},
 		},
@@ -173,7 +195,7 @@ func (r *region) Create(ctx context.Context, req resource.CreateRequest, resp *r
 	}
 
 	obj := plan.ToObject()
-	_, err := r.clientSet.CoreV1().Regions(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.CoreV1().Regions(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Region",
@@ -182,7 +204,8 @@ func (r *region) Create(ctx context.Context, req resource.CreateRequest, resp *r
 		return
 	}
 
-	plan.ID = types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String())
+	plan = newRegionModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -208,6 +231,7 @@ func (r *region) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 	}
 
 	state = newRegionModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 

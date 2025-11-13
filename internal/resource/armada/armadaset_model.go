@@ -1,9 +1,6 @@
 package armada
 
 import (
-	"maps"
-	"slices"
-
 	"github.com/gamefabric/gf-apiclient/tools/cache"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	armadav1 "github.com/gamefabric/gf-core/pkg/api/armada/v1"
@@ -43,10 +40,10 @@ func newArmadaSetModel(obj *armadav1.ArmadaSet) armadaSetModel {
 		Environment:           types.StringValue(obj.Environment),
 		Description:           conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
 		Labels:                conv.ForEachMapItem(obj.Labels, types.StringValue),
-		Annotations:           newAnnotations(obj.Annotations),
+		Annotations:           conv.ForEachMapItem(obj.Annotations, types.StringValue),
 		Autoscaling:           newAutoscalingModel(obj.Spec.Autoscaling),
 		Regions:               newRegionModels(obj.Spec),
-		GameServerLabels:      conv.ForEachMapItem(obj.Spec.Template.Labels, types.StringValue),
+		GameServerLabels:      conv.ForEachMapItem(conv.MapWithoutKey(obj.Spec.Template.Labels, profilingKey), types.StringValue),
 		GameServerAnnotations: conv.ForEachMapItem(obj.Spec.Template.Annotations, types.StringValue),
 		Containers:            conv.ForEachSliceItem(obj.Spec.Template.Spec.Containers, mps.NewContainerForArmada),
 		HealthChecks:          mps.NewHealthChecks(obj.Spec.Template.Spec.Health),
@@ -54,46 +51,9 @@ func newArmadaSetModel(obj *armadav1.ArmadaSet) armadaSetModel {
 		Strategy:              newStrategyModel(obj.Spec.Template.Spec.Strategy),
 		Volumes:               conv.ForEachSliceItem(obj.Spec.Template.Spec.Volumes, newVolumeModel),
 		GatewayPolicies:       conv.ForEachSliceItem(obj.Spec.Template.Spec.GatewayPolicies, types.StringValue),
-		ProfilingEnabled:      newProfilingEnabled(obj.Annotations),
-		ImageUpdaterTarget:    container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeArmada, obj.Name, obj.Environment),
+		ProfilingEnabled:      conv.BoolFromMapKey(obj.Spec.Template.Labels, profilingKey, types.BoolValue(false)),
+		ImageUpdaterTarget:    container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeArmadaSet, obj.Name, obj.Environment),
 	}
-}
-
-func newRegionModels(spec armadav1.ArmadaSetSpec) []regionModel {
-	regs := make(map[string]regionModel, len(spec.Armadas))
-	for _, val := range spec.Armadas {
-		reg := regs[val.Region]
-
-		reg.Name = types.StringValue(val.Region)
-		reg.Replicas = conv.ForEachSliceItem(val.Distribution, newReplicas)
-
-		regs[val.Region] = reg
-	}
-	for _, val := range spec.Override {
-		reg := regs[val.Region]
-
-		reg.Name = types.StringValue(val.Region)
-		reg.Envs = conv.ForEachSliceItem(val.Env, core.NewEnvVarModel)
-		reg.Labels = conv.ForEachMapItem(val.Labels, types.StringValue)
-
-		regs[val.Region] = reg
-	}
-
-	keys := slices.Collect(maps.Keys(regs))
-	slices.Sort(keys)
-
-	res := make([]regionModel, 0, len(regs))
-	for _, key := range keys {
-		res = append(res, regs[key])
-	}
-	return res
-}
-
-type regionModel struct {
-	Name     types.String            `tfsdk:"name"`
-	Replicas []replicaModel          `tfsdk:"replicas"`
-	Envs     []core.EnvVarModel      `tfsdk:"envs"`
-	Labels   map[string]types.String `tfsdk:"labels"`
 }
 
 func (m armadaSetModel) ToObject() *armadav1.ArmadaSet {
@@ -102,10 +62,7 @@ func (m armadaSetModel) ToObject() *armadav1.ArmadaSet {
 			Name:        m.Name.ValueString(),
 			Environment: m.Environment.ValueString(),
 			Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
-			Annotations: conv.ForEachMapItem(
-				toAnnotations(m.Annotations, m.ProfilingEnabled),
-				func(v types.String) string { return v.ValueString() },
-			),
+			Annotations: conv.ForEachMapItem(m.Annotations, func(v types.String) string { return v.ValueString() }),
 		},
 		Spec: armadav1.ArmadaSetSpec{
 			Description: m.Description.ValueString(),
@@ -116,7 +73,10 @@ func (m armadaSetModel) ToObject() *armadav1.ArmadaSet {
 			},
 			Template: armadav1.FleetTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels:      conv.ForEachMapItem(m.GameServerLabels, func(v types.String) string { return v.ValueString() }),
+					Labels: conv.ForEachMapItem(
+						conv.MapWithBool(m.GameServerLabels, profilingKey, m.ProfilingEnabled),
+						func(v types.String) string { return v.ValueString() },
+					),
 					Annotations: conv.ForEachMapItem(m.GameServerAnnotations, func(v types.String) string { return v.ValueString() }),
 				},
 				Spec: armadav1.FleetSpec{
@@ -130,6 +90,39 @@ func (m armadaSetModel) ToObject() *armadav1.ArmadaSet {
 			},
 		},
 	}
+}
+
+func newRegionModels(spec armadav1.ArmadaSetSpec) []regionModel {
+	regs := make([]regionModel, 0, len(spec.Armadas))
+	regIdx := make(map[string]int, len(spec.Armadas))
+	for _, val := range spec.Armadas {
+		reg := regionModel{
+			Name:     types.StringValue(val.Region),
+			Replicas: conv.ForEachSliceItem(val.Distribution, newReplicas),
+		}
+		regs = append(regs, reg)
+		regIdx[val.Region] = len(regs) - 1
+	}
+
+	for _, val := range spec.Override {
+		idx, ok := regIdx[val.Region]
+		if !ok {
+			continue
+		}
+
+		reg := regs[idx]
+		reg.Envs = conv.ForEachSliceItem(val.Env, core.NewEnvVarModel)
+		reg.Labels = conv.ForEachMapItem(val.Labels, types.StringValue)
+		regs[idx] = reg
+	}
+	return regs
+}
+
+type regionModel struct {
+	Name     types.String            `tfsdk:"name"`
+	Replicas []replicaModel          `tfsdk:"replicas"`
+	Envs     []core.EnvVarModel      `tfsdk:"envs"`
+	Labels   map[string]types.String `tfsdk:"labels"`
 }
 
 func toArmadaTemplate(reg regionModel) armadav1.ArmadaTemplate {
