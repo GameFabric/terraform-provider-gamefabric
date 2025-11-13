@@ -190,6 +190,7 @@ func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource
 		dsstorage.NewVolumeStore,
 		dsstorage.NewVolumeStores,
 		dsauthentication.NewServiceAccount,
+		dsauthentication.NewServiceAccounts,
 	}
 }
 
@@ -212,6 +213,7 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		rbac.NewGroup,
 		storage.NewVolume,
 		storage.NewVolumeStoreRetentionPolicy,
+		authentication.NewServiceAccountResource,
 	}
 }
 
