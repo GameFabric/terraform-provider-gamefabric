@@ -12,27 +12,33 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type FoundInValidator struct {
+type foundInValidator struct {
 	Message         string
 	PathExpressions []path.Expression
 }
 
-func FoundIn(msg string, paths ...path.Expression) FoundInValidator {
-	return FoundInValidator{
+// FoundIn creates a new validator that checks if a string value exists
+// in any of the specified path expressions.
+//
+// Parameters:
+//   - msg: The error message to display if the value is not found
+//   - paths: One or more path expressions where the value should be found
+func FoundIn(msg string, paths ...path.Expression) validator.String {
+	return foundInValidator{
 		Message:         msg,
 		PathExpressions: paths,
 	}
 }
 
-func (v FoundInValidator) Description(context.Context) string {
+func (v foundInValidator) Description(context.Context) string {
 	return "Validates that the value is found in the specified path expressions."
 }
 
-func (v FoundInValidator) MarkdownDescription(context.Context) string {
+func (v foundInValidator) MarkdownDescription(context.Context) string {
 	return "Validates that the value is found in the specified path expressions."
 }
 
-func (v FoundInValidator) ValidateString(ctx context.Context, req validator.StringRequest, res *validator.StringResponse) {
+func (v foundInValidator) ValidateString(ctx context.Context, req validator.StringRequest, res *validator.StringResponse) {
 	if !conv.IsKnown(req.ConfigValue) {
 		return
 	}
