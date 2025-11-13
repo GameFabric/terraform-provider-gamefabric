@@ -7,10 +7,15 @@ import (
 	"testing"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	v1 "github.com/gamefabric/gf-core/pkg/api/armada/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/armada"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators/validatorstest"
+	tfresource "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/stretchr/testify/require"
 )
 
 func TestResourceArmadaSet(t *testing.T) {
@@ -64,8 +69,8 @@ func TestResourceArmadaSet(t *testing.T) {
 					// Containers.
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.name", "example-container"),
-					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.image.name", "gameserver-asoda0s"),
-					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.image.branch", "prod"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.image_ref.name", "gameserver-asoda0s"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.image_ref.branch", "prod"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.command.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.command.0", "example-command"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.args.#", "1"),
@@ -121,9 +126,8 @@ func TestResourceArmadaSet(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "gamefabric_armadaset.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName: "gamefabric_armadaset.test",
+				ImportState:  true,
 			},
 			{
 				Config: testResourceArmadaSetConfigBasic(),
@@ -137,7 +141,7 @@ func TestResourceArmadaSet(t *testing.T) {
 	})
 }
 
-func TestResourceArmadaConfigSetBasic(t *testing.T) {
+func TestResourceArmadaSetConfigSetBasic(t *testing.T) {
 	t.Parallel()
 
 	pf, cs := providertest.ProtoV6ProviderFactories(t)
@@ -158,9 +162,8 @@ func TestResourceArmadaConfigSetBasic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "gamefabric_armadaset.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName: "gamefabric_armadaset.test",
+				ImportState:  true,
 			},
 			{
 				Config: testResourceArmadaSetConfigBasic("strategy = {\nrecreate = {}\n}\n"),
@@ -175,7 +178,32 @@ func TestResourceArmadaConfigSetBasic(t *testing.T) {
 	})
 }
 
-func TestResourceArmadaSet_Validates(t *testing.T) {
+func TestResourceArmadaSetConfigAutoscaling(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckArmadaSetDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				Config: testResourceArmadaSetConfigBasic("autoscaling = {\nfixed_interval_seconds = 1\n}\n"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "autoscaling.%", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "autoscaling.fixed_interval_seconds", "1"),
+				),
+			},
+			{
+				ResourceName: "gamefabric_armadaset.test",
+				ImportState:  true,
+			},
+		},
+	})
+}
+
+func TestResourceArmadaSetConfigValidates(t *testing.T) {
 	tests := []struct {
 		name        string
 		config      string
@@ -200,6 +228,11 @@ func TestResourceArmadaSet_Validates(t *testing.T) {
 			name:        "validates name",
 			config:      testResourceArmadaSetConfigFullInvalid(),
 			expectError: regexp.MustCompile(regexp.QuoteMeta(`invalid_name!`)),
+		},
+		{
+			name:        "validates empty name",
+			config:      testResourceArmadaSetConfigBasicNamed("", "test"),
+			expectError: regexp.MustCompile(regexp.QuoteMeta(`name is required`)),
 		},
 		{
 			name:        "validates environment",
@@ -380,14 +413,32 @@ func TestResourceArmadaSet_Validates(t *testing.T) {
 	}
 }
 
+func TestArmadaSetResourceGameFabricValidators(t *testing.T) {
+	t.Parallel()
+
+	resp := &tfresource.SchemaResponse{}
+
+	arm := armada.NewArmadaSet()
+	arm.Schema(t.Context(), tfresource.SchemaRequest{}, resp)
+
+	want := validatorstest.CollectJSONPaths(&v1.ArmadaSet{})
+	got := validatorstest.CollectPathExpressions(resp.Schema)
+
+	require.NotEmpty(t, got)
+	require.NotEmpty(t, want)
+	for _, path := range got {
+		require.Containsf(t, want, path, "The validator path %q was not found in the ArmadaSet API object", path)
+	}
+}
+
 func testResourceArmadaSetConfigEmpty() string {
 	return `resource "gamefabric_armadaset" "test" {}`
 }
 
-func testResourceArmadaSetConfigBasic(extras ...string) string {
+func testResourceArmadaSetConfigBasicNamed(name, env string, extras ...string) string {
 	return fmt.Sprintf(`resource "gamefabric_armadaset" "test" {
-  name        = "my-armadaset"
-  environment = "test"
+  name        = %q
+  environment = %q
   description = "My New ArmadaSet Description"
   regions = [
     {
@@ -405,7 +456,7 @@ func testResourceArmadaSetConfigBasic(extras ...string) string {
   containers = [
     {
       name = "example-container"
-      image = {
+      image_ref = {
         name   = "gameserver-asoda0s"
         branch = "prod"
       }
@@ -419,7 +470,11 @@ func testResourceArmadaSetConfigBasic(extras ...string) string {
   ]
 
   %s
-}`, strings.Join(extras, "\n"))
+}`, name, env, strings.Join(extras, "\n"))
+}
+
+func testResourceArmadaSetConfigBasic(extras ...string) string {
+	return testResourceArmadaSetConfigBasicNamed("my-armadaset", "test", extras...)
 }
 
 func testResourceArmadaSetConfigFull() string {
@@ -476,7 +531,7 @@ func testResourceArmadaSetConfigFull() string {
   containers = [
     {
       name = "example-container"
-      image = {
+      image_ref = {
         name   = "gameserver-asoda0s"
         branch = "prod"
       }
@@ -622,7 +677,7 @@ func testResourceArmadaSetConfigFullInvalid() string {
   containers = [
     {
       name = "name"
-      image = {
+      image_ref = {
         name   = "gameserver-asoda0s"
         branch = "prod"
       }

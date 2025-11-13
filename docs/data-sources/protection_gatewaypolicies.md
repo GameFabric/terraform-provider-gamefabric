@@ -20,8 +20,7 @@ data "gamefabric_protection_gatewaypolicies" "all" {
 # Get gateway policies filtered by labels.
 data "gamefabric_protection_gatewaypolicies" "by_labels" {
   label_filter = {
-    environment_type = "non-prod"
-    stage            = "dev"
+    stage = "dev"
   }
 }
 ```
@@ -31,7 +30,7 @@ data "gamefabric_protection_gatewaypolicies" "by_labels" {
 
 ### Optional
 
-- `label_filter` (Map of String) A map of keys and values that is used to filter gateway policies.
+- `label_filter` (Map of String) A map of keys and values that is used to filter gateway policies. Only items with all specified labels (exact matches) will be returned.
 
 ### Read-Only
 

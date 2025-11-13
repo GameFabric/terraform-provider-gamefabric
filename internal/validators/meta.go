@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gamefabric/gf-apicore/api/validation"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -25,28 +26,8 @@ var (
 	labelValueRegexp  = regexp.MustCompile(`^([A-Za-z0-9][A-Za-z0-9-_.]*)?[A-Za-z0-9]$`)
 )
 
-var (
-	_ validator.String = NameValidator{}
-	_ validator.List   = NameValidator{}
-)
-
 // NameValidator is a custom validator that checks if a string is a valid name.
 type NameValidator struct{}
-
-// ValidateList checks that each string in the list is a valid name.
-func (n NameValidator) ValidateList(_ context.Context, req validator.ListRequest, resp *validator.ListResponse) {
-	for idx, elem := range req.ConfigValue.Elements() {
-		val, ok := elem.(basetypes.StringValue)
-		if !ok {
-			resp.Diagnostics.Append(diag.NewErrorDiagnostic(
-				"Invalid list element type",
-				fmt.Sprintf("Element at index %d is not a string", idx),
-			))
-			continue
-		}
-		resp.Diagnostics.Append(n.validate(val.ValueString())...)
-	}
-}
 
 // Description provides a description of the validator.
 func (n NameValidator) Description(context.Context) string {
@@ -60,25 +41,25 @@ func (n NameValidator) MarkdownDescription(context.Context) string {
 
 // ValidateString checks that the provided string is a valid name.
 func (n NameValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	diags := n.validate(req.ConfigValue.ValueString())
-	resp.Diagnostics.Append(diags...)
-}
+	if !conv.IsKnown(req.ConfigValue) {
+		// The framework still calls the validator when the value is optional and not set.
+		// This means we have to skip null values as well.
+		return
+	}
 
-func (n NameValidator) validate(v string) diag.Diagnostics {
-	diags := make([]diag.Diagnostic, 0, 2)
-	if len(v) > maxNameLength {
-		diags = append(diags, diag.NewErrorDiagnostic(
+	value := req.ConfigValue.ValueString()
+	switch {
+	case len(value) > maxNameLength:
+		resp.Diagnostics.Append(diag.NewErrorDiagnostic(
 			"Invalid name length",
-			fmt.Sprintf("%q must be no more than %d characters", v, maxNameLength),
+			fmt.Sprintf("%s must be no more than %d characters", value, maxNameLength),
 		))
-	}
-	if v != "" && !nameRegexp.MatchString(v) {
-		diags = append(diags, diag.NewErrorDiagnostic(
+	case value != "" && !nameRegexp.MatchString(value):
+		resp.Diagnostics.Append(diag.NewErrorDiagnostic(
 			"Invalid name",
-			v+` is not a valid name`,
+			value+` is not a valid name`,
 		))
 	}
-	return diags
 }
 
 // EnvironmentValidator is a custom validator that checks if a string is a valid environment name.

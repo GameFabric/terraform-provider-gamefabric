@@ -27,7 +27,7 @@ provider "gamefabric" {
 The following environment variables can be used to configure the provider:
 
 - `GAMEFABRIC_HOST`: The GameFabric API host URL.
-- `GAMEFABRIC_CUSTOMER_ID`: The customer ID.
+- `GAMEFABRIC_CUSTOMER_ID`: The customer ID (first segment of your installation URL). If your installation URL is `customerID.gamefabric.dev`, set this to `customerID`.
 - `GAMEFABRIC_SERVICE_ACCOUNT`: The service account username.
 - `GAMEFABRIC_PASSWORD`: The service account password.
 
@@ -36,7 +36,7 @@ The following environment variables can be used to configure the provider:
 
 ### Optional
 
-- `customer_id` (String) The customer ID.
+- `customer_id` (String) The customer ID (first segment of your installation URL). If your installation URL is `customerID.gamefabric.dev`, set this to `customerID`.
 - `host` (String) The GameFabric API host URL.
 - `password` (String, Sensitive) The service account password.
 - `service_account` (String) The service account username.

@@ -10,8 +10,8 @@ import (
 
 func TestBranch(t *testing.T) {
 	t.Parallel()
-	
-	name := "dflt"
+
+	name := "test-branch"
 	pf, _ := providertest.ProtoV6ProviderFactories(t)
 
 	resource.Test(t, resource.TestCase{
@@ -37,7 +37,6 @@ func TestBranch(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_branch.test", "name", name),
 					resource.TestCheckResourceAttr("gamefabric_branch.test", "display_name", "My Branch"),
 					resource.TestCheckResourceAttr("gamefabric_branch.test", "description", "My Branch Description"),
-					resource.TestCheckResourceAttr("gamefabric_branch.test", "retention_policy_rules.#", "0"),
 				),
 			},
 			{

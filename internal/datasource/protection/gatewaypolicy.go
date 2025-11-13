@@ -42,8 +42,8 @@ func (r *gatewayPolicy) Schema(_ context.Context, _ datasource.SchemaRequest, re
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
-				Description:         "The unique object name.",
-				MarkdownDescription: "The unique object name.",
+				Description:         "The unique gateway policy object name.",
+				MarkdownDescription: "The unique gateway policy object name.",
 				Optional:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},
@@ -51,8 +51,8 @@ func (r *gatewayPolicy) Schema(_ context.Context, _ datasource.SchemaRequest, re
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description:         "DisplayName is the friendly name of the gateway policy.",
-				MarkdownDescription: "DisplayName is the friendly name of the gateway policy.",
+				Description:         "The user-friendly name of the gateway policy.",
+				MarkdownDescription: "The user-friendly name of the gateway policy.",
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("name")),
@@ -65,8 +65,8 @@ func (r *gatewayPolicy) Schema(_ context.Context, _ datasource.SchemaRequest, re
 				ElementType:         types.StringType,
 			},
 			"description": schema.StringAttribute{
-				Description:         "Description is the description of the gateway policy.",
-				MarkdownDescription: "Description is the description of the gateway policy.",
+				Description:         "The description of the gateway policy.",
+				MarkdownDescription: "The description of the gateway policy.",
 				Computed:            true,
 			},
 			"destination_cidrs": schema.ListAttribute{

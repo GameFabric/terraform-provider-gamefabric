@@ -27,15 +27,17 @@ func TestRegion(t *testing.T) {
 				Config: testResourceRegionConfigBasic(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("gamefabric_region.test", "name", name),
-					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.locations.0", "loc-1"),
-					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.locations.1", "loc-2"),
-					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.envs.0.name", "ENV_VAR_1"),
-					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.envs.0.value", "value1"),
-					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.envs.1.name", "ENV_VAR_2"),
-					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.envs.1.value_from.field_path", "metadata.name"),
-					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.envs.2.name", "ENV_VAR_3"),
-					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.envs.2.value_from.config_file", "config-file-name"),
-					resource.TestCheckResourceAttr("gamefabric_region.test", "types.baremetal.scheduling", "Distributed"),
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.#", "1"),
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.0.name", "baremetal"),
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.0.locations.0", "loc-1"),
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.0.locations.1", "loc-2"),
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.0.envs.0.name", "ENV_VAR_1"),
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.0.envs.0.value", "value1"),
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.0.envs.1.name", "ENV_VAR_2"),
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.0.envs.1.value_from.field_path", "metadata.name"),
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.0.envs.2.name", "ENV_VAR_3"),
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.0.envs.2.value_from.config_file", "config-file-name"),
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.0.scheduling", "Distributed"),
 				),
 			},
 			{
@@ -60,8 +62,9 @@ func testResourceRegionConfigBasic(name string) string {
   name = "%s"
   display_name = "My Region"
   environment = "dflt"
-  types = {
-    baremetal = {
+  types = [
+    {
+      name = "baremetal"
       locations = ["loc-1", "loc-2"]
       envs = [{
         name  = "ENV_VAR_1"
@@ -79,7 +82,7 @@ func testResourceRegionConfigBasic(name string) string {
       }]
       scheduling = "Distributed"
     }
-  }
+  ]
 }`, name)
 }
 
@@ -89,11 +92,12 @@ func testResourceRegionConfigBasicWithDescription(name string) string {
   display_name = "My Region"
   description = "My Region Description"
   environment = "dflt"
-  types = {
-    baremetal = {
+  types = [
+    {
+      name = "baremetal"
       locations = ["loc-1", "loc-2"]
     }
-  }
+  ]
 }`, name)
 }
 

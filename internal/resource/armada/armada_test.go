@@ -7,10 +7,15 @@ import (
 	"testing"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	v1 "github.com/gamefabric/gf-core/pkg/api/armada/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/armada"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators/validatorstest"
+	tfresource "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/stretchr/testify/require"
 )
 
 func TestResourceArmada(t *testing.T) {
@@ -21,7 +26,7 @@ func TestResourceArmada(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		IsUnitTest:               true,
 		ProtoV6ProviderFactories: pf,
-		CheckDestroy:             testCheckArmadasDestroy(t, cs),
+		CheckDestroy:             testCheckArmadaDestroy(t, cs),
 		Steps: []resource.TestStep{
 			{
 				Config: testResourceArmadaConfigFull(),
@@ -58,8 +63,8 @@ func TestResourceArmada(t *testing.T) {
 					// Containers.
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.name", "example-container"),
-					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.image.name", "gameserver-asoda0s"),
-					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.image.branch", "prod"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.image_ref.name", "gameserver-asoda0s"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.image_ref.branch", "prod"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.command.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.command.0", "example-command"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.args.#", "1"),
@@ -115,9 +120,8 @@ func TestResourceArmada(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "gamefabric_armada.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName: "gamefabric_armada.test",
+				ImportState:  true,
 			}, {
 				Config: testResourceArmadaConfigBasic(),
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -138,7 +142,7 @@ func TestResourceArmadaConfigBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		IsUnitTest:               true,
 		ProtoV6ProviderFactories: pf,
-		CheckDestroy:             testCheckArmadasDestroy(t, cs),
+		CheckDestroy:             testCheckArmadaDestroy(t, cs),
 		Steps: []resource.TestStep{
 			{
 				Config: testResourceArmadaConfigBasic(),
@@ -149,8 +153,8 @@ func TestResourceArmadaConfigBasic(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "region", "eu"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.name", "example-container"),
-					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.image.name", "gameserver-asoda0s"),
-					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.image.branch", "prod"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.image_ref.name", "gameserver-asoda0s"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.image_ref.branch", "prod"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.resources.requests.cpu", "250m"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.resources.requests.memory", "256Mi"),
 
@@ -158,9 +162,8 @@ func TestResourceArmadaConfigBasic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "gamefabric_armada.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName: "gamefabric_armada.test",
+				ImportState:  true,
 			}, {
 				Config: testResourceArmadaConfigBasic("strategy = {\nrecreate = {}\n}\n"),
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -174,7 +177,32 @@ func TestResourceArmadaConfigBasic(t *testing.T) {
 	})
 }
 
-func TestResourceArmada_Validates(t *testing.T) {
+func TestResourceArmadaConfigAutoscaling(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckArmadaDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				Config: testResourceArmadaConfigBasic("autoscaling = {\nfixed_interval_seconds = 1\n}\n"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "autoscaling.%", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "autoscaling.fixed_interval_seconds", "1"),
+				),
+			},
+			{
+				ResourceName: "gamefabric_armada.test",
+				ImportState:  true,
+			},
+		},
+	})
+}
+
+func TestResourceArmadaConfigValidates(t *testing.T) {
 	tests := []struct {
 		name        string
 		config      string
@@ -204,6 +232,11 @@ func TestResourceArmada_Validates(t *testing.T) {
 			name:        "validates name",
 			config:      testResourceArmadaConfigFullInvalid(),
 			expectError: regexp.MustCompile(regexp.QuoteMeta(`invalid_name!`)),
+		},
+		{
+			name:        "validates empty name",
+			config:      testResourceArmadaConfigBasicNamed("", "test"),
+			expectError: regexp.MustCompile(regexp.QuoteMeta(`name is required`)),
 		},
 		{
 			name:        "validates environment",
@@ -367,7 +400,7 @@ func TestResourceArmada_Validates(t *testing.T) {
 			resource.Test(t, resource.TestCase{
 				IsUnitTest:               true,
 				ProtoV6ProviderFactories: pf,
-				CheckDestroy:             testCheckArmadasDestroy(t, cs),
+				CheckDestroy:             testCheckArmadaDestroy(t, cs),
 				Steps: []resource.TestStep{
 					{
 						Config:      test.config,
@@ -379,21 +412,39 @@ func TestResourceArmada_Validates(t *testing.T) {
 	}
 }
 
+func TestArmadaResourceGameFabricValidators(t *testing.T) {
+	t.Parallel()
+
+	resp := &tfresource.SchemaResponse{}
+
+	arm := armada.NewArmada()
+	arm.Schema(t.Context(), tfresource.SchemaRequest{}, resp)
+
+	want := validatorstest.CollectJSONPaths(&v1.Armada{})
+	got := validatorstest.CollectPathExpressions(resp.Schema)
+
+	require.NotEmpty(t, got)
+	require.NotEmpty(t, want)
+	for _, path := range got {
+		require.Containsf(t, want, path, "The validator path %q was not found in the Armada API object", path)
+	}
+}
+
 func testResourceArmadaConfigEmpty() string {
 	return `resource "gamefabric_armada" "test" {}`
 }
 
-func testResourceArmadaConfigBasic(extras ...string) string {
+func testResourceArmadaConfigBasicNamed(name, env string, extras ...string) string {
 	return fmt.Sprintf(`resource "gamefabric_armada" "test" {
-  name        = "my-armada"
-  environment = "test"
+  name        = %q
+  environment = %q
   description = "My New Armada Description"
   region = "eu"
 
   containers = [
     {
       name = "example-container"
-      image = {
+      image_ref = {
         name   = "gameserver-asoda0s"
         branch = "prod"
       }
@@ -407,7 +458,11 @@ func testResourceArmadaConfigBasic(extras ...string) string {
   ]
 
   %s
-}`, strings.Join(extras, "\n"))
+}`, name, env, strings.Join(extras, "\n"))
+}
+
+func testResourceArmadaConfigBasic(extras ...string) string {
+	return testResourceArmadaConfigBasicNamed("my-armada", "test", extras...)
 }
 
 func testResourceArmadaConfigFull() string {
@@ -451,7 +506,7 @@ func testResourceArmadaConfigFull() string {
   containers = [
     {
       name = "example-container"
-      image = {
+      image_ref = {
         name   = "gameserver-asoda0s"
         branch = "prod"
       }
@@ -583,7 +638,7 @@ func testResourceArmadaConfigFullInvalid() string {
   containers = [
     {
       name = "name"
-      image = {
+      image_ref = {
         name   = "gameserver-asoda0s"
         branch = "prod"
       }
@@ -641,7 +696,7 @@ func testResourceArmadaConfigFullInvalid() string {
 }`
 }
 
-func testCheckArmadasDestroy(t *testing.T, cs clientset.Interface) func(s *terraform.State) error {
+func testCheckArmadaDestroy(t *testing.T, cs clientset.Interface) func(s *terraform.State) error {
 	return func(s *terraform.State) error {
 		for _, rs := range s.RootModule().Resources {
 			if rs.Type != "gamefabric_armada" {

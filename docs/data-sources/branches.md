@@ -18,7 +18,6 @@ data "gamefabric_branches" "all" {
 }
 
 # Get branches filtered by labels.
-# Only branches that have ALL specified labels with exact matching values are returned.
 data "gamefabric_branches" "production_platform" {
   label_filter = {
     env  = "prod"
@@ -32,7 +31,7 @@ data "gamefabric_branches" "production_platform" {
 
 ### Optional
 
-- `label_filter` (Map of String) A map of keys and values that is used to filter branches (exact matches of all provided labels).
+- `label_filter` (Map of String) A map of keys and values that is used to filter branches. Only items with all specified labels (exact matches) will be returned.
 
 ### Read-Only
 
@@ -43,8 +42,8 @@ data "gamefabric_branches" "production_platform" {
 
 Read-Only:
 
-- `display_name` (String) The display name of the branch.
-- `name` (String) The unique object name within its scope.
+- `display_name` (String) The user-friendly name of the branch.
+- `name` (String) The unique branch object name.
 - `retention_policy_rules` (Attributes List) RetentionPolicyRules are the rules that define how images are retained. (see [below for nested schema](#nestedatt--branches--retention_policy_rules))
 
 <a id="nestedatt--branches--retention_policy_rules"></a>

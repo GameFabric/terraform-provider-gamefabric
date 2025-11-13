@@ -19,15 +19,18 @@ resource "gamefabric_region" "europe" {
   name         = "europe"
   display_name = "Europe"
   environment  = "prod"
-  types = {
-    "baremetal" = {
+  types = [
+    {
+      name      = "baremetal"
       locations = data.gamefabric_locations.baremetal_europe.names
     },
-    "gcp" = {
+    {
+      name      = "gcp"
       locations = data.gamefabric_locations.gcp.names
     },
-    "aws" = {
+    {
+      name      = "aws"
       locations = data.gamefabric_locations.aws.names
     }
-  }
+  ]
 }

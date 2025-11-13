@@ -40,8 +40,8 @@ func (r *branches) Schema(_ context.Context, _ datasource.SchemaRequest, resp *d
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"label_filter": schema.MapAttribute{
-				Description:         "A map of keys and values that is used to filter branches (exact matches of all provided labels).",
-				MarkdownDescription: "A map of keys and values that is used to filter branches (exact matches of all provided labels).",
+				Description:         "A map of keys and values that is used to filter branches. Only items with all specified labels (exact matches) will be returned.",
+				MarkdownDescription: "A map of keys and values that is used to filter branches. Only items with all specified labels (exact matches) will be returned.",
 				Optional:            true,
 				ElementType:         types.StringType,
 			},
@@ -52,13 +52,13 @@ func (r *branches) Schema(_ context.Context, _ datasource.SchemaRequest, resp *d
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
-							Description:         "The unique object name within its scope.",
-							MarkdownDescription: "The unique object name within its scope.",
+							Description:         "The unique branch object name.",
+							MarkdownDescription: "The unique branch object name.",
 							Computed:            true,
 						},
 						"display_name": schema.StringAttribute{
-							Description:         "The display name of the branch.",
-							MarkdownDescription: "The display name of the branch.",
+							Description:         "The user-friendly name of the branch.",
+							MarkdownDescription: "The user-friendly name of the branch.",
 							Computed:            true,
 						},
 						"retention_policy_rules": schema.ListNestedAttribute{

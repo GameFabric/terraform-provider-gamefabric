@@ -35,8 +35,8 @@ func (r *location) Schema(_ context.Context, _ datasource.SchemaRequest, resp *d
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
-				Description:         "The unique object name of the location.",
-				MarkdownDescription: "The unique object name of the location.",
+				Description:         "The unique location object name.",
+				MarkdownDescription: "The unique location object name.",
 				Required:            true,
 			},
 		},

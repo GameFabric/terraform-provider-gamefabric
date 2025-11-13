@@ -9,7 +9,12 @@ import (
 	"github.com/gamefabric/gf-apiclient/tools/patch"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-apiserver/registry/generic"
+	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	configfilereg "github.com/gamefabric/gf-core/pkg/apiserver/registry/core/configfile"
+	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
@@ -27,6 +32,13 @@ var (
 	_ resource.ResourceWithConfigure   = &configFile{}
 	_ resource.ResourceWithImportState = &configFile{}
 )
+
+var configFileValidator = validators.NewGameFabricValidator[*corev1.ConfigFile, configFileModel](func() validators.StoreValidator {
+	storage, _ := configfilereg.New(generic.StoreOptions{Config: generic.Config{
+		StorageFactory: registrytest.FakeStorageFactory{},
+	}})
+	return storage.Store.Strategy
+})
 
 type configFile struct {
 	clientSet clientset.Interface
@@ -52,27 +64,26 @@ func (r *configFile) Schema(_ context.Context, _ resource.SchemaRequest, resp *r
 				Computed:            true,
 			},
 			"name": schema.StringAttribute{
-				Description:         "The unique object name within its scope.",
-				MarkdownDescription: "The unique object name within its scope.",
+				Description:         "The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.",
+				MarkdownDescription: "The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.",
 				Required:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},
+					validators.GFFieldString(configFileValidator, "metadata.name"),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"environment": schema.StringAttribute{
-				Description:         "The name of the environment the object belongs to.",
-				MarkdownDescription: "The name of the environment the object belongs to.",
+				Description:         "The name of the environment the resource belongs to.",
+				MarkdownDescription: "The name of the environment the resource belongs to.",
 				Required:            true,
 				Validators: []validator.String{
 					validators.EnvironmentValidator{},
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"labels": schema.MapAttribute{
@@ -102,6 +113,9 @@ func (r *configFile) Schema(_ context.Context, _ resource.SchemaRequest, resp *r
 				Description:         "The content of the config file.",
 				MarkdownDescription: "The content of the config file.",
 				Required:            true,
+				Validators: []validator.String{
+					validators.GFFieldString(configFileValidator, "data"),
+				},
 			},
 		},
 	}
@@ -133,7 +147,7 @@ func (r *configFile) Create(ctx context.Context, req resource.CreateRequest, res
 	}
 
 	obj := plan.ToObject()
-	_, err := r.clientSet.CoreV1().ConfigFiles(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.CoreV1().ConfigFiles(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Config File",
@@ -142,7 +156,8 @@ func (r *configFile) Create(ctx context.Context, req resource.CreateRequest, res
 		return
 	}
 
-	plan.ID = types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String())
+	plan = newConfigModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -168,6 +183,7 @@ func (r *configFile) Read(ctx context.Context, req resource.ReadRequest, resp *r
 	}
 
 	state = newConfigModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 

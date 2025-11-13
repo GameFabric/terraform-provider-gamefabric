@@ -43,13 +43,13 @@ func (r *protocols) Schema(_ context.Context, _ datasource.SchemaRequest, resp *
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
-							Description:         "The unique object name.",
-							MarkdownDescription: "The unique object name.",
+							Description:         "The unique protection protocol object name.",
+							MarkdownDescription: "The unique protection protocol object name.",
 							Computed:            true,
 						},
 						"display_name": schema.StringAttribute{
-							Description:         "DisplayName is the user-friendly name of a protection protocol.",
-							MarkdownDescription: "DisplayName is the user-friendly name of a protection protocol.",
+							Description:         "The user-friendly name of the protection protocol.",
+							MarkdownDescription: "The user-friendly name of the protection protocol.",
 							Computed:            true,
 						},
 						"description": schema.StringAttribute{

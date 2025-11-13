@@ -42,8 +42,8 @@ func (r *branch) Schema(_ context.Context, _ datasource.SchemaRequest, resp *dat
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
-				Description:         "The unique object name within its scope.",
-				MarkdownDescription: "The unique object name within its scope.",
+				Description:         "The unique branch object name.",
+				MarkdownDescription: "The unique branch object name.",
 				Optional:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},
@@ -51,8 +51,8 @@ func (r *branch) Schema(_ context.Context, _ datasource.SchemaRequest, resp *dat
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description:         "DisplayName is friendly name of the branch.",
-				MarkdownDescription: "DisplayName is friendly name of the branch.",
+				Description:         "The user-friendly name of the branch.",
+				MarkdownDescription: "The user-friendly name of the branch.",
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("name")),

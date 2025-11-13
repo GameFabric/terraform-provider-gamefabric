@@ -9,6 +9,7 @@ import (
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
@@ -61,7 +62,6 @@ func (r *environment) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"labels": schema.MapAttribute{
@@ -83,13 +83,13 @@ func (r *environment) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Description:         "DisplayName is the name of the environment shown in GameFabric.",
-				MarkdownDescription: "DisplayName is the name of the environment shown in GameFabric.",
+				Description:         "The user-friendly name of the environment.",
+				MarkdownDescription: "The user-friendly name of the environment.",
 				Required:            true,
 			},
 			"description": schema.StringAttribute{
-				Description:         "Description is the description of the environment.",
-				MarkdownDescription: "Description is the description of the environment.",
+				Description:         "Description is the optional description of the environment.",
+				MarkdownDescription: "Description is the optional description of the environment.",
 				Optional:            true,
 			},
 		},
@@ -122,7 +122,7 @@ func (r *environment) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 
 	obj := plan.ToObject()
-	_, err := r.clientSet.CoreV1().Environments().Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.CoreV1().Environments().Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Environment",
@@ -131,7 +131,8 @@ func (r *environment) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 
-	plan.ID = types.StringValue(obj.Name)
+	plan = newEnvironmentModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -157,6 +158,7 @@ func (r *environment) Read(ctx context.Context, req resource.ReadRequest, resp *
 	}
 
 	state = newEnvironmentModel(obj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
