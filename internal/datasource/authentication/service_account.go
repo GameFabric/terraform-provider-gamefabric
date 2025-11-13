@@ -9,8 +9,10 @@ import (
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -36,6 +38,14 @@ func (r *serviceAccount) Schema(_ context.Context, _ datasource.SchemaRequest, r
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
+				Description:         "The unique object name.",
+				MarkdownDescription: "The unique object name.",
+				Required:            true,
+				Validators: []validator.String{
+					validators.NameValidator{},
+				},
+			},
+			"username": schema.StringAttribute{
 				Description:         "The service account username.",
 				MarkdownDescription: "The service account username.",
 				Optional:            true,
