@@ -63,6 +63,12 @@ func (r *locations) Schema(_ context.Context, _ datasource.SchemaRequest, resp *
 				MarkdownDescription: "The regex used to filter locations by their name.",
 				Optional:            true,
 			},
+			"label_filter": schema.MapAttribute{
+				Description:         "A map of keys and values that is used to filter locations. Only items with all specified labels (exact matches) will be returned. Can be combined with other filters.",
+				MarkdownDescription: "A map of keys and values that is used to filter locations. Only items with all specified labels (exact matches) will be returned. Can be combined with other filters.",
+				Optional:            true,
+				ElementType:         types.StringType,
+			},
 			"names": schema.ListAttribute{
 				Description:         "The locations matching the filters.",
 				MarkdownDescription: "The locations matching the filters.",
@@ -121,7 +127,9 @@ func (r *locations) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		hasNameRegex = true
 	}
 
-	list, err := r.clientSet.CoreV1().Locations().List(ctx, metav1.ListOptions{})
+	list, err := r.clientSet.CoreV1().Locations().List(ctx, metav1.ListOptions{
+		LabelSelector: conv.ForEachMapItem(config.LabelFilter, func(item types.String) string { return item.ValueString() }),
+	})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Getting Locations",
@@ -162,5 +170,6 @@ func (r *locations) Read(ctx context.Context, req datasource.ReadRequest, resp *
 	state.Country = config.Country
 	state.Continent = config.Continent
 	state.NameRegex = config.NameRegex
+	state.LabelFilter = config.LabelFilter
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
