@@ -107,7 +107,6 @@ func (r *serviceAccount) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	obj, err := r.clientSet.AuthenticationV1Beta1().ServiceAccounts().Get(ctx, config.Name.ValueString(), metav1.GetOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Fetching Service Account",
