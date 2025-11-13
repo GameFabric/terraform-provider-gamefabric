@@ -190,6 +190,7 @@ func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource
 		dsstorage.NewVolumeStore,
 		dsstorage.NewVolumeStores,
 		dsauthentication.NewServiceAccount,
+		dsauthentication.NewServiceAccounts,
 	}
 }
 
