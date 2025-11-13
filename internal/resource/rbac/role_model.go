@@ -8,10 +8,11 @@ import (
 )
 
 type roleModel struct {
-	ID     types.String            `tfsdk:"id"`
-	Name   types.String            `tfsdk:"name"`
-	Rules  []ruleModel             `tfsdk:"rules"`
-	Labels map[string]types.String `tfsdk:"labels"`
+	ID          types.String            `tfsdk:"id"`
+	Name        types.String            `tfsdk:"name"`
+	Rules       []ruleModel             `tfsdk:"rules"`
+	Labels      map[string]types.String `tfsdk:"labels"`
+	Annotations map[string]types.String `tfsdk:"annotations"`
 }
 
 type ruleModel struct {
@@ -25,9 +26,10 @@ type ruleModel struct {
 
 func newRoleModel(obj *rbacv1.Role) roleModel {
 	return roleModel{
-		ID:     types.StringValue(obj.Name),
-		Name:   types.StringValue(obj.Name),
-		Labels: conv.ForEachMapItem(obj.Labels, types.StringValue),
+		ID:          types.StringValue(obj.Name),
+		Name:        types.StringValue(obj.Name),
+		Labels:      conv.ForEachMapItem(obj.Labels, types.StringValue),
+		Annotations: conv.ForEachMapItem(obj.Annotations, types.StringValue),
 		Rules: conv.ForEachSliceItem(obj.Rules, func(rule rbacv1.Rule) ruleModel {
 			return ruleModel{
 				Verbs:         conv.ForEachSliceItem(rule.Verbs, types.StringValue),
@@ -44,8 +46,9 @@ func newRoleModel(obj *rbacv1.Role) roleModel {
 func (m roleModel) ToObject() *rbacv1.Role {
 	return &rbacv1.Role{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   m.Name.ValueString(),
-			Labels: conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
+			Name:        m.Name.ValueString(),
+			Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
+			Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
 		},
 		Rules: conv.ForEachSliceItem(m.Rules, func(rule ruleModel) rbacv1.Rule {
 			return rbacv1.Rule{

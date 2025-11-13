@@ -105,6 +105,15 @@ func (r *role) Schema(_ context.Context, _ resource.SchemaRequest, resp *resourc
 					validators.LabelsValidator{},
 				},
 			},
+			"annotations": schema.MapAttribute{
+				Description:         "A map of annotations to assign to the role.",
+				MarkdownDescription: "A map of annotations to assign to the role.",
+				Optional:            true,
+				ElementType:         types.StringType,
+				Validators: []validator.Map{
+					validators.AnnotationsValidator{},
+				},
+			},
 		},
 	}
 }
