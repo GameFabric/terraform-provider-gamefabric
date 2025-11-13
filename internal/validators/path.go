@@ -71,6 +71,10 @@ func (v FoundInValidator) ValidateString(ctx context.Context, req validator.Stri
 
 			str, ok := val.(types.String)
 			if !ok {
+				res.Diagnostics.AddError(
+					"Invalid Type",
+					fmt.Sprintf("Expected value at path %q to be of type String, got %T", matchedPath.String(), val),
+				)
 				return
 			}
 
