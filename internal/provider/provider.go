@@ -9,16 +9,20 @@ import (
 
 	"github.com/gamefabric/gf-apiclient/rest"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	dsauthentication "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/authentication"
 	dscontainer "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/container"
 	dscore "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/core"
 	dsprotection "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/protection"
+	dsrbac "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/rbac"
 	dsstorage "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/storage"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/armada"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/authentication"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/formation"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/protection"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/rbac"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/storage"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -179,10 +183,14 @@ func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource
 		dsprotection.NewGatewayPolicies,
 		dsprotection.NewProtocol,
 		dsprotection.NewProtocols,
+		dsrbac.NewGroup,
+		dsrbac.NewGroups,
 		dsstorage.NewVolume,
 		dsstorage.NewVolumes,
 		dsstorage.NewVolumeStore,
 		dsstorage.NewVolumeStores,
+		dsauthentication.NewServiceAccount,
+		dsauthentication.NewServiceAccounts,
 	}
 }
 
@@ -191,6 +199,7 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		armada.NewArmada,
 		armada.NewArmadaSet,
+		authentication.NewProvider,
 		core.NewConfigFile,
 		core.NewEnvironment,
 		core.NewRegion,
@@ -199,8 +208,10 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		formation.NewFormation,
 		formation.NewVessel,
 		protection.NewGatewayPolicy,
+		rbac.NewGroup,
 		storage.NewVolume,
 		storage.NewVolumeStoreRetentionPolicy,
+		authentication.NewServiceAccountResource,
 	}
 }
 
