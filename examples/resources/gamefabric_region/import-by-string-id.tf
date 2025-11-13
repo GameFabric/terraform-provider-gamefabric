@@ -1,4 +1,4 @@
 import {
-  id = "{{ environment }}/regions/{{ name }}"
+  id = "{{ environment }}/{{ name }}"
   to = gamefabric_region.europe
 }

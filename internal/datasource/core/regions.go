@@ -42,16 +42,16 @@ func (r *regions) Schema(_ context.Context, _ datasource.SchemaRequest, resp *da
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"environment": schema.StringAttribute{
-				Description:         "The name of the environment the object belongs to.",
-				MarkdownDescription: "The name of the environment the object belongs to.",
+				Description:         "The name of the environment the resource belongs to.",
+				MarkdownDescription: "The name of the environment the resource belongs to.",
 				Required:            true,
 				Validators: []validator.String{
 					validators.EnvironmentValidator{},
 				},
 			},
 			"label_filter": schema.MapAttribute{
-				Description:         "A map of keys and values that is used to filter regions.",
-				MarkdownDescription: "A map of keys and values that is used to filter regions.",
+				Description:         "A map of keys and values that is used to filter regions. Only items with all specified labels (exact matches) will be returned.",
+				MarkdownDescription: "A map of keys and values that is used to filter regions. Only items with all specified labels (exact matches) will be returned.",
 				Optional:            true,
 				ElementType:         types.StringType,
 			},
@@ -62,18 +62,18 @@ func (r *regions) Schema(_ context.Context, _ datasource.SchemaRequest, resp *da
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
-							Description:         "The unique object name within its scope.",
-							MarkdownDescription: "The unique object name within its scope.",
+							Description:         "The unique region name within its environment.",
+							MarkdownDescription: "The unique region name within its environment.",
 							Computed:            true,
 						},
 						"display_name": schema.StringAttribute{
-							Description:         "The display name of the region.",
-							MarkdownDescription: "The display name of the region.",
+							Description:         "The user-friendly name of the region.",
+							MarkdownDescription: "The user-friendly name of the region.",
 							Computed:            true,
 						},
 						"environment": schema.StringAttribute{
-							Description:         "The name of the environment the object belongs to.",
-							MarkdownDescription: "The name of the environment the object belongs to.",
+							Description:         "The name of the environment the resource belongs to.",
+							MarkdownDescription: "The name of the environment the resource belongs to.",
 							Computed:            true,
 						},
 						"types": schema.MapNestedAttribute{

@@ -22,7 +22,7 @@ data "gamefabric_region" "europe" {
 # Get a region by its display name.
 # Note:
 # - Only one of 'name' or 'display_name' should be specified.
-# - If multiple branches share the same display name, an error will occur.
+# - If multiple regions share the same display name, an error will occur.
 data "gamefabric_region" "europe" {
   display_name = "Europe"
   environment  = "dev" # The environment this region belongs to (required)
@@ -34,12 +34,12 @@ data "gamefabric_region" "europe" {
 
 ### Required
 
-- `environment` (String) The name of the environment the object belongs to.
+- `environment` (String) The name of the environment the resource belongs to.
 
 ### Optional
 
-- `display_name` (String) DisplayName is the user-friendly name of a region.
-- `name` (String) The unique object name.
+- `display_name` (String) The user-friendly name of the region.
+- `name` (String) The unique region name within its environment.
 
 ### Read-Only
 

@@ -7,9 +7,9 @@ description: |-
 
 # gamefabric_environment (Resource)
 
-Environments are a mechanism for isolating groups of resources. Resource names must be unique within each environment, but not across environments. They can therefore be used to separate production, staging, testing, and any other environments and ensure that they don't interfere. Alongside the RBAC features, it also allows limiting the access to certain environments from users.
+Environments are a mechanism for isolating groups of resources. Resource names must be unique within each environment, but not across environments. They can therefore be used to separate production, staging, testing, and any other environments and ensure that they don't interfere. Alongside the RBAC features, it also allows limiting users' access to certain environments.
 
-Capacity is managed on a per Environment basis via Regions.
+Capacity is managed on a per environment basis via regions.
 
 For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/getting-started/glossary#environment">GameFabric documentation</a>.
 
@@ -22,7 +22,7 @@ resource "gamefabric_environment" "prod" {
   description  = "Production environment for live game servers"
 
   labels = {
-    environment_type = "production"
+    environment-type = "production"
     criticality      = "high"
   }
 }
@@ -33,13 +33,13 @@ resource "gamefabric_environment" "prod" {
 
 ### Required
 
-- `display_name` (String) DisplayName is the name of the environment shown in GameFabric.
+- `display_name` (String) The user-friendly name of the environment.
 - `name` (String) The unique environment object name. The name must be between 1 and 4 characters long and only contain alphanumeric lowercase characters without any special characters.
 
 ### Optional
 
 - `annotations` (Map of String) Annotations is an unstructured map of keys and values stored on an object.
-- `description` (String) Description is the description of the environment.
+- `description` (String) Description is the optional description of the environment.
 - `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
 
 ### Read-Only

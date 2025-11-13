@@ -63,6 +63,10 @@ func TestRoleResource(t *testing.T) {
 		"key1" = "value1"
 		"key2" = "value2"
 	}
+	annotations = {
+		"akey1" = "avalue1"
+		"akey2" = "avalue2"
+	}
 }`,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("gamefabric_role.test", "name", "test-role-optional"),
@@ -72,6 +76,8 @@ func TestRoleResource(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_role.test", "rules.0.resource_names.1", "resource2"),
 					resource.TestCheckResourceAttr("gamefabric_role.test", "labels.key1", "value1"),
 					resource.TestCheckResourceAttr("gamefabric_role.test", "labels.key2", "value2"),
+					resource.TestCheckResourceAttr("gamefabric_role.test", "annotations.akey1", "avalue1"),
+					resource.TestCheckResourceAttr("gamefabric_role.test", "annotations.akey2", "avalue2"),
 				),
 			},
 			{
@@ -111,6 +117,9 @@ func TestRoleResource(t *testing.T) {
 	labels = {
 		"key1" = "value1"
 	}
+	annotations = {
+		"akey1" = "avalue1"
+	}
 }`,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("gamefabric_role.test", "name", "test-role-update"),
@@ -122,6 +131,7 @@ func TestRoleResource(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_role.test", "rules.0.scopes.0", "scope1"),
 					resource.TestCheckResourceAttr("gamefabric_role.test", "rules.0.resource_names.0", "res1"),
 					resource.TestCheckResourceAttr("gamefabric_role.test", "labels.key1", "value1"),
+					resource.TestCheckResourceAttr("gamefabric_role.test", "annotations.akey1", "avalue1"),
 				),
 			},
 		},

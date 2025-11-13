@@ -4,6 +4,7 @@ import (
 	agonesv1 "agones.dev/agones/pkg/apis/agones/v1"
 	armadav1 "github.com/gamefabric/gf-core/pkg/api/armada/v1"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
+	formationv1 "github.com/gamefabric/gf-core/pkg/api/formation/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -13,21 +14,21 @@ import (
 // ContainerModel is the terraform model for a container.
 type ContainerModel struct {
 	Name         types.String       `tfsdk:"name"`
-	Image        imageModel         `tfsdk:"image"`
+	ImageRef     ImageRefModel      `tfsdk:"image_ref"`
 	Command      []types.String     `tfsdk:"command"`
 	Args         []types.String     `tfsdk:"args"`
-	Resources    *resourcesModel    `tfsdk:"resources"`
+	Resources    *ResourcesModel    `tfsdk:"resources"`
 	Envs         []core.EnvVarModel `tfsdk:"envs"`
-	Ports        []portModel        `tfsdk:"ports"`
-	VolumeMounts []volumeMountModel `tfsdk:"volume_mounts"`
-	ConfigFiles  []configFileModel  `tfsdk:"config_files"`
+	Ports        []PortModel        `tfsdk:"ports"`
+	VolumeMounts []VolumeMountModel `tfsdk:"volume_mounts"`
+	ConfigFiles  []ConfigFileModel  `tfsdk:"config_files"`
 }
 
 // NewContainerForArmada converts the backend resource into the terraform model.
 func NewContainerForArmada(obj armadav1.Container) ContainerModel {
 	return ContainerModel{
 		Name: types.StringValue(obj.Name),
-		Image: imageModel{
+		ImageRef: ImageRefModel{
 			Name:   types.StringValue(obj.Image),
 			Branch: types.StringValue(obj.Branch),
 		},
@@ -41,34 +42,70 @@ func NewContainerForArmada(obj armadav1.Container) ContainerModel {
 	}
 }
 
+// NewContainerForFormation converts the backend resource into the terraform model.
+func NewContainerForFormation(obj formationv1.Container) ContainerModel {
+	return ContainerModel{
+		Name: types.StringValue(obj.Name),
+		ImageRef: ImageRefModel{
+			Name:   types.StringValue(obj.Image),
+			Branch: types.StringValue(obj.Branch),
+		},
+		Command:      conv.ForEachSliceItem(obj.Command, types.StringValue),
+		Args:         conv.ForEachSliceItem(obj.Args, types.StringValue),
+		Resources:    newResourcesModel(obj.Resources),
+		Envs:         conv.ForEachSliceItem(obj.Env, core.NewEnvVarModel),
+		Ports:        conv.ForEachSliceItem(obj.Ports, newPortModelForFormation),
+		VolumeMounts: conv.ForEachSliceItem(obj.VolumeMounts, newVolumeMountModel),
+		ConfigFiles:  conv.ForEachSliceItem(obj.ConfigFiles, newConfigFileModelForFormation),
+	}
+}
+
 // ToContainerForArmada converts the terraform model into the backend resource.
 func ToContainerForArmada(ctr ContainerModel) armadav1.Container {
 	return armadav1.Container{
 		Name:         ctr.Name.ValueString(),
-		Image:        ctr.Image.Name.ValueString(),
-		Branch:       ctr.Image.Branch.ValueString(),
+		Image:        ctr.ImageRef.Name.ValueString(),
+		Branch:       ctr.ImageRef.Branch.ValueString(),
 		Command:      conv.ForEachSliceItem(ctr.Command, func(v types.String) string { return v.ValueString() }),
 		Args:         conv.ForEachSliceItem(ctr.Args, func(v types.String) string { return v.ValueString() }),
 		Resources:    toResourceRequirements(ctr.Resources),
 		Env:          conv.ForEachSliceItem(ctr.Envs, func(item core.EnvVarModel) corev1.EnvVar { return item.ToObject() }),
 		Ports:        conv.ForEachSliceItem(ctr.Ports, toPortForArmada),
 		VolumeMounts: conv.ForEachSliceItem(ctr.VolumeMounts, toVolumeMount),
-		ConfigFiles:  conv.ForEachSliceItem(ctr.ConfigFiles, toConfigFile),
+		ConfigFiles:  conv.ForEachSliceItem(ctr.ConfigFiles, toConfigFileForArmada),
 	}
 }
 
-type imageModel struct {
+// ToContainerForFormation converts the terraform model into the backend resource.
+func ToContainerForFormation(ctr ContainerModel) formationv1.Container {
+	return formationv1.Container{
+		Name:         ctr.Name.ValueString(),
+		Image:        ctr.ImageRef.Name.ValueString(),
+		Branch:       ctr.ImageRef.Branch.ValueString(),
+		Command:      conv.ForEachSliceItem(ctr.Command, func(v types.String) string { return v.ValueString() }),
+		Args:         conv.ForEachSliceItem(ctr.Args, func(v types.String) string { return v.ValueString() }),
+		Resources:    toResourceRequirements(ctr.Resources),
+		Env:          conv.ForEachSliceItem(ctr.Envs, func(item core.EnvVarModel) corev1.EnvVar { return item.ToObject() }),
+		Ports:        conv.ForEachSliceItem(ctr.Ports, toPortForFormation),
+		VolumeMounts: conv.ForEachSliceItem(ctr.VolumeMounts, toVolumeMount),
+		ConfigFiles:  conv.ForEachSliceItem(ctr.ConfigFiles, toConfigFileForFormation),
+	}
+}
+
+// ImageRefModel is the terraform model for a container image.
+type ImageRefModel struct {
 	Name   types.String `tfsdk:"name"`
 	Branch types.String `tfsdk:"branch"`
 }
 
-type resourcesModel struct {
-	Limits   *resourceSpecModel `tfsdk:"limits"`
-	Requests *resourceSpecModel `tfsdk:"requests"`
+// ResourcesModel is the terraform model for container resource requirements.
+type ResourcesModel struct {
+	Limits   *ResourceSpecModel `tfsdk:"limits"`
+	Requests *ResourceSpecModel `tfsdk:"requests"`
 }
 
-func newResourcesModel(obj kcorev1.ResourceRequirements) *resourcesModel {
-	res := &resourcesModel{}
+func newResourcesModel(obj kcorev1.ResourceRequirements) *ResourcesModel {
+	res := &ResourcesModel{}
 	if obj.Limits != nil {
 		res.Limits = newResourceSpecModel(obj.Limits)
 	}
@@ -78,7 +115,7 @@ func newResourcesModel(obj kcorev1.ResourceRequirements) *resourcesModel {
 	return res
 }
 
-func toResourceRequirements(res *resourcesModel) kcorev1.ResourceRequirements {
+func toResourceRequirements(res *ResourcesModel) kcorev1.ResourceRequirements {
 	limits := toResourceList(res.Limits)
 	requests := toResourceList(res.Requests)
 
@@ -92,13 +129,14 @@ func toResourceRequirements(res *resourcesModel) kcorev1.ResourceRequirements {
 	return req
 }
 
-type resourceSpecModel struct {
+// ResourceSpecModel is the terraform model for resource specifications.
+type ResourceSpecModel struct {
 	CPU    types.String `tfsdk:"cpu"`
 	Memory types.String `tfsdk:"memory"`
 }
 
-func newResourceSpecModel(obj kcorev1.ResourceList) *resourceSpecModel {
-	res := resourceSpecModel{}
+func newResourceSpecModel(obj kcorev1.ResourceList) *ResourceSpecModel {
+	res := ResourceSpecModel{}
 	if obj.Cpu() != nil {
 		res.CPU = types.StringValue(obj.Cpu().String())
 	}
@@ -108,10 +146,10 @@ func newResourceSpecModel(obj kcorev1.ResourceList) *resourceSpecModel {
 	return &res
 }
 
-// toResourceList converts a resourceSpecModel to a kcorev1.ResourceList.
+// toResourceList converts a ResourceSpecModel to a kcorev1.ResourceList.
 //
 // The resources are expected to be valid resources, ensured via validation, otherwise this panics.
-func toResourceList(spec *resourceSpecModel) kcorev1.ResourceList {
+func toResourceList(spec *ResourceSpecModel) kcorev1.ResourceList {
 	res := kcorev1.ResourceList{}
 	if spec == nil {
 		return res
@@ -125,7 +163,8 @@ func toResourceList(spec *resourceSpecModel) kcorev1.ResourceList {
 	return res
 }
 
-type portModel struct {
+// PortModel is the terraform model for a container port.
+type PortModel struct {
 	Name               types.String `tfsdk:"name"`
 	Protocol           types.String `tfsdk:"protocol"`
 	ContainerPort      types.Int32  `tfsdk:"container_port"`
@@ -133,17 +172,37 @@ type portModel struct {
 	ProtectionProtocol types.String `tfsdk:"protection_protocol"`
 }
 
-func newPortModelForArmada(obj armadav1.Port) portModel {
-	return portModel{
+func newPortModelForArmada(obj armadav1.Port) PortModel {
+	prot := types.StringNull()
+	if obj.ProtectionProtocol != nil {
+		prot = conv.OptionalFunc(*obj.ProtectionProtocol, types.StringValue, types.StringNull)
+	}
+
+	return PortModel{
 		Name:               types.StringValue(obj.Name),
 		Protocol:           types.StringValue(string(obj.Protocol)),
 		ContainerPort:      types.Int32Value(int32(obj.ContainerPort)),
 		Policy:             types.StringValue(string(obj.Policy)),
-		ProtectionProtocol: conv.OptionalFunc(*obj.ProtectionProtocol, types.StringValue, types.StringNull),
+		ProtectionProtocol: prot,
 	}
 }
 
-func toPortForArmada(p portModel) armadav1.Port {
+func newPortModelForFormation(obj formationv1.Port) PortModel {
+	prot := types.StringNull()
+	if obj.ProtectionProtocol != nil {
+		prot = conv.OptionalFunc(*obj.ProtectionProtocol, types.StringValue, types.StringNull)
+	}
+
+	return PortModel{
+		Name:               types.StringValue(obj.Name),
+		Protocol:           types.StringValue(string(obj.Protocol)),
+		ContainerPort:      types.Int32Value(int32(obj.ContainerPort)),
+		Policy:             types.StringValue(string(obj.Policy)),
+		ProtectionProtocol: prot,
+	}
+}
+
+func toPortForArmada(p PortModel) armadav1.Port {
 	return armadav1.Port{
 		Name:               p.Name.ValueString(),
 		Policy:             agonesv1.PortPolicy(p.Policy.ValueString()),
@@ -153,15 +212,26 @@ func toPortForArmada(p portModel) armadav1.Port {
 	}
 }
 
-type volumeMountModel struct {
+func toPortForFormation(p PortModel) formationv1.Port {
+	return formationv1.Port{
+		Name:               p.Name.ValueString(),
+		Policy:             agonesv1.PortPolicy(p.Policy.ValueString()),
+		ContainerPort:      uint16(p.ContainerPort.ValueInt32()), //nolint:gosec // Keep it simple.
+		Protocol:           kcorev1.Protocol(p.Protocol.ValueString()),
+		ProtectionProtocol: p.ProtectionProtocol.ValueStringPointer(),
+	}
+}
+
+// VolumeMountModel is the terraform model for a container volume mount.
+type VolumeMountModel struct {
 	Name        types.String `tfsdk:"name"`
 	MountPath   types.String `tfsdk:"mount_path"`
 	SubPath     types.String `tfsdk:"sub_path"`
 	SubPathExpr types.String `tfsdk:"sub_path_expr"`
 }
 
-func newVolumeMountModel(obj kcorev1.VolumeMount) volumeMountModel {
-	return volumeMountModel{
+func newVolumeMountModel(obj kcorev1.VolumeMount) VolumeMountModel {
+	return VolumeMountModel{
 		Name:        types.StringValue(obj.Name),
 		MountPath:   types.StringValue(obj.MountPath),
 		SubPath:     conv.OptionalFunc(obj.SubPath, types.StringValue, types.StringNull),
@@ -169,7 +239,7 @@ func newVolumeMountModel(obj kcorev1.VolumeMount) volumeMountModel {
 	}
 }
 
-func toVolumeMount(mount volumeMountModel) kcorev1.VolumeMount {
+func toVolumeMount(mount VolumeMountModel) kcorev1.VolumeMount {
 	return kcorev1.VolumeMount{
 		Name:        mount.Name.ValueString(),
 		MountPath:   mount.MountPath.ValueString(),
@@ -178,20 +248,35 @@ func toVolumeMount(mount volumeMountModel) kcorev1.VolumeMount {
 	}
 }
 
-type configFileModel struct {
+// ConfigFileModel is the terraform model for a container config file mount.
+type ConfigFileModel struct {
 	Name      types.String `tfsdk:"name"`
 	MountPath types.String `tfsdk:"mount_path"`
 }
 
-func newConfigFileModelForArmada(obj armadav1.ConfigFileMount) configFileModel {
-	return configFileModel{
+func newConfigFileModelForArmada(obj armadav1.ConfigFileMount) ConfigFileModel {
+	return ConfigFileModel{
 		Name:      types.StringValue(obj.Name),
 		MountPath: types.StringValue(obj.MountPath),
 	}
 }
 
-func toConfigFile(file configFileModel) armadav1.ConfigFileMount {
+func newConfigFileModelForFormation(obj formationv1.ConfigFileMount) ConfigFileModel {
+	return ConfigFileModel{
+		Name:      types.StringValue(obj.Name),
+		MountPath: types.StringValue(obj.MountPath),
+	}
+}
+
+func toConfigFileForArmada(file ConfigFileModel) armadav1.ConfigFileMount {
 	return armadav1.ConfigFileMount{
+		Name:      file.Name.ValueString(),
+		MountPath: file.MountPath.ValueString(),
+	}
+}
+
+func toConfigFileForFormation(file ConfigFileModel) formationv1.ConfigFileMount {
+	return formationv1.ConfigFileMount{
 		Name:      file.Name.ValueString(),
 		MountPath: file.MountPath.ValueString(),
 	}

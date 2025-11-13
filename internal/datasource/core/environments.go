@@ -39,8 +39,8 @@ func (r *environments) Schema(_ context.Context, _ datasource.SchemaRequest, res
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"label_filter": schema.MapAttribute{
-				Description:         "A map of keys and values that is used to filter environments.",
-				MarkdownDescription: "A map of keys and values that is used to filter environments.",
+				Description:         "A map of keys and values that is used to filter environments. Only items with all specified labels (exact matches) will be returned.",
+				MarkdownDescription: "A map of keys and values that is used to filter environments. Only items with all specified labels (exact matches) will be returned.",
 				Optional:            true,
 				ElementType:         types.StringType,
 			},
@@ -51,13 +51,13 @@ func (r *environments) Schema(_ context.Context, _ datasource.SchemaRequest, res
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
-							Description:         "The unique object name within its scope.",
-							MarkdownDescription: "The unique object name within its scope.",
+							Description:         "The unique environment object name.",
+							MarkdownDescription: "The unique environment object name.",
 							Computed:            true,
 						},
 						"display_name": schema.StringAttribute{
-							Description:         "DisplayName is friendly name of the environment.",
-							MarkdownDescription: "DisplayName is friendly name of the environment.",
+							Description:         "The user-friendly name of the environment.",
+							MarkdownDescription: "The user-friendly name of the environment.",
 							Computed:            true,
 						},
 						"labels": schema.MapAttribute{
@@ -67,8 +67,8 @@ func (r *environments) Schema(_ context.Context, _ datasource.SchemaRequest, res
 							ElementType:         types.StringType,
 						},
 						"description": schema.StringAttribute{
-							Description:         "Description is the description of the environment.",
-							MarkdownDescription: "Description is the description of the environment.",
+							Description:         "The description of the environment.",
+							MarkdownDescription: "The description of the environment.",
 							Computed:            true,
 						},
 					},

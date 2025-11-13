@@ -16,24 +16,21 @@ resource "gamefabric_region" "europe" {
   name         = "europe"
   display_name = "Europe"
   environment  = data.gamefabric_environment.prod.name
-  types = {
-    "baremetal" = {
+  types = [
+    {
+      name      = "baremetal"
       locations = data.gamefabric_locations.baremetal_europe.names
       envs = [
         {
           name = "REGION"
           value_from = {
-            field_ref = {
-              field_path = "metadata.regionName" # e.g., "europe"
-            }
+            field_path = "metadata.regionName" # e.g., "europe"
           }
         },
         {
           name = "REGION_TYPE"
           value_from = {
-            field_ref = {
-              field_path = "metadata.regionTypeName" # e.g., "baremetal"
-            }
+            field_path = "metadata.regionTypeName" # e.g., "baremetal"
           }
         },
         {
@@ -43,31 +40,26 @@ resource "gamefabric_region" "europe" {
         {
           name = "BACKEND_TOKEN"
           value_from = {
-            config_file_key_ref = {
-              name = "eu-token" # Reference a ConfigFile named "eu-token"
-            }
+            config_file = "eu-token-file.txt"
           }
         }
       ]
       scheduling = "Distributed"
     },
-    "cloud" = {
+    {
+      name      = "cloud"
       locations = data.gamefabric_locations.cloud_europe.names
       envs = [
         {
           name = "REGION"
           value_from = {
-            field_ref = {
-              field_path = "metadata.regionName" # e.g., "europe"
-            }
+            field_path = "metadata.regionName" # e.g., "europe"
           }
         },
         {
           name = "REGION_TYPE"
           value_from = {
-            field_ref = {
-              field_path = "metadata.regionTypeName" # e.g., "cloud"
-            }
+            field_path = "metadata.regionTypeName" # e.g., "cloud"
           }
         },
         {
@@ -77,13 +69,11 @@ resource "gamefabric_region" "europe" {
         {
           name = "BACKEND_TOKEN"
           value_from = {
-            config_file_key_ref = {
-              name = "eu-token" # Reference a ConfigFile named "eu-token"
-            }
+            config_file = "eu-token-file.txt"
           }
         }
       ]
       scheduling = "Packed"
     }
-  }
+  ]
 }

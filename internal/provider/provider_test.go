@@ -67,6 +67,12 @@ func TestProvider_ConfigureValidates(t *testing.T) {
 	schemaResp := &tfprovider.SchemaResponse{}
 	resp := &tfprovider.ConfigureResponse{}
 
+	// Avoid interference from environment variables.
+	for _, env := range []string{"GAMEFABRIC_HOST", "GAMEFABRIC_CUSTOMER_ID", "GAMEFABRIC_SERVICE_ACCOUNT", "GAMEFABRIC_PASSWORD"} {
+		err := os.Unsetenv(env)
+		require.NoError(t, err)
+	}
+
 	prov := provider.New("1.0.0")()
 	prov.Schema(t.Context(), tfprovider.SchemaRequest{}, schemaResp)
 	prov.Configure(t.Context(), tfprovider.ConfigureRequest{

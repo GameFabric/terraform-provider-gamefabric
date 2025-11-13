@@ -4,8 +4,6 @@ data "gamefabric_regions" "all" {
 }
 
 # Get regions filtered by labels.
-# Note:
-# - Only regions that have ALL specified labels with exact matching values are returned.
 data "gamefabric_regions" "eu" {
   environment = "dev" # The environment this region belongs to (required)
   label_filter = {

@@ -13,13 +13,17 @@ import (
 	dscontainer "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/container"
 	dscore "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/core"
 	dsprotection "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/protection"
+	dsrbac "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/rbac"
+	dsstorage "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/storage"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/armada"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/authentication"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/formation"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/protection"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/rbac"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/storage"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -89,8 +93,8 @@ func (p *Provider) Schema(_ context.Context, _ provider.SchemaRequest, resp *pro
 				Optional:            true,
 			},
 			"customer_id": schema.StringAttribute{
-				Description:         "The customer ID.",
-				MarkdownDescription: "The customer ID.",
+				Description:         "The customer ID (first segment of your installation URL). If your installation URL is 'customerID.gamefabric.dev', set this to 'customerID'.",
+				MarkdownDescription: "The customer ID (first segment of your installation URL). If your installation URL is `customerID.gamefabric.dev`, set this to `customerID`.",
 				Optional:            true,
 			},
 			"service_account": schema.StringAttribute{
@@ -179,7 +183,14 @@ func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource
 		dsprotection.NewGatewayPolicies,
 		dsprotection.NewProtocol,
 		dsprotection.NewProtocols,
+		dsrbac.NewGroup,
+		dsrbac.NewGroups,
+		dsstorage.NewVolume,
+		dsstorage.NewVolumes,
+		dsstorage.NewVolumeStore,
+		dsstorage.NewVolumeStores,
 		dsauthentication.NewServiceAccount,
+		dsauthentication.NewServiceAccounts,
 	}
 }
 
@@ -188,15 +199,23 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		armada.NewArmada,
 		armada.NewArmadaSet,
+		authentication.NewProvider,
 		core.NewConfigFile,
 		core.NewEnvironment,
 		core.NewRegion,
 		container.NewBranch,
 		container.NewImageUpdater,
+		formation.NewFormation,
+		formation.NewVessel,
 		protection.NewGatewayPolicy,
 		authentication.NewServiceAccountResource,
 		rbac.NewRole,
+		rbac.NewGroup,
 		rbac.NewRoleBinding,
+		storage.NewVolume,
+		storage.NewVolumeStoreRetentionPolicy,
+		authentication.NewServiceAccountResource,
+		authentication.NewServiceAccountResource,
 	}
 }
 
