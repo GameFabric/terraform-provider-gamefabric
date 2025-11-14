@@ -18,15 +18,16 @@ description: |-
 ### Required
 
 - `name` (String) The unique name of the role.
-- `rules` (Attributes List) (see [below for nested schema](#nestedatt--rules))
+- `rules` (Attributes List) List of rules that will be applied to the role. (see [below for nested schema](#nestedatt--rules))
 
 ### Optional
 
+- `annotations` (Map of String) A map of annotations to assign to the role.
 - `labels` (Map of String) A map of labels to assign to the role.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) Unique ID of the role.
 
 <a id="nestedatt--rules"></a>
 ### Nested Schema for `rules`

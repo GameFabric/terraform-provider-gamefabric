@@ -19,10 +19,11 @@ description: |-
 
 - `name` (String) The unique object name.
 
-### Read-Only
+### Optional
 
 - `email` (String) The service account email.
-- `labels` (Map of String) Key-value labels for the service account.
-- `password` (String, Sensitive) The service account password (sensitive).
-- `state` (String) The service account state.
 - `username` (String) The service account username.
+
+### Read-Only
+
+- `labels` (Map of String) Key-value labels for the service account.
