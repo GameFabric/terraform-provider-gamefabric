@@ -112,19 +112,20 @@ func (r *roleBinding) Configure(_ context.Context, req resource.ConfigureRequest
 
 func (r *roleBinding) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan roleBindingModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...) // Retrieve the plan
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	obj := plan.ToObject()
-	_, err := r.clientSet.RBACV1().RoleBindings().Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.RBACV1().RoleBindings().Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError("Error Creating Role Binding", fmt.Sprintf("Could not create Role Binding: %s", err))
 		return
 	}
 
-	plan.ID = types.StringValue(obj.Name)
+	plan = newRoleBindingModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -185,6 +186,7 @@ func (r *roleBinding) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
+	plan.ID = types.StringValue(newObj.Name)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
