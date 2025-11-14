@@ -12,11 +12,14 @@ import (
 	dscontainer "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/container"
 	dscore "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/core"
 	dsprotection "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/protection"
+	dsstorage "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/storage"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/armada"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/formation"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/protection"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/storage"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -176,6 +179,10 @@ func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource
 		dsprotection.NewGatewayPolicies,
 		dsprotection.NewProtocol,
 		dsprotection.NewProtocols,
+		dsstorage.NewVolume,
+		dsstorage.NewVolumes,
+		dsstorage.NewVolumeStore,
+		dsstorage.NewVolumeStores,
 	}
 }
 
@@ -189,7 +196,11 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		core.NewRegion,
 		container.NewBranch,
 		container.NewImageUpdater,
+		formation.NewFormation,
+		formation.NewVessel,
 		protection.NewGatewayPolicy,
+		storage.NewVolume,
+		storage.NewVolumeStoreRetentionPolicy,
 	}
 }
 
