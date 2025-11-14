@@ -211,6 +211,7 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		protection.NewGatewayPolicy,
 		rbac.NewGroup,
 		rbac.NewRole,
+		rbac.NewRoleBinding,
 		storage.NewVolume,
 		storage.NewVolumeStoreRetentionPolicy,
 	}
