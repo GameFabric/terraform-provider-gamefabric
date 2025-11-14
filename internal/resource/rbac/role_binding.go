@@ -72,7 +72,7 @@ func (r *roleBinding) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 			},
 			"groups": schema.ListAttribute{
-				Description:         "A set of groups this role binding applies to.",
+				Description:         "The groups this role binding applies to.",
 				MarkdownDescription: "The groups this role binding applies to.",
 				Optional:            true,
 				ElementType:         types.StringType,
@@ -81,7 +81,7 @@ func (r *roleBinding) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 			},
 			"users": schema.ListAttribute{
-				Description:         "A set of users this role binding applies to.",
+				Description:         "The users this role binding applies to.",
 				MarkdownDescription: "The users this role binding applies to.",
 				Optional:            true,
 				ElementType:         types.StringType,
