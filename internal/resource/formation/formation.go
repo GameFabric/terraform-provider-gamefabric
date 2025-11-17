@@ -366,6 +366,10 @@ func (r *formation) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 									Optional:            true,
 									Validators: []validator.String{
 										validators.NameValidator{},
+										validators.FoundIn(
+											"The persistent volume name must be specified in the volume templates.",
+											path.MatchRoot("volume_templates").AtAnyListIndex().AtName("name"),
+										),
 									},
 								},
 							},
