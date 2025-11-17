@@ -135,9 +135,13 @@ func (r *formation) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 							},
 						},
 						"reclaim_policy": schema.StringAttribute{
-							Description:         "The reclaim policy for a volume created by a Formation.",
-							MarkdownDescription: "The reclaim policy for a volume created by a Formation.",
-							Required:            true,
+							Description: "The reclaim policy for a volume created by a Formation. Defaults to &#34;Packed&#34;",
+							MarkdownDescription: `The reclaim policy for a volume created by a Formation.
+
+**Delete:** (recommended) This means that a backing Kubernetes volume is automatically deleted when the user deletes the persisent volume.
+
+**Retain:** If a user deletes the persistent volume, the backing Kubernetes volume will not be deleted. Instead, it is moved to the Released phase, where all of its data can be manually recovered by Nitrado for an undetermined time.`,
+							Required: true,
 							Validators: []validator.String{
 								stringvalidator.OneOf("Retain", "Delete"),
 							},

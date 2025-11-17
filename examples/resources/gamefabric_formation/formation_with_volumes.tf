@@ -9,6 +9,7 @@ resource "gamefabric_formation" "formation_with_volumes" {
       name              = "persist-save-files"
       volume_store_name = "eu" # Required to exist.
       capacity          = "1Gi"
+      retain_policy    = "Delete"
     }
   ]
 
