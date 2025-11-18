@@ -75,10 +75,8 @@ func testResourceConfigFileDestroy(t *testing.T, cs clientset.Interface) func(s 
 
 			env, name, _ := strings.Cut(rs.Primary.ID, "/")
 			resp, err := cs.CoreV1().ConfigFiles(env).Get(t.Context(), name, metav1.GetOptions{})
-			if err == nil {
-				if resp.Name == name {
-					return fmt.Errorf("config file still exists: %s", rs.Primary.ID)
-				}
+			if err == nil && resp.Name == name {
+				return fmt.Errorf("config file still exists: %s", rs.Primary.ID)
 			}
 		}
 		return nil

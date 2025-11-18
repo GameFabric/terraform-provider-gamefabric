@@ -72,10 +72,8 @@ func testResourceEnvironmentDestroy(t *testing.T, cs clientset.Interface) func(s
 			}
 
 			resp, err := cs.CoreV1().Environments().Get(t.Context(), rs.Primary.ID, metav1.GetOptions{})
-			if err == nil {
-				if resp.Name == rs.Primary.ID {
-					return fmt.Errorf("environment still exists: %s", rs.Primary.ID)
-				}
+			if err == nil && resp.Name == rs.Primary.ID {
+				return fmt.Errorf("environment still exists: %s", rs.Primary.ID)
 			}
 		}
 		return nil

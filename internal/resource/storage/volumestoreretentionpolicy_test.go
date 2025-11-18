@@ -102,10 +102,8 @@ func testResourceVolumeStoreRetentionPolicyDestroy(t *testing.T, cs clientset.In
 
 			env, name, _ := strings.Cut(rs.Primary.ID, "/")
 			resp, err := cs.StorageV1Beta1().VolumeStoreRetentionPolicies(env).Get(t.Context(), name, metav1.GetOptions{})
-			if err == nil {
-				if resp.Name == name {
-					return fmt.Errorf("volume store retention policy still exists: %s", rs.Primary.ID)
-				}
+			if err == nil && resp.Name == name {
+				return fmt.Errorf("volume store retention policy still exists: %s", rs.Primary.ID)
 			}
 		}
 		return nil
