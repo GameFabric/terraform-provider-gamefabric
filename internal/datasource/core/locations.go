@@ -13,6 +13,7 @@ import (
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -63,11 +64,10 @@ func (r *locations) Schema(_ context.Context, _ datasource.SchemaRequest, resp *
 				MarkdownDescription: "The regex used to filter locations by their name.",
 				Optional:            true,
 			},
-			"label_filter": schema.MapAttribute{
-				Description:         "A map of keys and values that is used to filter locations. Only items with all specified labels (exact matches) will be returned. Can be combined with other filters.",
-				MarkdownDescription: "A map of keys and values that is used to filter locations. Only items with all specified labels (exact matches) will be returned. Can be combined with other filters.",
+			"label_filter": schema.DynamicAttribute{
+				Description:         "A map of keys and values that is used to filter locations. Only items with all specified labels (exact matches) will be returned. Can be combined with other filters. Accepts either a map of strings or a map of string arrays.",
+				MarkdownDescription: "A map of keys and values that is used to filter locations. Only items with all specified labels (exact matches) will be returned. Can be combined with other filters. Accepts either a map of strings or a map of string arrays.",
 				Optional:            true,
-				ElementType:         types.StringType,
 			},
 			"names": schema.ListAttribute{
 				Description:         "The locations matching the filters.",
@@ -127,13 +127,20 @@ func (r *locations) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		hasNameRegex = true
 	}
 
-	list, err := r.clientSet.CoreV1().Locations().List(ctx, metav1.ListOptions{
-		LabelSelector: conv.ForEachMapItem(config.LabelFilter, func(item types.String) string { return item.ValueString() }),
-	})
+	list, err := r.clientSet.CoreV1().Locations().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Getting Locations",
 			fmt.Sprintf("Could not get Locations: %v", err),
+		)
+		return
+	}
+
+	matchLabels, err := parseLabelFilter(config.LabelFilter, path.Root("label_filter"))
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Applying Label Filter",
+			err.Error(),
 		)
 		return
 	}
@@ -160,6 +167,10 @@ func (r *locations) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		if hasNameRegex && !nameRegexp.MatchString(loc.Name) {
 			continue
 		}
+		if !matchLabels(loc.GetLabels()) {
+			continue
+		}
+
 		locs = append(locs, loc.Name)
 	}
 	slices.Sort(locs)
@@ -172,4 +183,95 @@ func (r *locations) Read(ctx context.Context, req datasource.ReadRequest, resp *
 	state.NameRegex = config.NameRegex
 	state.LabelFilter = config.LabelFilter
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+}
+
+type matchLabelsFunc func(map[string]string) bool
+
+var (
+	rejectLabels = func(labels map[string]string) bool { return false }
+	acceptLabels = func(labels map[string]string) bool { return true }
+)
+
+func parseLabelFilter(filter types.Dynamic, path path.Path) (matchLabelsFunc, error) {
+	if filter.IsUnknown() {
+		return rejectLabels, nil
+	}
+
+	if filter.IsNull() {
+		// No filter defined.
+		return acceptLabels, nil
+	}
+
+	wantLabels, err := toLabelFilter(filter, path)
+	if err != nil {
+		return rejectLabels, err
+	}
+
+	return func(labels map[string]string) bool {
+		if len(wantLabels) == 0 {
+			return true
+		}
+		if len(labels) == 0 {
+			return false
+		}
+
+		for key, values := range wantLabels {
+			if len(values) == 0 {
+				continue // Ignore.
+			}
+
+			var match bool
+			for _, val := range values {
+				match = match || strings.EqualFold(val, labels[key])
+			}
+			if !match {
+				return false
+			}
+		}
+		return true
+	}, nil
+}
+
+func toLabelFilter(filter types.Dynamic, path path.Path) (map[string][]string, error) {
+	val := filter.UnderlyingValue()
+	obj, ok := val.(types.Object)
+	if !ok {
+		return nil, fmt.Errorf("%s must be basetypes.Object (map), got: %T", path.String(), val)
+	}
+
+	res := make(map[string][]string, len(obj.Attributes()))
+	for key, attr := range obj.Attributes() {
+		if !conv.IsKnown(attr) {
+			continue
+		}
+
+		switch typ := attr.(type) {
+		case types.String:
+			if typ.ValueString() == "" {
+				continue
+			}
+
+			res[key] = append(res[key], typ.ValueString())
+		case types.Tuple:
+			for i, elem := range typ.Elements() {
+				if !conv.IsKnown(elem) {
+					continue
+				}
+
+				str, ok := elem.(types.String)
+				if !ok {
+					return nil, fmt.Errorf("%s must be basetypes.Tuple (array), got: %T", path.AtMapKey(key).AtListIndex(i).String(), elem)
+				}
+
+				if str.ValueString() == "" {
+					continue
+				}
+				res[key] = append(res[key], str.ValueString())
+			}
+		default:
+			return nil, fmt.Errorf("%s must be basetypes.String or basetypes.Tuple (array), got: %T", path.AtMapKey(key).String(), attr)
+		}
+	}
+
+	return res, nil
 }
