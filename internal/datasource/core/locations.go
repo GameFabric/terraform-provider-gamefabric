@@ -188,8 +188,8 @@ func (r *locations) Read(ctx context.Context, req datasource.ReadRequest, resp *
 type matchLabelsFunc func(map[string]string) bool
 
 var (
-	rejectLabels = func(labels map[string]string) bool { return false }
-	acceptLabels = func(labels map[string]string) bool { return true }
+	rejectLabels = func(map[string]string) bool { return false }
+	acceptLabels = func(map[string]string) bool { return true }
 )
 
 func parseLabelFilter(filter types.Dynamic, path path.Path) (matchLabelsFunc, error) {
