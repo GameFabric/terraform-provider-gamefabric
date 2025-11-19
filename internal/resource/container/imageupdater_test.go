@@ -67,10 +67,8 @@ func testResourceImageUpdaterDestroy(t *testing.T, cs clientset.Interface) func(
 
 			env, name, _ := strings.Cut(rs.Primary.ID, "/")
 			resp, err := cs.ContainerV1().ImageUpdaters(env).Get(t.Context(), name, metav1.GetOptions{})
-			if err == nil {
-				if resp.Name == name {
-					return fmt.Errorf("image updater still exists: %s", rs.Primary.ID)
-				}
+			if err == nil && resp.Name == name {
+				return fmt.Errorf("image updater still exists: %s", rs.Primary.ID)
 			}
 		}
 		return nil
