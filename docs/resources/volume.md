@@ -8,6 +8,7 @@ description: |-
 # gamefabric_volume (Resource)
 
 A volume represents a storage resource that can be attached to vessels to provide persistent storage capabilities. Volumes are essential for game servers that require data persistence across server restarts or deployments, such as saving player progress and game states.
+
 This is currently a beta feature. Please contact your Customer Success Manager to discuss your use case and enable this feature.
 
 ## Example Usage
