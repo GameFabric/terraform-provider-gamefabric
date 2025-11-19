@@ -35,8 +35,8 @@ func EnvVarAttributes(val validators.GameFabricValidator, pathPrefix string) map
 			Optional:            true,
 			Attributes: map[string]schema.Attribute{
 				"field_path": schema.StringAttribute{
-					Description:         "FieldPath selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.",
-					MarkdownDescription: "FieldPath selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.",
+					Description:         "FieldPath selects the field of the pod. Supports `metadata.name`, `metadata.namespace`, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, `metadata.armadaName`, `metadata.regionName`, `metadata.regionTypeName`, `metadata.siteName`, `metadata.imageBranch`, `metadata.imageName`, `metadata.imageTag`, `spec.nodeName`, `spec.serviceAccountName`, `status.hostIP`, `status.podIP`, `status.podIPs`.",
+					MarkdownDescription: "FieldPath selects the field of the pod. Supports `metadata.name`, `metadata.namespace`, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, `metadata.armadaName`, `metadata.regionName`, `metadata.regionTypeName`, `metadata.siteName`, `metadata.imageBranch`, `metadata.imageName`, `metadata.imageTag`, `spec.nodeName`, `spec.serviceAccountName`, `status.hostIP`, `status.podIP`, `status.podIPs`.",
 					Optional:            true,
 					Validators: []validator.String{
 						validators.GFFieldString(val, pathPrefix+".valueFrom.fieldRef.fieldPath"),
