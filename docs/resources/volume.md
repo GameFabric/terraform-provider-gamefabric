@@ -12,7 +12,7 @@ A volume represents a storage resource that can be attached to vessels to provid
 This is currently a beta feature. Please contact your Customer Success Manager to discuss your use case and enable this feature.
 
 ## Example Usage
-This example creates a volume and mounts it into a vessel on the path `/data` within the gameserver container.
+This example creates a volume and mounts it into a vessel on the path `/data` within the game server container.
 
 ```terraform
 data "gamefabric_volumestore" "eu" {

@@ -17,8 +17,8 @@ func ContainersAttributes(val validators.GameFabricValidator, pathPrefix string)
 	return schema.NestedAttributeObject{
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
-				Description:         "Name is the name of the container. The primary gameserver container should be named `default`",
-				MarkdownDescription: "Name is the name of the container. The primary gameserver container should be named `default`",
+				Description:         "Name is the name of the container. The primary game server container should be named `default`",
+				MarkdownDescription: "Name is the name of the container. The primary game server container should be named `default`",
 				Required:            true,
 				Validators: []validator.String{
 					validators.NameValidator{},
@@ -157,8 +157,8 @@ func ContainersAttributes(val validators.GameFabricValidator, pathPrefix string)
 							},
 						},
 						"policy": schema.StringAttribute{
-							Description:         "Policy defines how the host port is populated. Dynamic (default) allocates a free host port and maps it to the container_port (required). The gameserver must report the external port (obtained via Agones SDK) to backends for client connections. Passthrough dynamically allocates a host port and sets container_port to match it. The gameserver must discover this port via Agones SDK and listen on it.",
-							MarkdownDescription: "Policy defines how the host port is populated. `Dynamic` (default) allocates a free host port and maps it to the `container_port` (required). The gameserver must report the external port (obtained via Agones SDK) to backends for client connections. `Passthrough` dynamically allocates a host port and sets `container_port` to match it. The gameserver must discover this port via Agones SDK and listen on it.",
+							Description:         "Policy defines how the host port is populated. Dynamic (default) allocates a free host port and maps it to the container_port (required). The game server must report the external port (obtained via Agones SDK) to backends for client connections. Passthrough dynamically allocates a host port and sets container_port to match it. The game server must discover this port via Agones SDK and listen on it.",
+							MarkdownDescription: "Policy defines how the host port is populated. `Dynamic` (default) allocates a free host port and maps it to the `container_port` (required). The game server must report the external port (obtained via Agones SDK) to backends for client connections. `Passthrough` dynamically allocates a host port and sets `container_port` to match it. The game server must discover this port via Agones SDK and listen on it.",
 							Required:            true,
 							Validators: []validator.String{
 								stringvalidator.OneOf("Dynamic", "Passthrough"),
