@@ -705,10 +705,8 @@ func testCheckArmadaDestroy(t *testing.T, cs clientset.Interface) func(s *terraf
 
 			env, name, _ := strings.Cut(rs.Primary.ID, "/")
 			resp, err := cs.ArmadaV1().Armadas(env).Get(t.Context(), name, metav1.GetOptions{})
-			if err == nil {
-				if resp.Name == rs.Primary.ID {
-					return fmt.Errorf("armada still exists: %s", rs.Primary.ID)
-				}
+			if err == nil && resp.Name == name {
+				return fmt.Errorf("armada still exists: %s", rs.Primary.ID)
 			}
 		}
 		return nil

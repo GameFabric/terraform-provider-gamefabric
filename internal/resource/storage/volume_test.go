@@ -109,10 +109,8 @@ func testResourceVolumeDestroy(t *testing.T, cs clientset.Interface) func(s *ter
 
 			env, name, _ := strings.Cut(rs.Primary.ID, "/")
 			resp, err := cs.StorageV1Beta1().Volumes(env).Get(t.Context(), name, metav1.GetOptions{})
-			if err == nil {
-				if resp.Name == name {
-					return fmt.Errorf("volume still exists: %s", rs.Primary.ID)
-				}
+			if err == nil && resp.Name == name {
+				return fmt.Errorf("volume still exists: %s", rs.Primary.ID)
 			}
 		}
 		return nil
