@@ -721,10 +721,8 @@ func testCheckFormationDestroy(t *testing.T, cs clientset.Interface) func(s *ter
 
 			env, name, _ := strings.Cut(rs.Primary.ID, "/")
 			resp, err := cs.FormationV1().Formations(env).Get(t.Context(), name, metav1.GetOptions{})
-			if err == nil {
-				if resp.Name == rs.Primary.ID {
-					return fmt.Errorf("formation still exists: %s", rs.Primary.ID)
-				}
+			if err == nil && resp.Name == name {
+				return fmt.Errorf("formation still exists: %s", rs.Primary.ID)
 			}
 		}
 		return nil

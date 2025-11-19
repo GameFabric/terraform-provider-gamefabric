@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"testing"
 
+	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func TestBranch(t *testing.T) {
@@ -88,4 +91,20 @@ func testResourceBranchConfigWithRetentionPolicy(name string) string {
 	}
   ]
 }`, name)
+}
+
+func testResourceBranchDestroy(t *testing.T, cs clientset.Interface) func(s *terraform.State) error {
+	return func(s *terraform.State) error {
+		for _, rs := range s.RootModule().Resources {
+			if rs.Type != "gamefabric_branch" {
+				continue
+			}
+
+			resp, err := cs.ContainerV1().Branches().Get(t.Context(), rs.Primary.ID, metav1.GetOptions{})
+			if err == nil && resp.Name == rs.Primary.ID {
+				return fmt.Errorf("branch still exists: %s", rs.Primary.ID)
+			}
+		}
+		return nil
+	}
 }

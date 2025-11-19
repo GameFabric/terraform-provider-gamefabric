@@ -744,10 +744,8 @@ func testCheckArmadaSetDestroy(t *testing.T, cs clientset.Interface) func(s *ter
 
 			env, name, _ := strings.Cut(rs.Primary.ID, "/")
 			resp, err := cs.ArmadaV1().ArmadaSets(env).Get(t.Context(), name, metav1.GetOptions{})
-			if err == nil {
-				if resp.Name == rs.Primary.ID {
-					return fmt.Errorf("armadaset still exists: %s", rs.Primary.ID)
-				}
+			if err == nil && resp.Name == name {
+				return fmt.Errorf("armadaset still exists: %s", rs.Primary.ID)
 			}
 		}
 		return nil
