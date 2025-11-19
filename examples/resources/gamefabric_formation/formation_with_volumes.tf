@@ -1,4 +1,3 @@
-# This example demonstrates how to create a GameFabric Formation with persistent volumes.
 resource "gamefabric_formation" "formation_with_volumes" {
   name        = "formation-with-volumes"
   environment = data.gamefabric_environment.prod.name
@@ -14,14 +13,14 @@ resource "gamefabric_formation" "formation_with_volumes" {
 
   vessels = [
     {
-      name        = "vessel-1"
-      region      = data.gamefabric_region.europe.name
+      name   = "vessel-1"
+      region = data.gamefabric_region.europe.name
     }
   ]
 
   containers = [
     {
-      name = "default"
+      name      = "default"
       image_ref = data.gamefabric_image.gameserver.image_ref
       resources = {
         requests = {
@@ -31,15 +30,15 @@ resource "gamefabric_formation" "formation_with_volumes" {
       }
       ports = [
         {
-          name                = "game"
-          protocol            = "UDP"
-          policy              = "Passthrough"
+          name     = "game"
+          protocol = "UDP"
+          policy   = "Passthrough"
         }
       ]
       volume_mounts = [
         {
-          name          = "mounted-save-files"
-          mount_path    = "/data/save_files"
+          name       = "mounted-save-files"
+          mount_path = "/data/save_files"
         }
       ]
     }
