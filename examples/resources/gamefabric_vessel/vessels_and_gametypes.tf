@@ -17,25 +17,43 @@ data "gamefabric_region" "europe" {
   environment = data.gamefabric_environment.prod.name
 }
 
-resource "gamefabric_armada" "this" {
-  name        = "myarmada"
+locals {
+  game_modes = {
+    survival = {
+      display_name = "Survival"
+      mode_value   = "survival"
+    }
+    creative = {
+      display_name = "Creative"
+      mode_value   = "creative"
+    }
+    hardcore = {
+      display_name = "Hardcore"
+      mode_value   = "hardcore"
+    }
+  }
+
+  # Create multiple vessels per game mode
+  vessels = flatten([
+    for mode_key, mode in local.game_modes : [
+      for i in range(3) : {
+        key          = "${mode_key}-${i}"
+        mode_key     = mode_key
+        display_name = mode.display_name
+        mode_value   = mode.mode_value
+        index        = i
+      }
+    ]
+  ])
+}
+
+resource "gamefabric_vessel" "this" {
+  for_each    = { for v in local.vessels : v.key => v }
+  name        = "${each.value.mode_key}-${each.value.index}"
   environment = data.gamefabric_environment.prod.name
 
   region = data.gamefabric_region.europe.name
-  replicas = [
-    {
-      region_type  = "baremetal"
-      min_replicas = 10
-      max_replicas = 200
-      buffer_size  = 10
-    },
-    {
-      region_type  = "cloud"
-      min_replicas = 5
-      max_replicas = 100
-      buffer_size  = 5
-    }
-  ]
+
   containers = [
     {
       name      = "default" # the game server container should always be named "default"
@@ -48,14 +66,12 @@ resource "gamefabric_armada" "this" {
       }
       envs = [
         {
-          name  = "REGION"
-          value = data.gamefabric_region.europe.name
+          name  = "SERVER_NAME"
+          value = "${each.value.display_name} ${each.value.index + 1} - ${data.gamefabric_region.europe.display_name}"
         },
         {
-          name = "REGION_TYPE"
-          value_from = {
-            field_path = "metadata.regionTypeName"
-          }
+          name  = "GAME_MODE"
+          value = each.value.mode_value
         }
       ]
       ports = [

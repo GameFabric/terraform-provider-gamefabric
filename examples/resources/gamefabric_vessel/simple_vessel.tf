@@ -17,25 +17,12 @@ data "gamefabric_region" "europe" {
   environment = data.gamefabric_environment.prod.name
 }
 
-resource "gamefabric_armada" "this" {
-  name        = "myarmada"
+resource "gamefabric_vessel" "this" {
+  name        = "my-vessel"
   environment = data.gamefabric_environment.prod.name
 
   region = data.gamefabric_region.europe.name
-  replicas = [
-    {
-      region_type  = "baremetal"
-      min_replicas = 10
-      max_replicas = 200
-      buffer_size  = 10
-    },
-    {
-      region_type  = "cloud"
-      min_replicas = 5
-      max_replicas = 100
-      buffer_size  = 5
-    }
-  ]
+
   containers = [
     {
       name      = "default" # the game server container should always be named "default"
@@ -48,14 +35,8 @@ resource "gamefabric_armada" "this" {
       }
       envs = [
         {
-          name  = "REGION"
-          value = data.gamefabric_region.europe.name
-        },
-        {
-          name = "REGION_TYPE"
-          value_from = {
-            field_path = "metadata.regionTypeName"
-          }
+          name  = "SERVER_NAME"
+          value = "My Server ${data.gamefabric_region.europe.display_name}"
         }
       ]
       ports = [

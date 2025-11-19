@@ -7,13 +7,13 @@ description: |-
 
 # {{.Name}} ({{.Type}})
 
-Gateway Policies allow you route traffic of your game servers through gateways for specified destination CIDRs.
-For example if your game server relies on specific cloud services their endpoints can be accessed through the gateways instead of directly from the node hosting the game server.
+A volume represents a storage resource that can be attached to vessels to provide persistent storage capabilities. Volumes are essential for game servers that require data persistence across server restarts or deployments, such as saving player progress and game states.
 
-For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/multiplayer-services/server-protection/gateway-policies">GameFabric documentation</a>.
+This is currently a beta feature. Please contact your Customer Success Manager to discuss your use case and enable this feature.
 
 {{ if .HasExample -}}
 ## Example Usage
+This example creates a volume and mounts it into a vessel on the path `/data` within the game server container.
 
 {{ tffile .ExampleFile }}
 {{- end }}

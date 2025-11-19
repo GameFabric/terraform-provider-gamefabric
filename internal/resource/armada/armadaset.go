@@ -308,8 +308,8 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 						},
 					},
 					"recreate": schema.SingleNestedAttribute{
-						Description:         "Recreate defines the recreate strategy which will recreate all unallocated gameservers at once. This should only be used for development workloads or where downtime is acceptable.",
-						MarkdownDescription: "Recreate defines the recreate strategy which will recreate all unallocated gameservers at once on updates. This should only be used for development workloads or where downtime is acceptable.",
+						Description:         "Recreate defines the recreate strategy which will recreate all unallocated game servers at once. This should only be used for development workloads or where downtime is acceptable.",
+						MarkdownDescription: "Recreate defines the recreate strategy which will recreate all unallocated game servers at once on updates. This should only be used for development workloads or where downtime is acceptable.",
 						Optional:            true,
 						Validators: []validator.Object{
 							objectvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("rolling_update")),

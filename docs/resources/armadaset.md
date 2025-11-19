@@ -125,7 +125,7 @@ resource "gamefabric_armadaset" "this" {
 
   containers = [
     {
-      name      = "default" # the gameserver container should always be named "default"
+      name      = "default" # the game server container should always be named "default"
       image_ref = data.gamefabric_image.gameserver.image_ref
       # args    = ["example-arg"]
       resources = {
@@ -213,7 +213,7 @@ resource "gamefabric_armadaset" "this" {
 Required:
 
 - `image_ref` (Attributes) The reference to the image to run your container with. You should use the `image_ref` attribute of the `gamefabric_image` datasource to configure this attribute. (see [below for nested schema](#nestedatt--containers--image_ref))
-- `name` (String) Name is the name of the container. The primary gameserver container should be named `default`
+- `name` (String) Name is the name of the container. The primary game server container should be named `default`
 
 Optional:
 
@@ -261,7 +261,7 @@ Optional:
 Optional:
 
 - `config_file` (String) ConfigFile select the configuration file.
-- `field_path` (String) FieldPath selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.
+- `field_path` (String) FieldPath selects the field of the pod. Supports `metadata.name`, `metadata.namespace`, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, `metadata.armadaName`, `metadata.regionName`, `metadata.regionTypeName`, `metadata.siteName`, `metadata.imageBranch`, `metadata.imageName`, `metadata.imageTag`, `spec.nodeName`, `spec.serviceAccountName`, `status.hostIP`, `status.podIP`, `status.podIPs`.
 
 
 
@@ -271,7 +271,7 @@ Optional:
 Required:
 
 - `name` (String) Name is the name of the port. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.
-- `policy` (String) Policy defines how the host port is populated. `Dynamic` (default) allocates a free host port and maps it to the `container_port` (required). The gameserver must report the external port (obtained via Agones SDK) to backends for client connections. `Passthrough` dynamically allocates a host port and sets `container_port` to match it. The gameserver must discover this port via Agones SDK and listen on it.
+- `policy` (String) Policy defines how the host port is populated. `Dynamic` (default) allocates a free host port and maps it to the `container_port` (required). The game server must report the external port (obtained via Agones SDK) to backends for client connections. `Passthrough` dynamically allocates a host port and sets `container_port` to match it. The game server must discover this port via Agones SDK and listen on it.
 
 Optional:
 
@@ -361,7 +361,7 @@ Optional:
 Optional:
 
 - `config_file` (String) ConfigFile select the configuration file.
-- `field_path` (String) FieldPath selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.
+- `field_path` (String) FieldPath selects the field of the pod. Supports `metadata.name`, `metadata.namespace`, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, `metadata.armadaName`, `metadata.regionName`, `metadata.regionTypeName`, `metadata.siteName`, `metadata.imageBranch`, `metadata.imageName`, `metadata.imageTag`, `spec.nodeName`, `spec.serviceAccountName`, `status.hostIP`, `status.podIP`, `status.podIPs`.
 
 
 
@@ -390,7 +390,7 @@ Optional:
 
 Optional:
 
-- `recreate` (Attributes) Recreate defines the recreate strategy which will recreate all unallocated gameservers at once on updates. This should only be used for development workloads or where downtime is acceptable. (see [below for nested schema](#nestedatt--strategy--recreate))
+- `recreate` (Attributes) Recreate defines the recreate strategy which will recreate all unallocated game servers at once on updates. This should only be used for development workloads or where downtime is acceptable. (see [below for nested schema](#nestedatt--strategy--recreate))
 - `rolling_update` (Attributes) RollingUpdate defines the rolling update strategy, which gradually replaces game servers with new ones. (see [below for nested schema](#nestedatt--strategy--rolling_update))
 
 <a id="nestedatt--strategy--recreate"></a>

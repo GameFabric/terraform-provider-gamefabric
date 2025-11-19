@@ -7,10 +7,10 @@ description: |-
 
 # {{.Name}} ({{.Type}})
 
-Gateway Policies allow you route traffic of your game servers through gateways for specified destination CIDRs.
-For example if your game server relies on specific cloud services their endpoints can be accessed through the gateways instead of directly from the node hosting the game server.
+Volumestore retention policies allow you to limit the retention of volume snapshots within a volumestore for a specific environment.
+This is required to automatically clean up old snapshots and save storage costs.
 
-For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/multiplayer-services/server-protection/gateway-policies">GameFabric documentation</a>.
+This is currently a beta feature. Please contact your Customer Success Manager to discuss your use case and enable this feature.
 
 {{ if .HasExample -}}
 ## Example Usage

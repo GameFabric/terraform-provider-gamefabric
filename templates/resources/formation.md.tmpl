@@ -1,0 +1,59 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+A Formation is used to create and manage a set of vessels with shared configuration that is applied to all vessels of the formation, while also supporting per-vessel overrides for specific attributes.
+
+Formations simplify the management of multiple related vessels by centralizing their common configuration, making it easier to maintain consistency across your dedicated servers while still allowing customization where needed.
+
+At scale, formations provide significant benefits over managing individual vessels:
+- **Terraform State Efficiency**: A formation with 400 vessels counts as a single resource in the Terraform state, compared to 400 separate resources when using individual vessel resources. This dramatically reduces state file size and improves Terraform operations performance.
+- **Unified Overview**: The GameFabric frontend provides a consolidated view of all vessels within a formation, making it easier to monitor and manage large deployments.
+
+For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/getting-started/glossary#formation">GameFabric documentation</a>.
+
+
+## Example Usage - Simple Formation
+
+This example sets up a minimal formation with vessels.
+
+{{ tffile "examples/resources/gamefabric_formation/simple_formation.tf" }}
+
+## Advanced Usage - Formation with Multiple Game Modes
+
+This example demonstrates how to create a formation with multiple vessels for different game modes.
+It will create one formation per game mode with 3 vessels within the europe region and configure the game modes and server names via environment variables.
+The formations are named `survival`, `creative`, and `hardcore` and the server names are "Survival 1 - EU", "Creative 1 - EU" etc.
+
+{{ tffile "examples/resources/gamefabric_formation/formation_with_gametypes.tf" }}
+
+## Advanced Usage - Formation with Volumes
+This example demonstrates how to create a GameFabric Formation with persistent volumes.
+
+{{ tffile "examples/resources/gamefabric_formation/formation_with_volumes.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+{{- if or .HasImport .HasImportIDConfig .HasImportIdentityConfig }}
+
+## Import
+
+Import is supported using the following syntax:
+{{- end }}
+
+{{- if .HasImportIDConfig }}
+
+In Terraform v1.5.0 and later, the [`import` block](https://developer.hashicorp.com/terraform/language/import) can be used with the `id` attribute, for example:
+
+{{tffile .ImportIDConfigFile }}
+{{- end }}
+{{- if .HasImport }}
+
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
+{{codefile "shell" .ImportFile }}
+{{- end }}
