@@ -186,11 +186,10 @@ resource "gamefabric_formation" "survival" {
 }
 ```
 
-## Advanced Usage - Formation with Volumes.
+## Advanced Usage - Formation with Volumes
 This example demonstrates how to create a GameFabric Formation with persistent volumes.
 
 ```terraform
-# This example demonstrates how to create a GameFabric Formation with persistent volumes.
 resource "gamefabric_formation" "formation_with_volumes" {
   name        = "formation-with-volumes"
   environment = data.gamefabric_environment.prod.name
