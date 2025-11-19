@@ -113,7 +113,7 @@ resource "gamefabric_armada" "this" {
   replicas = local.replicas_per_region[each.key]
   containers = [
     {
-      name      = "default" # the gameserver container should always be named "default"
+      name      = "default" # the game server container should always be named "default"
       image_ref = data.gamefabric_image.gameserver.image_ref
       resources = {
         requests = {

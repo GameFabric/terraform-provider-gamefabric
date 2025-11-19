@@ -48,7 +48,7 @@ resource "gamefabric_vessel" "this" {
 
   containers = [
     {
-      name      = "default" # the gameserver container should always be named "default"
+      name      = "default" # the game server container should always be named "default"
       image_ref = data.gamefabric_image.gameserver.image_ref
       resources = {
         requests = {
@@ -139,7 +139,7 @@ resource "gamefabric_vessel" "this" {
 
   containers = [
     {
-      name      = "default" # the gameserver container should always be named "default"
+      name      = "default" # the game server container should always be named "default"
       image_ref = data.gamefabric_image.gameserver.image_ref
       resources = {
         requests = {
