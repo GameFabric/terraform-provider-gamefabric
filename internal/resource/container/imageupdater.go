@@ -197,7 +197,7 @@ func (r *imageUpdater) Update(ctx context.Context, req resource.UpdateRequest, r
 	if _, err = r.clientSet.ContainerV1().ImageUpdaters(env).Patch(ctx, name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Image Updater",
-			fmt.Sprintf("Could not patch for ImageUpdater: %v", err),
+			fmt.Sprintf("Could not patch ImageUpdater: %v", err),
 		)
 		return
 	}

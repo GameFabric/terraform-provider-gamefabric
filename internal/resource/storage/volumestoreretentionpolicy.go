@@ -236,7 +236,7 @@ func (r *volumeStoreRetentionPolicy) Update(ctx context.Context, req resource.Up
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching VolumeStoreRetentionPolicy",
-			fmt.Sprintf("Could not patch for VolumeStoreRetentionPolicy: %v", err),
+			fmt.Sprintf("Could not patch VolumeStoreRetentionPolicy: %v", err),
 		)
 		return
 	}

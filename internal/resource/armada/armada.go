@@ -461,7 +461,7 @@ func (r *armada) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 	if _, err = r.clientSet.ArmadaV1().Armadas(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Armada",
-			fmt.Sprintf("Could not patch for Armada: %v", err),
+			fmt.Sprintf("Could not patch Armada: %v", err),
 		)
 		return
 	}
