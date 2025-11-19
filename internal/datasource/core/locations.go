@@ -65,8 +65,8 @@ func (r *locations) Schema(_ context.Context, _ datasource.SchemaRequest, resp *
 				Optional:            true,
 			},
 			"label_filter": schema.DynamicAttribute{
-				Description:         "A map of keys and values that is used to filter locations. Only items with all specified labels (exact matches) will be returned. Can be combined with other filters. Accepts either a map of strings or a map of string arrays.",
-				MarkdownDescription: "A map of keys and values that is used to filter locations. Only items with all specified labels (exact matches) will be returned. Can be combined with other filters. Accepts either a map of strings or a map of string arrays.",
+				Description:         "A map of keys and values that is used to filter locations. Only items with all specified labels (exact matches) will be returned. Can be combined with other filters. Each map key can have a value that is either a string or an array of strings.",
+				MarkdownDescription: "A map of keys and values that is used to filter locations. Only items with all specified labels (exact matches) will be returned. Can be combined with other filters. Each map key can have a value that is either a string or an array of strings.",
 				Optional:            true,
 			},
 			"names": schema.ListAttribute{
@@ -136,6 +136,7 @@ func (r *locations) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		return
 	}
 
+	// Once supported we can replace this with the LabelSelector.
 	matchLabels, err := parseLabelFilter(config.LabelFilter, path.Root("label_filter"))
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -260,7 +261,7 @@ func toLabelFilter(filter types.Dynamic, path path.Path) (map[string][]string, e
 
 				str, ok := elem.(types.String)
 				if !ok {
-					return nil, fmt.Errorf("%s must be basetypes.Tuple (array), got: %T", path.AtMapKey(key).AtListIndex(i).String(), elem)
+					return nil, fmt.Errorf("%s must be basetypes.String, got: %T", path.AtMapKey(key).AtListIndex(i).String(), elem)
 				}
 
 				if str.ValueString() == "" {
