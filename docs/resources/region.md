@@ -135,11 +135,7 @@ Required:
 Optional:
 
 - `envs` (Attributes List) Env is a list of environment variables to set on all containers in this region. (see [below for nested schema](#nestedatt--types--envs))
-- `scheduling` (String) Scheduling strategy. Defaults to &#34;Packed&#34;.
-
-**Packed:** Binpack gameservers into as few nodes as possible. This is important for cloud environments where you are charged per node.
-
-**Distributed:** Spread gameservers across as many nodes as possible. This is important for baremetal environments where you want to spread the load across the nodes you have.
+- `scheduling` (String) Scheduling strategy. Valid options are `Packed` (default) and `Distributed`. `Packed` binpacks gameservers into as few nodes as possible. This is important for cloud environments where you are charged per node. `Distributed` spreads gameservers across as many nodes as possible. This is important for baremetal environments where you want to spread the load across the nodes you have.
 
 <a id="nestedatt--types--envs"></a>
 ### Nested Schema for `types.envs`
@@ -159,7 +155,7 @@ Optional:
 Optional:
 
 - `config_file` (String) ConfigFile select the configuration file.
-- `field_path` (String) FieldPath selects the field of the pod. Supports metadata.name, metadata.namespace, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, metadata.armadaName, metadata.regionName, metadata.regionTypeName, metadata.siteName, metadata.imageBranch, metadata.imageName, metadata.imageTag, spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.
+- `field_path` (String) FieldPath selects the field of the pod. Supports `metadata.name`, `metadata.namespace`, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, `metadata.armadaName`, `metadata.regionName`, `metadata.regionTypeName`, `metadata.siteName`, `metadata.imageBranch`, `metadata.imageName`, `metadata.imageTag`, `spec.nodeName`, `spec.serviceAccountName`, `status.hostIP`, `status.podIP`, `status.podIPs`.
 
 ## Import
 
