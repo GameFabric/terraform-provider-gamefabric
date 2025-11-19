@@ -135,7 +135,7 @@ Required:
 Optional:
 
 - `envs` (Attributes List) Env is a list of environment variables to set on all containers in this region. (see [below for nested schema](#nestedatt--types--envs))
-- `scheduling` (String) Scheduling strategy. Valid options are `Packed` (default) and `Distributed`. `Packed` binpacks game servers into as few nodes as possible. This is important for cloud environments where you are charged per node. `Distributed` spreads game servers across as many nodes as possible. This is important for baremetal environments where you want to spread the load across the nodes you have.
+- `scheduling` (String) Scheduling strategy. Valid options are `Packed` (default) and `Distributed`. `Packed` bin packs game servers into as few nodes as possible. This is important for cloud environments where you are charged per node. `Distributed` spreads game servers across as many nodes as possible. This is important for baremetal environments where you want to spread the load across the nodes you have.
 
 <a id="nestedatt--types--envs"></a>
 ### Nested Schema for `types.envs`

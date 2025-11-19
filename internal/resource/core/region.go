@@ -149,7 +149,7 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 						},
 						"scheduling": schema.StringAttribute{
 							Description:         "Scheduling strategy. Defaults to `Packed`",
-							MarkdownDescription: "Scheduling strategy. Valid options are `Packed` (default) and `Distributed`. `Packed` binpacks game servers into as few nodes as possible. This is important for cloud environments where you are charged per node. `Distributed` spreads game servers across as many nodes as possible. This is important for baremetal environments where you want to spread the load across the nodes you have.",
+							MarkdownDescription: "Scheduling strategy. Valid options are `Packed` (default) and `Distributed`. `Packed` bin packs game servers into as few nodes as possible. This is important for cloud environments where you are charged per node. `Distributed` spreads game servers across as many nodes as possible. This is important for baremetal environments where you want to spread the load across the nodes you have.",
 							Optional:            true,
 							Validators: []validator.String{
 								stringvalidator.OneOf("Packed", "Distributed"),
