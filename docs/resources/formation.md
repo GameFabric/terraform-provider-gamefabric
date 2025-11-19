@@ -48,7 +48,7 @@ resource "gamefabric_formation" "this" {
 
   vessels = [
     {
-      name = "vessel-1"
+      name   = "vessel-1"
       region = data.gamefabric_region.europe.name
     }
   ]
