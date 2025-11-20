@@ -90,14 +90,14 @@ func (r *role) Schema(_ context.Context, _ resource.SchemaRequest, resp *resourc
 							Validators: []validator.List{
 								listvalidator.ValueStringsAre(
 									stringvalidator.Any(
-										stringvalidator.RegexMatches(regexp.MustCompile("[a-z]+"), "must be a valid API group format"),
+										stringvalidator.RegexMatches(regexp.MustCompile("^[a-z]+$"), "must be a valid API group format"),
 										stringvalidator.OneOfCaseInsensitive("*"),
 									),
 								),
 							},
 						},
 						"environments": schema.ListAttribute{
-							Description:         "List of environments that the rule applies to. Use '*' to match all environments.",
+							Description:         "List of environments that the rule applies to. Use `*` to match all environments.",
 							MarkdownDescription: "List of environments that the rule applies to. Use `*` to match all environments.",
 							ElementType:         types.StringType,
 							Required:            true,
@@ -111,14 +111,14 @@ func (r *role) Schema(_ context.Context, _ resource.SchemaRequest, resp *resourc
 							},
 						},
 						"resources": schema.ListAttribute{
-							Description:         "List of resource types that the rule applies to. Use '*' to match all resources, use the plural for specific resources, e.g. `armadas`, use the slash for sub-resources, e.g. `images/status`.",
+							Description:         "List of resource types that the rule applies to. Use `*` to match all resources, use the plural for specific resources, e.g. `armadas`, use the slash for sub-resources, e.g. `images/status`.",
 							MarkdownDescription: "List of resource types that the rule applies to. Use '*' to match all resources, use the plural for specific resources, e.g. `armadas`, use the slash for sub-resources, e.g. `images/status`.",
 							ElementType:         types.StringType,
 							Required:            true,
 							Validators: []validator.List{
 								listvalidator.ValueStringsAre(
 									stringvalidator.Any(
-										stringvalidator.RegexMatches(regexp.MustCompile("[a-z]+(/[a-z]+)?"), "must be a valid resource or sub-resource format"),
+										stringvalidator.RegexMatches(regexp.MustCompile("^[a-z]+(/[a-z]+)?$"), "must be a valid resource or sub-resource format"),
 										stringvalidator.OneOfCaseInsensitive("*"),
 									),
 								),
