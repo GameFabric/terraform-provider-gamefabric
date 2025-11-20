@@ -9,8 +9,8 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/gamefabric/gf-apiclient v0.2.0
 	github.com/gamefabric/gf-apicore v1.9.0
-	github.com/gamefabric/gf-apiserver v1.11.0
-	github.com/gamefabric/gf-core v0.30.0
+	github.com/gamefabric/gf-apiserver v1.10.0
+	github.com/gamefabric/gf-core v0.29.1-0.20251103073925-f39d6cbd0a08
 	github.com/google/uuid v1.6.0
 	github.com/hamba/pkg/v2 v2.14.0
 	github.com/hashicorp/terraform-plugin-framework v1.16.1
@@ -150,9 +150,9 @@ require (
 	github.com/yuin/goldmark-meta v1.1.0 // indirect
 	github.com/zclconf/go-cty v1.17.0 // indirect
 	go.abhg.dev/goldmark/frontmatter v0.2.0 // indirect
-	go.etcd.io/etcd/api/v3 v3.6.6 // indirect
-	go.etcd.io/etcd/client/pkg/v3 v3.6.6 // indirect
-	go.etcd.io/etcd/client/v3 v3.6.6 // indirect
+	go.etcd.io/etcd/api/v3 v3.6.5 // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.6.5 // indirect
+	go.etcd.io/etcd/client/v3 v3.6.5 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.63.0 // indirect
 	go.opentelemetry.io/otel v1.38.0 // indirect
