@@ -34,12 +34,12 @@ description: |-
 
 Required:
 
-- `api_groups` (List of String)
-- `environments` (List of String)
-- `resources` (List of String)
-- `verbs` (List of String)
+- `api_groups` (List of String) List of API groups that the rule applies to. Use `*` to match all API groups or choose any from: `armada`, `authentication`, `billing`, `container`, `core`, `formation`, `protection`, `rbac` and `storage`.
+- `environments` (List of String) List of environments that the rule applies to. Use `*` to match all environments.
+- `resources` (List of String) List of resource types that the rule applies to. Use '*' to match all resources, use the plural for specific resources, e.g. `armadas`, use the slash for sub-resources, e.g. `images/status`.
+- `verbs` (List of String) List of actions that can be performed on the resources. Use `*` to match all verbs.
 
 Optional:
 
-- `resource_names` (List of String)
-- `scopes` (List of String)
+- `resource_names` (List of String) List of specific resource names that the rule applies to. If specified, the rule only applies to resources with these names.
+- `scopes` (List of String) List of scopes to restrict the rule to. Optional field to further limit the permissions.

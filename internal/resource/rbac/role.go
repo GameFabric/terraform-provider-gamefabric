@@ -3,6 +3,7 @@ package rbac
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"github.com/gamefabric/gf-apiclient/rest"
 	"github.com/gamefabric/gf-apiclient/tools/patch"
@@ -14,6 +15,7 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -71,28 +73,69 @@ func (r *role) Schema(_ context.Context, _ resource.SchemaRequest, resp *resourc
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"verbs": schema.ListAttribute{
-							ElementType: types.StringType,
-							Required:    true,
+							Description:         "List of actions that can be performed on the resources. Use `*` to match all verbs.",
+							MarkdownDescription: "List of actions that can be performed on the resources. Use `*` to match all verbs.",
+							ElementType:         types.StringType,
+							Required:            true,
+							Validators: []validator.List{
+								listvalidator.ValueStringsAre(
+									stringvalidator.OneOf("get", "watch", "list", "post", "put", "patch", "delete", "*"),
+								),
+							},
 						},
 						"api_groups": schema.ListAttribute{
-							ElementType: types.StringType,
-							Required:    true,
+							Description:         "List of API groups that the rule applies to. Use `*` to match all API groups or choose any from: `armada`, `authentication`, `billing`, `container`, `core`, `formation`, `protection`, `rbac` and `storage`.",
+							MarkdownDescription: "List of API groups that the rule applies to. Use `*` to match all API groups or choose any from: `armada`, `authentication`, `billing`, `container`, `core`, `formation`, `protection`, `rbac` and `storage`.",
+							ElementType:         types.StringType,
+							Required:            true,
+							Validators: []validator.List{
+								listvalidator.ValueStringsAre(
+									stringvalidator.Any(
+										stringvalidator.RegexMatches(regexp.MustCompile("^[a-z]+$"), "must be a valid API group format"),
+										stringvalidator.OneOfCaseInsensitive("*"),
+									),
+								),
+							},
 						},
 						"environments": schema.ListAttribute{
-							ElementType: types.StringType,
-							Required:    true,
+							Description:         "List of environments that the rule applies to. Use `*` to match all environments.",
+							MarkdownDescription: "List of environments that the rule applies to. Use `*` to match all environments.",
+							ElementType:         types.StringType,
+							Required:            true,
+							Validators: []validator.List{
+								listvalidator.ValueStringsAre(
+									stringvalidator.Any(
+										validators.EnvironmentValidator{},
+										stringvalidator.OneOfCaseInsensitive("*"),
+									),
+								),
+							},
 						},
 						"resources": schema.ListAttribute{
-							ElementType: types.StringType,
-							Required:    true,
+							Description:         "List of resource types that the rule applies to. Use `*` to match all resources, use the plural for specific resources, e.g. `armadas`, use the slash for sub-resources, e.g. `images/status`.",
+							MarkdownDescription: "List of resource types that the rule applies to. Use '*' to match all resources, use the plural for specific resources, e.g. `armadas`, use the slash for sub-resources, e.g. `images/status`.",
+							ElementType:         types.StringType,
+							Required:            true,
+							Validators: []validator.List{
+								listvalidator.ValueStringsAre(
+									stringvalidator.Any(
+										stringvalidator.RegexMatches(regexp.MustCompile("^[a-z]+(/[a-z]+)?$"), "must be a valid resource or sub-resource format"),
+										stringvalidator.OneOfCaseInsensitive("*"),
+									),
+								),
+							},
 						},
 						"scopes": schema.ListAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
+							Description:         "List of scopes to restrict the rule to. Optional field to further limit the permissions.",
+							MarkdownDescription: "List of scopes to restrict the rule to. Optional field to further limit the permissions.",
+							ElementType:         types.StringType,
+							Optional:            true,
 						},
 						"resource_names": schema.ListAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
+							Description:         "List of specific resource names that the rule applies to. If specified, the rule only applies to resources with these names.",
+							MarkdownDescription: "List of specific resource names that the rule applies to. If specified, the rule only applies to resources with these names.",
+							ElementType:         types.StringType,
+							Optional:            true,
 						},
 					},
 				},
