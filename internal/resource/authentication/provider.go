@@ -302,7 +302,7 @@ func (r *provider) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 							listvalidator.ValueStringsAre(
 								stringvalidator.RegexMatches(
 									// https://dexidp.io/docs/configuration/custom-scopes-claims-clients/
-									regexp.MustCompile(`^openid|email|profile|groups|federated:id|offline_access|audience:server:client_id:\(.*\)$`),
+									regexp.MustCompile(`^(openid|email|profile|groups|federated:id|offline_access|audience:server:client_id:\(.*\))$`),
 									"must be one of these: openid, email, profile, groups, federated:id, offline_access, audience:server:client_id:(client-id).",
 								),
 							),
