@@ -36,7 +36,7 @@ Required:
 
 - `api_groups` (List of String) List of API groups that the rule applies to. Use `*` to match all API groups or choose any from: `armada`, `authentication`, `billing`, `container`, `core`, `formation`, `protection`, `rbac` and `storage`.
 - `environments` (List of String) List of environments that the rule applies to. Use `*` to match all environments.
-- `resources` (List of String) List of resource types that the rule applies to. Use `*` to match all resources, use the plural for specific resources, e.g. `armadas`, use the slash for sub-resources, e.g. `images/status`.
+- `resources` (List of String) List of resource types that the rule applies to. Use '*' to match all resources, use the plural for specific resources, e.g. `armadas`, use the slash for sub-resources, e.g. `images/status`.
 - `verbs` (List of String) List of actions that can be performed on the resources. Use `*` to match all verbs.
 
 Optional:
