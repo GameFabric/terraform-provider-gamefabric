@@ -85,8 +85,8 @@ func TestRoleResource(t *testing.T) {
 	name = "test-role-update"
 	rules = [
 		{
-			api_groups   = ["group1"]
-			resources    = ["resource1"]
+			api_groups   = ["groupone"]
+			resources    = ["resourceone"]
 			verbs        = ["get", "list"]
 			environments = ["env1"]
 		}
@@ -94,8 +94,8 @@ func TestRoleResource(t *testing.T) {
 }`,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("gamefabric_role.test", "name", "test-role-update"),
-					resource.TestCheckResourceAttr("gamefabric_role.test", "rules.0.api_groups.0", "group1"),
-					resource.TestCheckResourceAttr("gamefabric_role.test", "rules.0.resources.0", "resource1"),
+					resource.TestCheckResourceAttr("gamefabric_role.test", "rules.0.api_groups.0", "groupone"),
+					resource.TestCheckResourceAttr("gamefabric_role.test", "rules.0.resources.0", "resourceone"),
 					resource.TestCheckResourceAttr("gamefabric_role.test", "rules.0.verbs.0", "get"),
 					resource.TestCheckResourceAttr("gamefabric_role.test", "rules.0.verbs.1", "list"),
 					resource.TestCheckResourceAttr("gamefabric_role.test", "rules.0.environments.0", "env1"),
@@ -106,8 +106,8 @@ func TestRoleResource(t *testing.T) {
 	name = "test-role-update"
 	rules = [
 		{
-			api_groups   = ["group1"]
-			resources    = ["resource1"]
+			api_groups   = ["groupone"]
+			resources    = ["resourceone"]
 			verbs        = ["get", "list"]
 			environments = ["env1"]
 			scopes       = ["scope1"]
@@ -123,8 +123,8 @@ func TestRoleResource(t *testing.T) {
 }`,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("gamefabric_role.test", "name", "test-role-update"),
-					resource.TestCheckResourceAttr("gamefabric_role.test", "rules.0.api_groups.0", "group1"),
-					resource.TestCheckResourceAttr("gamefabric_role.test", "rules.0.resources.0", "resource1"),
+					resource.TestCheckResourceAttr("gamefabric_role.test", "rules.0.api_groups.0", "groupone"),
+					resource.TestCheckResourceAttr("gamefabric_role.test", "rules.0.resources.0", "resourceone"),
 					resource.TestCheckResourceAttr("gamefabric_role.test", "rules.0.verbs.0", "get"),
 					resource.TestCheckResourceAttr("gamefabric_role.test", "rules.0.verbs.1", "list"),
 					resource.TestCheckResourceAttr("gamefabric_role.test", "rules.0.environments.0", "env1"),
