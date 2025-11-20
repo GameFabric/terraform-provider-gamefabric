@@ -414,7 +414,7 @@ func (r *vessel) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 	if _, err = r.clientSet.FormationV1().Vessels(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Vessel",
-			fmt.Sprintf("Could not patch for Vessel: %v", err),
+			fmt.Sprintf("Could not patch Vessel: %v", err),
 		)
 		return
 	}

@@ -516,7 +516,7 @@ func (r *formation) Update(ctx context.Context, req resource.UpdateRequest, resp
 	if _, err = r.clientSet.FormationV1().Formations(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Formation",
-			fmt.Sprintf("Could not patch for Formation: %v", err),
+			fmt.Sprintf("Could not patch Formation: %v", err),
 		)
 		return
 	}

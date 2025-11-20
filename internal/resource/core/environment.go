@@ -188,7 +188,7 @@ func (r *environment) Update(ctx context.Context, req resource.UpdateRequest, re
 	if _, err = r.clientSet.CoreV1().Environments().Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Environment",
-			fmt.Sprintf("Could not patch for Environment: %v", err),
+			fmt.Sprintf("Could not patch Environment: %v", err),
 		)
 		return
 	}

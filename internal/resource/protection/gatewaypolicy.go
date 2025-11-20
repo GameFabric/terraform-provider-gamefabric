@@ -199,7 +199,7 @@ func (r *gatewayPolicy) Update(ctx context.Context, req resource.UpdateRequest, 
 	if _, err = r.clientSet.ProtectionV1().GatewayPolicies().Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Gateway Policy",
-			fmt.Sprintf("Could not patch for Gateway Policy: %v", err),
+			fmt.Sprintf("Could not patch GatewayPolicy: %v", err),
 		)
 		return
 	}

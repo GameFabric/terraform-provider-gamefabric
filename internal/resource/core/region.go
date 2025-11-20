@@ -257,7 +257,7 @@ func (r *region) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 	if _, err = r.clientSet.CoreV1().Regions(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Region",
-			fmt.Sprintf("Could not patch for Region: %v", err),
+			fmt.Sprintf("Could not patch Region: %v", err),
 		)
 		return
 	}
