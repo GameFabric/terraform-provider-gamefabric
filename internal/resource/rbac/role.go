@@ -201,7 +201,8 @@ func (r *role) Update(ctx context.Context, req resource.UpdateRequest, resp *res
 		return
 	}
 
-	if _, err = r.clientSet.RBACV1().Roles().Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
+	patchedObj, err := r.clientSet.RBACV1().Roles().Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Role",
 			fmt.Sprintf("Could not patch Role: %v", err),
@@ -209,7 +210,7 @@ func (r *role) Update(ctx context.Context, req resource.UpdateRequest, resp *res
 		return
 	}
 
-	plan.ID = types.StringValue(newObj.Name)
+	plan = newRoleModel(patchedObj)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
