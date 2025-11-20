@@ -9,6 +9,7 @@ import (
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
@@ -143,13 +144,14 @@ func (r *role) Create(ctx context.Context, req resource.CreateRequest, resp *res
 	}
 
 	obj := plan.ToObject()
-	_, err := r.clientSet.RBACV1().Roles().Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.RBACV1().Roles().Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError("Error Creating Role", fmt.Sprintf("Could not create Role: %v", err))
 		return
 	}
 
-	plan.ID = types.StringValue(plan.Name.ValueString())
+	plan = newRoleModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
