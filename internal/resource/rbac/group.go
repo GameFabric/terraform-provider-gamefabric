@@ -180,7 +180,8 @@ func (r *group) Update(ctx context.Context, req resource.UpdateRequest, resp *re
 		return
 	}
 
-	if _, err = r.clientSet.RBACV1().Groups().Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
+	patchedObj, err := r.clientSet.RBACV1().Groups().Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Group",
 			fmt.Sprintf("Could not patch Group: %v", err),
@@ -188,7 +189,8 @@ func (r *group) Update(ctx context.Context, req resource.UpdateRequest, resp *re
 		return
 	}
 
-	plan.ID = types.StringValue(newObj.Name)
+	plan = newGroupModel(patchedObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

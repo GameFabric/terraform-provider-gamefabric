@@ -178,7 +178,8 @@ func (r *roleBinding) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	if _, err = r.clientSet.RBACV1().RoleBindings().Patch(ctx, oldObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
+	patchedObj, err := r.clientSet.RBACV1().RoleBindings().Patch(ctx, oldObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Role Binding",
 			fmt.Sprintf("Could not patch Role Binding: %v", err),
@@ -186,7 +187,8 @@ func (r *roleBinding) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	plan.ID = types.StringValue(newObj.Name)
+	plan = newRoleBindingModel(patchedObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

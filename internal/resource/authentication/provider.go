@@ -415,7 +415,8 @@ func (r *provider) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
-	if _, err = r.clientSet.AuthenticationV1Beta1().Providers().Patch(ctx, state.Name.ValueString(), rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
+	patchedObj, err := r.clientSet.AuthenticationV1Beta1().Providers().Patch(ctx, state.Name.ValueString(), rest.MergePatchType, pb, metav1.UpdateOptions{})
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Patching Provider",
 			fmt.Sprintf("Could not patch Authentication Provider %q: %v", state.Name.ValueString(), err),
@@ -423,7 +424,8 @@ func (r *provider) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
-	plan.ID = types.StringValue(newObj.Name)
+	plan = newProviderModel(patchedObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
