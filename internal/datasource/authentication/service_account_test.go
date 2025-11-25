@@ -15,7 +15,7 @@ func TestServiceAccount(t *testing.T) {
 
 	sa := &authv1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   "user",
+			Name:   "something",
 			Labels: map[string]string{"env": "test", "team": "devops"},
 		},
 		Spec: authv1.ServiceAccountSpec{
@@ -62,7 +62,7 @@ func TestServiceAccount(t *testing.T) {
   name = "nonexistent"
 }
 `,
-				ExpectError: regexp.MustCompile(`Failed to retrieve ServiceAccount`),
+				ExpectError: regexp.MustCompile(`Service Account Not Found`),
 			},
 		},
 	})

@@ -82,13 +82,51 @@ func (r *serviceAccount) Read(ctx context.Context, req datasource.ReadRequest, r
 	}
 
 	var obj *authv1.ServiceAccount
-	var err error
-
 	switch {
 	case conv.IsKnown(config.Name):
-		obj, err = r.clientSet.AuthenticationV1Beta1().ServiceAccounts().Get(ctx, config.Name.ValueString(), metav1.GetOptions{})
+		list, err := r.clientSet.AuthenticationV1Beta1().ServiceAccounts().List(ctx, metav1.ListOptions{})
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Getting ServiceAccount",
+				fmt.Sprintf("Could not get ServiceAccount %q: %v", config.Name.ValueString(), err),
+			)
+			return
+		}
+		for _, item := range list.Items {
+			if item.Spec.Username != config.Name.ValueString() {
+				continue
+			}
+			if obj != nil {
+				resp.Diagnostics.AddError(
+					"Multiple ServiceAccounts Found",
+					fmt.Sprintf("Multiple service accounts found with name %q", config.Name.ValueString()),
+				)
+				return
+			}
+			obj = &item
+		}
 	case conv.IsKnown(config.Email):
-		obj, err = r.findServiceAccountByEmail(ctx, config.Email.ValueString())
+		list, err := r.clientSet.AuthenticationV1Beta1().ServiceAccounts().List(ctx, metav1.ListOptions{})
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Getting ServiceAccount",
+				fmt.Sprintf("Could not get ServiceAccount with email %q: %v", config.Email.ValueString(), err),
+			)
+			return
+		}
+		for _, item := range list.Items {
+			if item.Spec.Email != config.Email.ValueString() {
+				continue
+			}
+			if obj != nil {
+				resp.Diagnostics.AddError(
+					"Multiple ServiceAccounts Found",
+					fmt.Sprintf("Multiple service accounts found with email %q", config.Email.ValueString()),
+				)
+				return
+			}
+			obj = &item
+		}
 	default:
 		resp.Diagnostics.AddError(
 			"Insufficient Information",
@@ -96,15 +134,6 @@ func (r *serviceAccount) Read(ctx context.Context, req datasource.ReadRequest, r
 		)
 		return
 	}
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Fetching Service Account",
-			fmt.Sprintf("Failed to retrieve ServiceAccount: %v", err),
-		)
-		return
-	}
-
 	if obj == nil {
 		resp.Diagnostics.AddError(
 			"Service Account Not Found",
@@ -115,19 +144,4 @@ func (r *serviceAccount) Read(ctx context.Context, req datasource.ReadRequest, r
 
 	state := newServiceAccountModel(obj)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-}
-
-func (r *serviceAccount) findServiceAccountByEmail(ctx context.Context, email string) (*authv1.ServiceAccount, error) {
-	list, err := r.clientSet.AuthenticationV1Beta1().ServiceAccounts().List(ctx, metav1.ListOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	for _, sa := range list.Items {
-		if sa.Spec.Email == email {
-			return &sa, nil
-		}
-	}
-
-	return nil, fmt.Errorf("service account with email %q not found", email)
 }

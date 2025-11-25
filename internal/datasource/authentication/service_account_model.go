@@ -14,7 +14,7 @@ type serviceAccountModel struct {
 
 func newServiceAccountModel(obj *authv1.ServiceAccount) serviceAccountModel {
 	return serviceAccountModel{
-		Name:   conv.OptionalFunc(obj.Name, types.StringValue, types.StringNull),
+		Name:   conv.OptionalFunc(obj.Spec.Username, types.StringValue, types.StringNull),
 		Labels: conv.ForEachMapItem(obj.Labels, func(item string) types.String { return types.StringValue(item) }),
 		Email:  conv.OptionalFunc(obj.Spec.Email, types.StringValue, types.StringNull),
 	}
