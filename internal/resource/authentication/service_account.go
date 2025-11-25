@@ -8,6 +8,8 @@ import (
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -113,6 +115,9 @@ func (r *serviceAccount) Create(ctx context.Context, req resource.CreateRequest,
 	plan.ID = types.StringValue(created.Name)
 	plan.Password = types.StringValue(created.Status.Password)
 	plan.Email = types.StringValue(created.Spec.Email)
+	plan.Labels = conv.ForEachMapItem(created.Labels, types.StringValue)
+
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -143,6 +148,7 @@ func (r *serviceAccount) Read(ctx context.Context, req resource.ReadRequest, res
 	// Retain the existing password if the API does not return it
 	newState.Password = state.Password
 
+	resp.Diagnostics.Append(normalize.Model(ctx, &newState, req.State)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 

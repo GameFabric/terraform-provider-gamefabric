@@ -42,6 +42,38 @@ func TestServiceAccountResource(t *testing.T) {
 	})
 }
 
+func TestServiceAccountResource_SkipUpdateWithNoChange(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckServiceAccountDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				Config: `resource "gamefabric_service_account" "test" { name = "svc-test" }`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_service_account.test", "name", "svc-test"),
+					resource.TestCheckResourceAttr("gamefabric_service_account.test", "email", "svc-test@ec.nitrado.systems"),
+					resource.TestCheckResourceAttr("gamefabric_service_account.test", "password", "some-password"),
+				),
+			},
+			{
+				ResourceName: "gamefabric_service_account.test",
+				ImportState:  true,
+			},
+			{
+				Config: `resource "gamefabric_service_account" "test" { name = "svc-test" }`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_service_account.test", "name", "svc-test"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckServiceAccountDestroy(t *testing.T, cs clientset.Interface) func(*terraform.State) error {
 	return func(s *terraform.State) error {
 		for _, rs := range s.RootModule().Resources {
