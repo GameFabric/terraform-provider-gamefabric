@@ -1,0 +1,45 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+A Role defines a set of permissions that can be assigned to users, groups, or service accounts through role bindings. Roles use rule-based access control to specify which actions (verbs) can be performed on which resources within specific API groups and environments. For certain resources, access can be further limited to specific scopes (e.g., branches) via `scopes` or to specific resources (e.g., armadas) via `resource_names`.
+
+Please see the response of the discovery endpoint at `https://<your_tenant_name>.gamefabric.dev/api` of your GameFabric installation to see which `api_groups` and `resources` are available.
+
+You can organize roles using labels and annotations for better management.
+
+For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/getting-started/editing-permissions#role">GameFabric documentation</a>.
+
+
+## Example Usage
+
+This example creates a role with multiple rules granting access to various resources in a specific environment and to some system-wide resources.
+
+{{ tffile "examples/resources/gamefabric_role/single.tf" }}
+
+
+{{ .SchemaMarkdown | trimspace }}
+{{- if or .HasImport .HasImportIDConfig .HasImportIdentityConfig }}
+
+## Import
+
+Import is supported using the following syntax:
+{{- end }}
+
+{{- if .HasImportIDConfig }}
+
+In Terraform v1.5.0 and later, the [`import` block](https://developer.hashicorp.com/terraform/language/import) can be used with the `id` attribute, for example:
+
+{{tffile .ImportIDConfigFile }}
+{{- end }}
+{{- if .HasImport }}
+
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
+{{codefile "shell" .ImportFile }}
+{{- end }}
