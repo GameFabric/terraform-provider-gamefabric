@@ -19,8 +19,8 @@ For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/g
 This example sets up a group with a single user.
 
 ```terraform
-resource gamefabric_group "my_group" {
-  name = "my-group"
+resource gamefabric_group "developer_group" {
+  name = "developer-group"
   labels = {
     team = "backend"
   }
@@ -60,12 +60,12 @@ In Terraform v1.5.0 and later, the [`import` block](https://developer.hashicorp.
 ```terraform
 import {
   id = "{{ name }}"
-  to = gamefabric_group.my_group
+  to = gamefabric_group.developer_group
 }
 ```
 
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import gamefabric_group.my_group "{{ name }}"
+terraform import gamefabric_group.developer_group "{{ name }}"
 ```

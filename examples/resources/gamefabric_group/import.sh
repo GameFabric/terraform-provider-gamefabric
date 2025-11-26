@@ -1,1 +1,1 @@
-terraform import gamefabric_group.my_group "{{ name }}"
+terraform import gamefabric_group.developer_group "{{ name }}"

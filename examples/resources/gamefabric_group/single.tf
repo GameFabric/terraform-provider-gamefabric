@@ -1,5 +1,5 @@
-resource gamefabric_group "my_group" {
-  name = "my-group"
+resource gamefabric_group "developer_group" {
+  name = "developer-group"
   labels = {
     team = "backend"
   }
