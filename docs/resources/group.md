@@ -19,7 +19,7 @@ For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/g
 This example sets up a group with a single user.
 
 ```terraform
-resource gamefabric_group "developer_group" {
+resource "gamefabric_group" "developer_group" {
   name = "developer-group"
   labels = {
     team = "backend"

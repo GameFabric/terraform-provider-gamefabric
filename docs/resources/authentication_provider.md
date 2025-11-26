@@ -7,7 +7,7 @@ description: |-
 
 # gamefabric_authentication_provider (Resource)
 
-An Authentication Provider configures external identity providers for user authentication in GameFabric. Currently, only OpenID Connect (OIDC) providers are supported, allowing you to integrate with identity providers like Google Identity Platform, Microsoft ENTRA, Amazon Cognito, Okta,Auth0, or any other OIDC-compliant service.
+An Authentication Provider configures external identity providers for user authentication in GameFabric. Currently, only OpenID Connect (OIDC) providers are supported, allowing you to integrate with identity providers like Google Identity Platform, Microsoft ENTRA, Amazon Cognito, Okta, Auth0, or any other OIDC-compliant service.
 
 The authentication provider configuration includes:
 - **OIDC Settings**: Client credentials, issuer URL, and redirect URI
