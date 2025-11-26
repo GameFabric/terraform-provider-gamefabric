@@ -63,6 +63,7 @@ func (r *serviceAccount) Schema(_ context.Context, _ resource.SchemaRequest, res
 				ElementType: types.StringType,
 				Description: "A map of labels to assign to the service account.",
 				PlanModifiers: []planmodifier.Map{
+					mapplanmodifier.RequiresReplace(),
 					mapplanmodifier.UseStateForUnknown(),
 				},
 			},
