@@ -1,0 +1,52 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+An Authentication Provider configures external identity providers for user authentication in GameFabric. Currently, only OpenID Connect (OIDC) providers are supported, allowing you to integrate with identity providers like Google Identity Platform, Microsoft ENTRA, Amazon Cognito, Okta, Auth0, or any other OIDC-compliant service.
+
+The authentication provider configuration includes:
+- **OIDC Settings**: Client credentials, issuer URL, and redirect URI
+- **Scopes**: The OAuth2/OIDC scopes to request (e.g., openid, profile, email, groups)
+- **User Mapping**: Keys to extract user ID and username from claims
+- **Claim Mapping**: Options to map non-standard claims to GameFabric's standardized claims
+- **Claim Modification**: Advanced features to filter and transform group claims
+- **Security Options**: Certificate validation, email verification, and other security settings
+- **Provider Discovery Override**: Custom URLs for authorization, token, and JWKS endpoints when the provider returns non-standard discovery responses
+
+**Important**: The `client_secret` is stored as a sensitive value in your Terraform state. Consider using secure state storage and secret management practices.
+
+For details check the <a href="https://docs.gamefabric.com/multiplayer-servers/getting-started/setup-third-party-oauth">GameFabric documentation</a>.
+
+
+## Example Usage
+
+This example configures an OIDC authentication provider with claim mapping and group filtering.
+
+{{ tffile "examples/resources/gamefabric_authentication_provider/single.tf" }}
+
+
+{{ .SchemaMarkdown | trimspace }}
+{{- if or .HasImport .HasImportIDConfig .HasImportIdentityConfig }}
+
+## Import
+
+Import is supported using the following syntax:
+{{- end }}
+
+{{- if .HasImportIDConfig }}
+
+In Terraform v1.5.0 and later, the [`import` block](https://developer.hashicorp.com/terraform/language/import) can be used with the `id` attribute, for example:
+
+{{tffile .ImportIDConfigFile }}
+{{- end }}
+{{- if .HasImport }}
+
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
+{{codefile "shell" .ImportFile }}
+{{- end }}
