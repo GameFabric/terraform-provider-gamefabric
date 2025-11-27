@@ -9,8 +9,8 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/gamefabric/gf-apiclient v0.2.0
 	github.com/gamefabric/gf-apicore v1.9.0
-	github.com/gamefabric/gf-apiserver v1.10.0
-	github.com/gamefabric/gf-core v0.29.1-0.20251103073925-f39d6cbd0a08
+	github.com/gamefabric/gf-apiserver v1.12.0
+	github.com/gamefabric/gf-core v0.30.1-0.20251127073747-fa3fd166eb96
 	github.com/google/uuid v1.6.0
 	github.com/hamba/pkg/v2 v2.14.0
 	github.com/hashicorp/terraform-plugin-framework v1.16.1
@@ -150,9 +150,9 @@ require (
 	github.com/yuin/goldmark-meta v1.1.0 // indirect
 	github.com/zclconf/go-cty v1.17.0 // indirect
 	go.abhg.dev/goldmark/frontmatter v0.2.0 // indirect
-	go.etcd.io/etcd/api/v3 v3.6.5 // indirect
-	go.etcd.io/etcd/client/pkg/v3 v3.6.5 // indirect
-	go.etcd.io/etcd/client/v3 v3.6.5 // indirect
+	go.etcd.io/etcd/api/v3 v3.6.6 // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.6.6 // indirect
+	go.etcd.io/etcd/client/v3 v3.6.6 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.63.0 // indirect
 	go.opentelemetry.io/otel v1.38.0 // indirect
@@ -168,14 +168,14 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/crypto v0.43.0 // indirect
+	golang.org/x/crypto v0.45.0 // indirect
 	golang.org/x/exp v0.0.0-20251009144603-d2f985daa21b // indirect
 	golang.org/x/mod v0.29.0 // indirect
-	golang.org/x/net v0.46.0 // indirect
-	golang.org/x/sync v0.17.0 // indirect
-	golang.org/x/sys v0.37.0 // indirect
-	golang.org/x/term v0.36.0 // indirect
-	golang.org/x/text v0.30.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/sync v0.18.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/term v0.37.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	golang.org/x/tools v0.38.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
