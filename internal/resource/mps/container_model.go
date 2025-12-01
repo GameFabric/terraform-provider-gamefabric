@@ -22,6 +22,7 @@ type ContainerModel struct {
 	Ports        []PortModel        `tfsdk:"ports"`
 	VolumeMounts []VolumeMountModel `tfsdk:"volume_mounts"`
 	ConfigFiles  []ConfigFileModel  `tfsdk:"config_files"`
+	Secrets      []SecretMountModel `tfsdk:"secrets"`
 }
 
 // NewContainerForArmada converts the backend resource into the terraform model.
@@ -39,6 +40,7 @@ func NewContainerForArmada(obj armadav1.Container) ContainerModel {
 		Ports:        conv.ForEachSliceItem(obj.Ports, newPortModelForArmada),
 		VolumeMounts: conv.ForEachSliceItem(obj.VolumeMounts, newVolumeMountModel),
 		ConfigFiles:  conv.ForEachSliceItem(obj.ConfigFiles, newConfigFileModelForArmada),
+		Secrets:      conv.ForEachSliceItem(obj.Secrets, newSecretMountModelForArmada),
 	}
 }
 
@@ -57,6 +59,7 @@ func NewContainerForFormation(obj formationv1.Container) ContainerModel {
 		Ports:        conv.ForEachSliceItem(obj.Ports, newPortModelForFormation),
 		VolumeMounts: conv.ForEachSliceItem(obj.VolumeMounts, newVolumeMountModel),
 		ConfigFiles:  conv.ForEachSliceItem(obj.ConfigFiles, newConfigFileModelForFormation),
+		Secrets:      conv.ForEachSliceItem(obj.Secrets, newSecretMountModelForFormation),
 	}
 }
 
@@ -73,6 +76,7 @@ func ToContainerForArmada(ctr ContainerModel) armadav1.Container {
 		Ports:        conv.ForEachSliceItem(ctr.Ports, toPortForArmada),
 		VolumeMounts: conv.ForEachSliceItem(ctr.VolumeMounts, toVolumeMount),
 		ConfigFiles:  conv.ForEachSliceItem(ctr.ConfigFiles, toConfigFileForArmada),
+		Secrets:      conv.ForEachSliceItem(ctr.Secrets, toArmadaSecretMount),
 	}
 }
 
@@ -89,6 +93,7 @@ func ToContainerForFormation(ctr ContainerModel) formationv1.Container {
 		Ports:        conv.ForEachSliceItem(ctr.Ports, toPortForFormation),
 		VolumeMounts: conv.ForEachSliceItem(ctr.VolumeMounts, toVolumeMount),
 		ConfigFiles:  conv.ForEachSliceItem(ctr.ConfigFiles, toConfigFileForFormation),
+		Secrets:      conv.ForEachSliceItem(ctr.Secrets, toFormationSecretMount),
 	}
 }
 
@@ -279,5 +284,39 @@ func toConfigFileForFormation(file ConfigFileModel) formationv1.ConfigFileMount 
 	return formationv1.ConfigFileMount{
 		Name:      file.Name.ValueString(),
 		MountPath: file.MountPath.ValueString(),
+	}
+}
+
+// SecretMountModel is the terraform model for a container secret mount.
+type SecretMountModel struct {
+	Name      types.String `tfsdk:"name"`
+	MountPath types.String `tfsdk:"mount_path"`
+}
+
+func newSecretMountModelForArmada(obj armadav1.SecretMount) SecretMountModel {
+	return SecretMountModel{
+		Name:      types.StringValue(obj.Name),
+		MountPath: types.StringValue(obj.MountPath),
+	}
+}
+
+func newSecretMountModelForFormation(obj formationv1.SecretMount) SecretMountModel {
+	return SecretMountModel{
+		Name:      types.StringValue(obj.Name),
+		MountPath: types.StringValue(obj.MountPath),
+	}
+}
+
+func toArmadaSecretMount(secret SecretMountModel) armadav1.SecretMount {
+	return armadav1.SecretMount{
+		Name:      secret.Name.ValueString(),
+		MountPath: secret.MountPath.ValueString(),
+	}
+}
+
+func toFormationSecretMount(secret SecretMountModel) formationv1.SecretMount {
+	return formationv1.SecretMount{
+		Name:      secret.Name.ValueString(),
+		MountPath: secret.MountPath.ValueString(),
 	}
 }

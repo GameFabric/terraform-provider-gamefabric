@@ -34,10 +34,11 @@ var (
 )
 
 var secretValidator = validators.NewGameFabricValidator[*corev1.Secret, secretModel](func() validators.StoreValidator {
-	_, _ = secretreg.New(generic.StoreOptions{Config: generic.Config{
+	storage, _ := secretreg.New(generic.StoreOptions{Config: generic.Config{
 		StorageFactory: registrytest.FakeStorageFactory{},
 	}})
-	return nil
+	_ = storage.Store
+	return nil // storage.Store.store.Strategy
 })
 
 type secret struct {

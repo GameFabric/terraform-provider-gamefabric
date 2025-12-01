@@ -130,6 +130,10 @@ var (
 									kcorev1.ResourceMemory: resource.MustParse("256Mi"),
 								},
 							},
+							Secrets: []formationv1.SecretMount{
+								{Name: "secret1", MountPath: "this/is/mount/path"},
+								{Name: "secret2", MountPath: "another/path/mount"},
+							},
 						},
 					},
 					Health: agonesv1.Health{
@@ -258,6 +262,10 @@ var (
 						CPU:    types.StringValue("250m"),
 						Memory: types.StringValue("256Mi"),
 					},
+				},
+				Secrets: []mps.SecretMountModel{
+					{Name: types.StringValue("secret1"), MountPath: types.StringValue("this/is/mount/path")},
+					{Name: types.StringValue("secret2"), MountPath: types.StringValue("another/path/mount")},
 				},
 			},
 		},

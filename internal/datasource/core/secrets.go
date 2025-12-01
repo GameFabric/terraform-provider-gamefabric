@@ -61,7 +61,7 @@ func (r *secrets) Schema(_ context.Context, _ datasource.SchemaRequest, resp *da
 			"secrets": schema.ListNestedAttribute{
 				Description:         "Secrets is a list of secrets in the environment that match the labels filter.",
 				MarkdownDescription: "Secrets is a list of secrets in the environment that match the labels filter.",
-				Computed:            true,
+				Optional:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{

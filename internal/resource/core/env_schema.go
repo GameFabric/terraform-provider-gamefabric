@@ -40,7 +40,11 @@ func EnvVarAttributes(val validators.GameFabricValidator, pathPrefix string) map
 					Optional:            true,
 					Validators: []validator.String{
 						validators.GFFieldString(val, pathPrefix+".valueFrom.fieldRef.fieldPath"),
-						stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("config_file")),
+						stringvalidator.ExactlyOneOf(
+							path.MatchRelative().AtParent().AtName("field_path"),
+							path.MatchRelative().AtParent().AtName("config_file"),
+							path.MatchRelative().AtParent().AtName("secret"),
+						),
 					},
 				},
 				"config_file": schema.StringAttribute{
@@ -49,7 +53,24 @@ func EnvVarAttributes(val validators.GameFabricValidator, pathPrefix string) map
 					Optional:            true,
 					Validators: []validator.String{
 						validators.GFFieldString(val, pathPrefix+".valueFrom.configFileKeyRef.name"),
-						stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("field_path")),
+						stringvalidator.ExactlyOneOf(
+							path.MatchRelative().AtParent().AtName("field_path"),
+							path.MatchRelative().AtParent().AtName("config_file"),
+							path.MatchRelative().AtParent().AtName("secret"),
+						),
+					},
+				},
+				"secret": schema.StringAttribute{
+					Description:         "Secret selects the secret.",
+					MarkdownDescription: "Secret selects the secret.",
+					Optional:            true,
+					Validators: []validator.String{
+						validators.GFFieldString(val, pathPrefix+".valueFrom.secretKeyRef.name"),
+						stringvalidator.ExactlyOneOf(
+							path.MatchRelative().AtParent().AtName("field_path"),
+							path.MatchRelative().AtParent().AtName("config_file"),
+							path.MatchRelative().AtParent().AtName("secret"),
+						),
 					},
 				},
 			},

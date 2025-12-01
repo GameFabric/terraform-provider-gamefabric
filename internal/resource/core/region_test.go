@@ -53,6 +53,12 @@ func TestRegion(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_region.test", "description", "My Region Description"),
 				),
 			},
+			{
+				Config: testResourceRegionConfigFull(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.0.envs.3.value_from.secret", "secret-name"),
+				),
+			},
 		},
 	})
 }
@@ -78,6 +84,40 @@ func testResourceRegionConfigBasic(name string) string {
         name = "ENV_VAR_3"
         value_from = {
           config_file = "config-file-name"
+        }
+      }]
+      scheduling = "Distributed"
+    }
+  ]
+}`, name)
+}
+
+func testResourceRegionConfigFull(name string) string {
+	return fmt.Sprintf(`resource "gamefabric_region" "test" {
+  name = "%s"
+  display_name = "My Region"
+  environment = "dflt"
+  types = [
+    {
+      name = "baremetal"
+      locations = ["loc-1", "loc-2"]
+      envs = [{
+        name  = "ENV_VAR_1"
+        value = "value1"
+      }, {
+        name  = "ENV_VAR_2"
+        value_from = {
+          field_path = "metadata.name"
+        }
+      }, {
+        name = "ENV_VAR_3"
+        value_from = {
+          config_file = "config-file-name"
+        }
+      }, {
+        name = "ENV_VAR_4"
+        value_from = {
+          secret = "secret-name"
         }
       }]
       scheduling = "Distributed"
