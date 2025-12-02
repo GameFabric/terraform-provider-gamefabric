@@ -13,7 +13,9 @@ import (
 )
 
 // ContainersAttributes returns the schema attributes for containers.
-func ContainersAttributes(val validators.GameFabricValidator, pathPrefix string) schema.NestedAttributeObject { //nolint:maintidx
+//
+//nolint:maintidx
+func ContainersAttributes(val validators.GameFabricValidator, pathPrefix string) schema.NestedAttributeObject {
 	return schema.NestedAttributeObject{
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{

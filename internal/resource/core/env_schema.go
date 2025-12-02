@@ -41,7 +41,6 @@ func EnvVarAttributes(val validators.GameFabricValidator, pathPrefix string) map
 					Validators: []validator.String{
 						validators.GFFieldString(val, pathPrefix+".valueFrom.fieldRef.fieldPath"),
 						stringvalidator.ExactlyOneOf(
-							path.MatchRelative().AtParent().AtName("field_path"),
 							path.MatchRelative().AtParent().AtName("config_file"),
 							path.MatchRelative().AtParent().AtName("secret"),
 						),
@@ -55,7 +54,6 @@ func EnvVarAttributes(val validators.GameFabricValidator, pathPrefix string) map
 						validators.GFFieldString(val, pathPrefix+".valueFrom.configFileKeyRef.name"),
 						stringvalidator.ExactlyOneOf(
 							path.MatchRelative().AtParent().AtName("field_path"),
-							path.MatchRelative().AtParent().AtName("config_file"),
 							path.MatchRelative().AtParent().AtName("secret"),
 						),
 					},
@@ -69,7 +67,6 @@ func EnvVarAttributes(val validators.GameFabricValidator, pathPrefix string) map
 						stringvalidator.ExactlyOneOf(
 							path.MatchRelative().AtParent().AtName("field_path"),
 							path.MatchRelative().AtParent().AtName("config_file"),
-							path.MatchRelative().AtParent().AtName("secret"),
 						),
 					},
 				},
