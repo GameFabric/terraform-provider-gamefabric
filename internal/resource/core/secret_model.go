@@ -23,16 +23,9 @@ type secretModel struct {
 }
 
 func newSecretModel(obj *corev1.Secret) secretModel {
-	dataMap := make(map[string]types.String)
-	for k, v := range obj.Data {
-		dataMap[k] = types.StringValue(v)
-	}
-
-	var lastDataChange types.String
+	lastDataChange := types.StringNull()
 	if obj.Status.LastDataChange != nil {
 		lastDataChange = types.StringValue(obj.Status.LastDataChange.Format(time.RFC3339))
-	} else {
-		lastDataChange = types.StringNull()
 	}
 
 	return secretModel{
@@ -42,18 +35,13 @@ func newSecretModel(obj *corev1.Secret) secretModel {
 		Labels:         conv.ForEachMapItem(obj.Labels, func(item string) types.String { return types.StringValue(item) }),
 		Annotations:    conv.ForEachMapItem(obj.Annotations, func(item string) types.String { return types.StringValue(item) }),
 		Description:    conv.OptionalFunc(obj.Description, types.StringValue, types.StringNull),
-		Data:           dataMap,
+		Data:           conv.ForEachMapItem(obj.Data, func(v string) types.String { return types.StringValue(v) }),
 		State:          types.StringValue(string(obj.Status.State)),
 		LastDataChange: lastDataChange,
 	}
 }
 
 func (m secretModel) ToObject() *corev1.Secret {
-	dataMap := make(map[string]string)
-	for k, v := range m.Data {
-		dataMap[k] = v.ValueString()
-	}
-
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        m.Name.ValueString(),
@@ -62,6 +50,8 @@ func (m secretModel) ToObject() *corev1.Secret {
 			Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
 		},
 		Description: m.Description.ValueString(),
-		Data:        dataMap,
+		Data: conv.ForEachMapItem(m.Data, func(item types.String) string {
+			return item.String()
+		}),
 	}
 }
