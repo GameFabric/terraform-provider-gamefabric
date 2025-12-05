@@ -104,6 +104,10 @@ func TestResourceFormation(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.config_files.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.config_files.0.name", "example-config-file"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.config_files.0.mount_path", "/config/example-config-file"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.secrets.0.name", "mount-1"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.secrets.0.mount_path", "/config/example-config-file-1"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.secrets.1.name", "mount-2"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.secrets.1.mount_path", "/config/example-config-file-2"),
 
 					// Health checks.
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "health_checks.disabled", "false"),
@@ -567,6 +571,16 @@ func testResourceFormationConfigFull() string {
           mount_path = "/config/example-config-file"
         }
       ]
+      secrets = [
+		{
+		  name       = "mount-1"
+		  mount_path = "/config/example-config-file-1"
+		},
+		{
+		  name       = "mount-2"
+		  mount_path = "/config/example-config-file-2"
+		}
+	  ]
     }
   ]
 
