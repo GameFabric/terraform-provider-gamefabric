@@ -56,7 +56,8 @@ func TestRegion(t *testing.T) {
 			{
 				Config: testResourceRegionConfigFull(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("gamefabric_region.test", "types.0.envs.3.value_from.secret", "secret-name"),
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.0.envs.3.value_from.secret.key", "secret"),
+					resource.TestCheckResourceAttr("gamefabric_region.test", "types.0.envs.3.value_from.secret.name", "secret-name"),
 				),
 			},
 		},
@@ -117,7 +118,10 @@ func testResourceRegionConfigFull(name string) string {
       }, {
         name = "ENV_VAR_4"
         value_from = {
-          secret = "secret-name"
+          secret = {
+            key = "secret"
+            name = "secret-name"
+          }
         }
       }]
       scheduling = "Distributed"

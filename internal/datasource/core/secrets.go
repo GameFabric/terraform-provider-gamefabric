@@ -64,14 +64,14 @@ func (r *secrets) Schema(_ context.Context, _ datasource.SchemaRequest, resp *da
 				Optional:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Description:         "The unique secret name within its environment.",
-							MarkdownDescription: "The unique secret name within its environment.",
-							Computed:            true,
-						},
 						"environment": schema.StringAttribute{
 							Description:         "The name of the environment the secret belongs to.",
 							MarkdownDescription: "The name of the environment the secret belongs to.",
+							Computed:            true,
+						},
+						"name": schema.StringAttribute{
+							Description:         "The unique secret name within its environment.",
+							MarkdownDescription: "The unique secret name within its environment.",
 							Computed:            true,
 						},
 						"description": schema.StringAttribute{
@@ -79,14 +79,16 @@ func (r *secrets) Schema(_ context.Context, _ datasource.SchemaRequest, resp *da
 							MarkdownDescription: "Description of the secret.",
 							Computed:            true,
 						},
-						"status": schema.StringAttribute{
-							Description:         "Status is the most recently observed status of the secret (Pending, Synced, or Degraded).",
-							MarkdownDescription: "Status is the most recently observed status of the secret (Pending, Synced, or Degraded).",
+						"data": schema.ListAttribute{
+							Description:         "Data contains the secret keys.",
+							MarkdownDescription: "Data contains the secret keys.",
+							ElementType:         types.StringType,
 							Computed:            true,
 						},
-						"last_data_change": schema.StringAttribute{
-							Description:         "LastDataChange is the timestamp of the most recent modification of this secret's data.",
-							MarkdownDescription: "LastDataChange is the timestamp of the most recent modification of this secret's data.",
+						"labels": schema.MapAttribute{
+							Description:         "Labels are key/value pairs that can be used to organize and categorize objects.",
+							MarkdownDescription: "Labels are key/value pairs that can be used to organize and categorize objects.",
+							ElementType:         types.StringType,
 							Computed:            true,
 						},
 					},

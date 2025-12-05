@@ -1,8 +1,6 @@
 package core
 
 import (
-	"time"
-
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -23,20 +21,16 @@ func newSecretsModel(items []corev1.Secret) secretsModel {
 }
 
 func newSecretItemModel(obj *corev1.Secret) secretModel {
-	lastDataChange := types.StringNull()
-	if obj.Status.LastDataChange != nil {
-		lastDataChange = types.StringValue(obj.Status.LastDataChange.Format(time.RFC3339))
-	}
 	description := types.StringNull()
 	if obj.Description != "" {
 		description = types.StringValue(obj.Description)
 	}
 
 	return secretModel{
-		Name:           types.StringValue(obj.Name),
-		Environment:    types.StringValue(obj.Environment),
-		Description:    description,
-		Status:         types.StringValue(string(obj.Status.State)),
-		LastDataChange: lastDataChange,
+		Name:        types.StringValue(obj.Name),
+		Labels:      conv.ForEachMapItem(obj.Labels, func(item string) types.String { return types.StringValue(item) }),
+		Environment: types.StringValue(obj.Environment),
+		Description: description,
+		Data:        dataKeys(obj),
 	}
 }

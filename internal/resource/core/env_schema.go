@@ -58,16 +58,21 @@ func EnvVarAttributes(val validators.GameFabricValidator, pathPrefix string) map
 						),
 					},
 				},
-				"secret": schema.StringAttribute{
+				"secret": schema.SingleNestedAttribute{
 					Description:         "Secret selects the secret.",
 					MarkdownDescription: "Secret selects the secret.",
 					Optional:            true,
-					Validators: []validator.String{
-						validators.GFFieldString(val, pathPrefix+".valueFrom.secretKeyRef.name"),
-						stringvalidator.ExactlyOneOf(
-							path.MatchRelative().AtParent().AtName("field_path"),
-							path.MatchRelative().AtParent().AtName("config_file"),
-						),
+					Attributes: map[string]schema.Attribute{
+						"key": schema.StringAttribute{
+							Description:         "Key of the secret.",
+							MarkdownDescription: "Key of the secret.",
+							Required:            true,
+						},
+						"name": schema.StringAttribute{
+							Description:         "Name of the secret.",
+							MarkdownDescription: "Name of the secret.",
+							Required:            true,
+						},
 					},
 				},
 			},

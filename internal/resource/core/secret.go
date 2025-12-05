@@ -14,10 +14,10 @@ import (
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	secretreg "github.com/gamefabric/gf-core/pkg/apiserver/registry/core/secret"
 	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
-	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
+	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -37,8 +37,7 @@ var secretValidator = validators.NewGameFabricValidator[*corev1.Secret, secretMo
 	storage, _ := secretreg.New(generic.StoreOptions{Config: generic.Config{
 		StorageFactory: registrytest.FakeStorageFactory{},
 	}})
-	_ = storage.Store
-	return nil // storage.Store.store.Strategy
+	return storage.Store.Strategy()
 })
 
 type secret struct {
@@ -111,23 +110,31 @@ func (r *secret) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Optional:            true,
 			},
 			"data": schema.MapAttribute{
-				Description:         "Data contains the secret key-value pairs. Values are sensitive and write-only - they are only transmitted to the server and never displayed or stored in state.",
-				MarkdownDescription: "Data contains the secret key-value pairs. Values are sensitive and write-only - they are only transmitted to the server and never displayed or stored in state.",
-				Required:            true,
-				ElementType:         types.StringType,
+				Description:         "Data contains the secret key-value pairs. These are stored in state and persisted. Use data_wo for write-only ephemeral values.",
+				MarkdownDescription: "Data contains the secret key-value pairs. These are stored in state and persisted. Use data_wo for write-only ephemeral values.",
+				Optional:            true,
 				Sensitive:           true,
+				ElementType:         types.StringType,
 				Validators: []validator.Map{
 					validators.GFFieldMap(secretValidator, "data"),
+					mapvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("data_wo")),
+				},
+			},
+			"data_wo": schema.MapAttribute{
+				Description:         "DataWO is a write-only version of data. Values are sensitive and write-only - they are only transmitted to the server and never displayed or stored in state.",
+				MarkdownDescription: "DataWO is a write-only version of data. Values are sensitive and write-only - they are only transmitted to the server and never displayed or stored in state.",
+				Optional:            true,
+				Sensitive:           true,
+				WriteOnly:           true,
+				ElementType:         types.StringType,
+				Validators: []validator.Map{
+					validators.GFFieldMap(secretValidator, "data_wo"),
+					mapvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("data")),
 				},
 			},
 			"state": schema.StringAttribute{
 				Description:         "State is the most recently observed status of the secret (Pending, Synced, or Degraded).",
 				MarkdownDescription: "State is the most recently observed status of the secret (Pending, Synced, or Degraded).",
-				Computed:            true,
-			},
-			"last_data_change": schema.StringAttribute{
-				Description:         "LastDataChange is the timestamp of the most recent modification of this secret's data.",
-				MarkdownDescription: "LastDataChange is the timestamp of the most recent modification of this secret's data.",
 				Computed:            true,
 			},
 		},
@@ -169,9 +176,11 @@ func (r *secret) Create(ctx context.Context, req resource.CreateRequest, resp *r
 		return
 	}
 
-	plan = newSecretModel(outObj)
-	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	result := newSecretModel(outObj)
+
+	// Preserve plan's data as the API returns masked secrets.
+	result.Data = plan.Data
+	resp.Diagnostics.Append(resp.State.Set(ctx, &result)...)
 }
 
 func (r *secret) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -180,6 +189,9 @@ func (r *secret) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Store current data values before reading from API (API returns masked)
+	currentData := state.Data
 
 	outObj, err := r.clientSet.CoreV1().Secrets(state.Environment.ValueString()).Get(ctx, state.Name.ValueString(), metav1.GetOptions{})
 	if err != nil {
@@ -196,7 +208,7 @@ func (r *secret) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 	}
 
 	state = newSecretModel(outObj)
-	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
+	state.Data = currentData
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
@@ -223,7 +235,8 @@ func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	if _, err = r.clientSet.CoreV1().Secrets(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
+	outObj, err := r.clientSet.CoreV1().Secrets(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Secret",
 			fmt.Sprintf("Could not patch Secret: %v", err),
@@ -231,8 +244,9 @@ func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	plan.ID = types.StringValue(cache.NewObjectName(newObj.Environment, newObj.Name).String())
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	updated := newSecretModel(outObj)
+	updated.Data = plan.Data
+	resp.Diagnostics.Append(resp.State.Set(ctx, &updated)...)
 }
 
 func (r *secret) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -262,23 +276,10 @@ func (r *secret) Delete(ctx context.Context, req resource.DeleteRequest, resp *r
 
 func (r *secret) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	if req.ID == "" {
-		resp.Diagnostics.AddError(
-			"Invalid Import ID",
-			"Expected an import ID in the format `<environment>/<name>`",
-		)
 		return
 	}
 
-	objName := cache.ParseObjectName(req.ID)
-	env, name := objName.Parts()
-	if env == "" || name == "" {
-		resp.Diagnostics.AddError(
-			"Invalid Import ID",
-			fmt.Sprintf("Expected an import ID in the format `<environment>/<name>`, got %q", req.ID),
-		)
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("environment"), env)...)
+	env, name := cache.SplitMetaNamespaceKey(req.ID)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), name)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("environment"), env)...)
 }

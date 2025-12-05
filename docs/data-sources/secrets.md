@@ -29,8 +29,8 @@ description: |-
 
 Read-Only:
 
+- `data` (List of String) Data contains the secret keys.
 - `description` (String) Description of the secret.
 - `environment` (String) The name of the environment the secret belongs to.
-- `last_data_change` (String) LastDataChange is the timestamp of the most recent modification of this secret's data.
+- `labels` (Map of String) Labels are key/value pairs that can be used to organize and categorize objects.
 - `name` (String) The unique secret name within its environment.
-- `status` (String) Status is the most recently observed status of the secret (Pending, Synced, or Degraded).

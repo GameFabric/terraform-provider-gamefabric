@@ -184,7 +184,16 @@ Optional:
 
 - `config_file` (String) ConfigFile select the configuration file.
 - `field_path` (String) FieldPath selects the field of the pod. Supports `metadata.name`, `metadata.namespace`, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, `metadata.armadaName`, `metadata.regionName`, `metadata.regionTypeName`, `metadata.siteName`, `metadata.imageBranch`, `metadata.imageName`, `metadata.imageTag`, `spec.nodeName`, `spec.serviceAccountName`, `status.hostIP`, `status.podIP`, `status.podIPs`.
-- `secret` (String) Secret selects the secret.
+- `secret` (Attributes) Secret selects the secret. (see [below for nested schema](#nestedatt--containers--envs--value_from--secret))
+
+<a id="nestedatt--containers--envs--value_from--secret"></a>
+### Nested Schema for `containers.envs.value_from.secret`
+
+Required:
+
+- `key` (String) Key of the secret.
+- `name` (String) Name of the secret.
+
 
 
 

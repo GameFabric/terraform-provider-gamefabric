@@ -28,7 +28,10 @@ func NewEnvVarModel(obj corev1.EnvVar) EnvVarModel {
 		case obj.ValueFrom.ConfigFileKeyRef != nil:
 			model.ValueFrom.ConfigFile = types.StringValue(obj.ValueFrom.ConfigFileKeyRef.Name)
 		case obj.ValueFrom.SecretKeyRef != nil:
-			model.ValueFrom.Secret = types.StringValue(obj.ValueFrom.SecretKeyRef.Name)
+			model.ValueFrom.Secret = &SecretType{
+				Key:  types.StringValue(obj.ValueFrom.SecretKeyRef.Key),
+				Name: types.StringValue(obj.ValueFrom.SecretKeyRef.Name),
+			}
 		}
 	}
 	return model
@@ -51,9 +54,10 @@ func (m EnvVarModel) ToObject() corev1.EnvVar {
 			obj.ValueFrom.ConfigFileKeyRef = &corev1.ConfigFileKeySelector{
 				Name: m.ValueFrom.ConfigFile.ValueString(),
 			}
-		case !m.ValueFrom.Secret.IsNull():
+		case m.ValueFrom.Secret != nil && !m.ValueFrom.Secret.Key.IsNull() && !m.ValueFrom.Secret.Name.IsNull():
 			obj.ValueFrom.SecretKeyRef = &corev1.SecretKeySelector{
-				Name: m.ValueFrom.Secret.ValueString(),
+				Key:  m.ValueFrom.Secret.Key.ValueString(),
+				Name: m.ValueFrom.Secret.Name.ValueString(),
 			}
 		}
 	}
@@ -64,5 +68,11 @@ func (m EnvVarModel) ToObject() corev1.EnvVar {
 type EnvVarSourceModel struct {
 	FieldPath  types.String `tfsdk:"field_path"`
 	ConfigFile types.String `tfsdk:"config_file"`
-	Secret     types.String `tfsdk:"secret"`
+	Secret     *SecretType  `tfsdk:"secret"`
+}
+
+// SecretType represents a reference to a secret key.
+type SecretType struct {
+	Key  types.String `tfsdk:"key"`
+	Name types.String `tfsdk:"name"`
 }

@@ -17,18 +17,20 @@ description: |-
 
 ### Required
 
-- `data` (Map of String, Sensitive) Data contains the secret key-value pairs. Values are sensitive and write-only - they are only transmitted to the server and never displayed or stored in state.
 - `environment` (String) The name of the environment the resource belongs to.
 - `name` (String) The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.
 
 ### Optional
 
+> **NOTE**: [Write-only arguments](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments) are supported in Terraform 1.11 and later.
+
 - `annotations` (Map of String) Annotations is an unstructured map of keys and values stored on an object.
+- `data` (Map of String, Sensitive) Data contains the secret key-value pairs. These are stored in state and persisted. Use data_wo for write-only ephemeral values.
+- `data_wo` (Map of String, Sensitive, [Write-only](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments)) DataWO is a write-only version of data. Values are sensitive and write-only - they are only transmitted to the server and never displayed or stored in state.
 - `description` (String) Description is the optional description of the secret.
 - `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
 
 ### Read-Only
 
 - `id` (String) The unique Terraform identifier.
-- `last_data_change` (String) LastDataChange is the timestamp of the most recent modification of this secret's data.
 - `state` (String) State is the most recently observed status of the secret (Pending, Synced, or Degraded).

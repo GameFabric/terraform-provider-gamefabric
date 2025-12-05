@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var (
@@ -58,14 +59,16 @@ func (r *secret) Schema(_ context.Context, _ datasource.SchemaRequest, resp *dat
 				MarkdownDescription: "Description of the secret.",
 				Computed:            true,
 			},
-			"status": schema.StringAttribute{
-				Description:         "Status is the most recently observed status of the secret (Pending, Synced, or Degraded).",
-				MarkdownDescription: "Status is the most recently observed status of the secret (Pending, Synced, or Degraded).",
+			"data": schema.ListAttribute{
+				Description:         "Data contains the secret keys.",
+				MarkdownDescription: "Data contains the secret keys.",
+				ElementType:         types.StringType,
 				Computed:            true,
 			},
-			"last_data_change": schema.StringAttribute{
-				Description:         "LastDataChange is the timestamp of the most recent modification of this secret's data.",
-				MarkdownDescription: "LastDataChange is the timestamp of the most recent modification of this secret's data.",
+			"labels": schema.MapAttribute{
+				Description:         "Labels are key/value pairs that can be used to organize and categorize objects.",
+				MarkdownDescription: "Labels are key/value pairs that can be used to organize and categorize objects.",
+				ElementType:         types.StringType,
 				Computed:            true,
 			},
 		},
