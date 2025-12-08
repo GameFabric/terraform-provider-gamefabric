@@ -63,6 +63,7 @@ func EnvVarAttributes(val validators.GameFabricValidator, pathPrefix string) map
 					MarkdownDescription: "Secret selects the secret.",
 					Optional:            true,
 					Validators: []validator.Object{
+						validators.GFFieldObject(val, pathPrefix+".valueFrom.secretKeyRef.name"),
 						objectvalidator.ExactlyOneOf(
 							path.MatchRelative().AtParent().AtName("config_file"),
 							path.MatchRelative().AtParent().AtName("field_path"),
