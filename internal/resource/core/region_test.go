@@ -2,6 +2,7 @@ package core_test
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -59,6 +60,32 @@ func TestRegion(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_region.test", "types.0.envs.3.value_from.secret.key", "secret"),
 					resource.TestCheckResourceAttr("gamefabric_region.test", "types.0.envs.3.value_from.secret.name", "secret-name"),
 				),
+			},
+		},
+	})
+}
+func TestRegion_Errored(t *testing.T) {
+	t.Parallel()
+
+	name := "eu"
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testResourceRegionDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				Config:      testResourceRegionConfigSecretAndConfigFile(name),
+				ExpectError: regexp.MustCompile("Invalid Attribute Combination"),
+			},
+			{
+				Config:      testResourceRegionConfigSecretAndFieldPath(name),
+				ExpectError: regexp.MustCompile("Invalid Attribute Combination"),
+			},
+			{
+				Config:      testResourceRegionConfigFileAndFieldPath(name),
+				ExpectError: regexp.MustCompile("Invalid Attribute Combination"),
 			},
 		},
 	})
@@ -140,6 +167,78 @@ func testResourceRegionConfigBasicWithDescription(name string) string {
     {
       name = "baremetal"
       locations = ["loc-1", "loc-2"]
+    }
+  ]
+}`, name)
+}
+
+func testResourceRegionConfigSecretAndConfigFile(name string) string {
+	return fmt.Sprintf(`resource "gamefabric_region" "test" {
+  name = "%s"
+  display_name = "My Region"
+  environment = "dflt"
+  types = [
+    {
+      name = "baremetal"
+      locations = ["loc-1", "loc-2"]
+      envs = [{
+        name  = "ENV_VAR_1"
+        value_from = {
+          secret = {
+			key = "key-name"
+			name = "secret-name"
+		  }
+		  config_file = "config-file-name"
+        }
+      }]
+      scheduling = "Distributed"
+    }
+  ]
+}`, name)
+}
+
+func testResourceRegionConfigSecretAndFieldPath(name string) string {
+	return fmt.Sprintf(`resource "gamefabric_region" "test" {
+  name = "%s"
+  display_name = "My Region"
+  environment = "dflt"
+  types = [
+    {
+      name = "baremetal"
+      locations = ["loc-1", "loc-2"]
+      envs = [{
+        name  = "ENV_VAR_1"
+        value_from = {
+          secret = {
+			key = "key-name"
+			name = "secret-name"
+		  }
+		  field_path = "field-path-name"
+        }
+      }]
+      scheduling = "Distributed"
+    }
+  ]
+}`, name)
+}
+
+func testResourceRegionConfigFileAndFieldPath(name string) string {
+	return fmt.Sprintf(`resource "gamefabric_region" "test" {
+  name = "%s"
+  display_name = "My Region"
+  environment = "dflt"
+  types = [
+    {
+      name = "baremetal"
+      locations = ["loc-1", "loc-2"]
+      envs = [{
+        name  = "ENV_VAR_1"
+        value_from = {
+          field_path = "field-path-name"
+		  config_file = "config-file-name"
+        }
+      }]
+      scheduling = "Distributed"
     }
   ]
 }`, name)
