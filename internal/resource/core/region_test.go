@@ -210,10 +210,10 @@ func testResourceRegionConfigSecretAndFieldPath(name string) string {
         name  = "ENV_VAR_1"
         value_from = {
           secret = {
-			key = "key-name"
-			name = "secret-name"
-		  }
-		  field_path = "field-path-name"
+            key = "key-name"
+            name = "secret-name"
+          }
+          field_path = "field-path-name"
         }
       }]
       scheduling = "Distributed"
@@ -235,7 +235,7 @@ func testResourceRegionConfigFileAndFieldPath(name string) string {
         name  = "ENV_VAR_1"
         value_from = {
           field_path = "field-path-name"
-		  config_file = "config-file-name"
+          config_file = "config-file-name"
         }
       }]
       scheduling = "Distributed"
