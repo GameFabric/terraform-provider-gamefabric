@@ -572,14 +572,14 @@ func testResourceFormationConfigFull() string {
         }
       ]
       secrets = [
-		{
-		  name       = "mount-1"
-		  mount_path = "/config/example-config-file-1"
-		},
-		{
-		  name       = "mount-2"
-		  mount_path = "/config/example-config-file-2"
-		}
+        {
+          name       = "mount-1"
+          mount_path = "/config/example-config-file-1"
+        },
+        {
+          name       = "mount-2"
+          mount_path = "/config/example-config-file-2"
+        }
 	  ]
     }
   ]

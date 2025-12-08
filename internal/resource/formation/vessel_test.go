@@ -482,15 +482,15 @@ func testResourceVesselConfigFull() string {
         }
       ]
       secrets = [
-		{
-		  name       = "example-secret-1"
-		  mount_path = "/secrets/example-secret-1"
-		},
-		{
-		  name       = "example-secret-2"
-		  mount_path = "/secrets/example-secret-2"
-		}
-	  ]
+        {
+          name       = "example-secret-1"
+          mount_path = "/secrets/example-secret-1"
+        },
+        {
+          name       = "example-secret-2"
+          mount_path = "/secrets/example-secret-2"
+        }
+      ]
     }
   ]
 
