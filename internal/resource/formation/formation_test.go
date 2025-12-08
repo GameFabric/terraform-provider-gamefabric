@@ -580,7 +580,7 @@ func testResourceFormationConfigFull() string {
           name       = "mount-2"
           mount_path = "/config/example-config-file-2"
         }
-	  ]
+      ]
     }
   ]
 

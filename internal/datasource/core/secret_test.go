@@ -79,8 +79,8 @@ func TestSecret_NotFound(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: `data "gamefabric_secret" "test1" {
- name        = "nonexistent-secret"
- environment = "dflt"
+  name        = "nonexistent-secret"
+  environment = "dflt"
 }
 `,
 				ExpectError: regexp.MustCompile(`Secret Not Found`),
