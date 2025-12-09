@@ -132,11 +132,6 @@ func (r *secret) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 					mapvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("data")),
 				},
 			},
-			"state": schema.StringAttribute{
-				Description:         "State is the most recently observed status of the secret (Pending, Synced, or Degraded).",
-				MarkdownDescription: "State is the most recently observed status of the secret (Pending, Synced, or Degraded).",
-				Computed:            true,
-			},
 		},
 	}
 }
@@ -211,6 +206,7 @@ func (r *secret) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 
 	state = newSecretModel(outObj)
 	state.Data = currentData
+	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 

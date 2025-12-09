@@ -17,7 +17,6 @@ type secretModel struct {
 	Description types.String            `tfsdk:"description"`
 	Data        map[string]types.String `tfsdk:"data"`
 	DataWO      map[string]types.String `tfsdk:"data_wo"`
-	State       types.String            `tfsdk:"state"`
 }
 
 func newSecretModel(obj *corev1.Secret) secretModel {
@@ -30,7 +29,6 @@ func newSecretModel(obj *corev1.Secret) secretModel {
 		Description: conv.OptionalFunc(obj.Description, types.StringValue, types.StringNull),
 		Data:        conv.ForEachMapItem(obj.Data, func(v string) types.String { return types.StringValue(v) }),
 		DataWO:      nil,
-		State:       types.StringValue(string(obj.Status.State)),
 	}
 }
 
