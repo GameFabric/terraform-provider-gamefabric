@@ -18,15 +18,11 @@ type secretModel struct {
 }
 
 func newSecretModel(obj *corev1.Secret) secretModel {
-	description := types.StringNull()
-	if obj.Description != "" {
-		description = types.StringValue(obj.Description)
-	}
 	return secretModel{
 		Name:        types.StringValue(obj.Name),
 		Labels:      conv.ForEachMapItem(obj.Labels, func(item string) types.String { return types.StringValue(item) }),
 		Environment: types.StringValue(obj.Environment),
-		Description: description,
+		Description: conv.OptionalFunc(obj.Description, types.StringValue, types.StringNull),
 		Data:        dataKeys(obj),
 	}
 }

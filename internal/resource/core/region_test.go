@@ -64,6 +64,7 @@ func TestRegion(t *testing.T) {
 		},
 	})
 }
+
 func TestRegion_Errored(t *testing.T) {
 	t.Parallel()
 

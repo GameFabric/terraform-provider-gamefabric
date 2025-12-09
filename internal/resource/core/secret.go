@@ -14,6 +14,7 @@ import (
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	secretreg "github.com/gamefabric/gf-core/pkg/apiserver/registry/core/secret"
 	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
@@ -128,7 +129,6 @@ func (r *secret) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				WriteOnly:           true,
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
-					validators.GFFieldMap(secretValidator, "data_wo"),
 					mapvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("data")),
 				},
 			},
@@ -176,11 +176,13 @@ func (r *secret) Create(ctx context.Context, req resource.CreateRequest, resp *r
 		return
 	}
 
-	result := newSecretModel(outObj)
+	d := plan.Data
 
+	plan = newSecretModel(outObj)
 	// Preserve plan's data as the API returns masked secrets.
-	result.Data = plan.Data
-	resp.Diagnostics.Append(resp.State.Set(ctx, &result)...)
+	plan.Data = d
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *secret) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -246,6 +248,8 @@ func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 
 	updated := newSecretModel(outObj)
 	updated.Data = plan.Data
+
+	resp.Diagnostics.Append(normalize.Model(ctx, &updated, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &updated)...)
 }
 
