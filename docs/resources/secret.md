@@ -33,4 +33,3 @@ description: |-
 ### Read-Only
 
 - `id` (String) The unique Terraform identifier.
-- `state` (String) State is the most recently observed status of the secret (Pending, Synced, or Degraded).
