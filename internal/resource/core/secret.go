@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/gamefabric/gf-apiclient/rest"
-	"github.com/gamefabric/gf-apiclient/tools/cache"
 	"github.com/gamefabric/gf-apiclient/tools/patch"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
@@ -29,9 +28,8 @@ import (
 )
 
 var (
-	_ resource.Resource                = &secret{}
-	_ resource.ResourceWithConfigure   = &secret{}
-	_ resource.ResourceWithImportState = &secret{}
+	_ resource.Resource              = &secret{}
+	_ resource.ResourceWithConfigure = &secret{}
 )
 
 var secretValidator = validators.NewGameFabricValidator[*corev1.Secret, secretModel](func() validators.StoreValidator {
@@ -272,14 +270,4 @@ func (r *secret) Delete(ctx context.Context, req resource.DeleteRequest, resp *r
 		)
 		return
 	}
-}
-
-func (r *secret) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	if req.ID == "" {
-		return
-	}
-
-	env, name := cache.SplitMetaNamespaceKey(req.ID)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), name)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("environment"), env)...)
 }

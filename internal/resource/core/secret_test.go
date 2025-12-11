@@ -40,12 +40,6 @@ func TestSecretResource(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "gamefabric_secret.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"data"}, // cannot import sensitive data
-			},
-			{
 				Config: testResourceSecretConfigUpdateData(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("gamefabric_secret.test", "name", name),
@@ -69,11 +63,6 @@ func TestSecretResource(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_secret.test", "data.%", "0"),
 					resource.TestCheckResourceAttr("gamefabric_secret.test", "data_wo.%", "0"),
 				),
-			},
-			{
-				ResourceName:      "gamefabric_secret.test",
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 		},
 	})
