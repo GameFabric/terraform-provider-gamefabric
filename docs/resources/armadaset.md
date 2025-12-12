@@ -223,6 +223,7 @@ Optional:
 - `envs` (Attributes List) Envs is a list of environment variables to set on all containers in this Armada. (see [below for nested schema](#nestedatt--containers--envs))
 - `ports` (Attributes List) Ports are the ports to expose from the container. (see [below for nested schema](#nestedatt--containers--ports))
 - `resources` (Attributes) Resources describes the compute resource requirements. See the <a href="https://docs.gamefabric.com/multiplayer-servers/multiplayer-services/resource-management">GameFabric documentation</a> for more details on how to configure resource requests and limits. (see [below for nested schema](#nestedatt--containers--resources))
+- `secrets` (Attributes List) Secrets is a list of secrets to mount into the containers filesystem. (see [below for nested schema](#nestedatt--containers--secrets))
 - `volume_mounts` (Attributes List) VolumeMounts are the volumes to mount into the container&#39;s filesystem. (see [below for nested schema](#nestedatt--containers--volume_mounts))
 
 <a id="nestedatt--containers--image_ref"></a>
@@ -262,6 +263,16 @@ Optional:
 
 - `config_file` (String) ConfigFile select the configuration file.
 - `field_path` (String) FieldPath selects the field of the pod. Supports `metadata.name`, `metadata.namespace`, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, `metadata.armadaName`, `metadata.regionName`, `metadata.regionTypeName`, `metadata.siteName`, `metadata.imageBranch`, `metadata.imageName`, `metadata.imageTag`, `spec.nodeName`, `spec.serviceAccountName`, `status.hostIP`, `status.podIP`, `status.podIPs`.
+- `secret` (Attributes) Secret selects the secret. (see [below for nested schema](#nestedatt--containers--envs--value_from--secret))
+
+<a id="nestedatt--containers--envs--value_from--secret"></a>
+### Nested Schema for `containers.envs.value_from.secret`
+
+Required:
+
+- `key` (String) Key of the secret.
+- `name` (String) Name of the secret.
+
 
 
 
@@ -305,6 +316,15 @@ Optional:
 - `cpu` (String) CPU request.
 - `memory` (String) Memory request.
 
+
+
+<a id="nestedatt--containers--secrets"></a>
+### Nested Schema for `containers.secrets`
+
+Required:
+
+- `mount_path` (String) MountPath is the path to mount the secret on.
+- `name` (String) Name is the name of the secret.
 
 
 <a id="nestedatt--containers--volume_mounts"></a>
@@ -362,6 +382,16 @@ Optional:
 
 - `config_file` (String) ConfigFile select the configuration file.
 - `field_path` (String) FieldPath selects the field of the pod. Supports `metadata.name`, `metadata.namespace`, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, `metadata.armadaName`, `metadata.regionName`, `metadata.regionTypeName`, `metadata.siteName`, `metadata.imageBranch`, `metadata.imageName`, `metadata.imageTag`, `spec.nodeName`, `spec.serviceAccountName`, `status.hostIP`, `status.podIP`, `status.podIPs`.
+- `secret` (Attributes) Secret selects the secret. (see [below for nested schema](#nestedatt--regions--envs--value_from--secret))
+
+<a id="nestedatt--regions--envs--value_from--secret"></a>
+### Nested Schema for `regions.envs.value_from.secret`
+
+Required:
+
+- `key` (String) Key of the secret.
+- `name` (String) Name of the secret.
+
 
 
 

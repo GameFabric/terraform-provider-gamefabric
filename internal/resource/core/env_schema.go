@@ -40,7 +40,10 @@ func EnvVarAttributes(val validators.GameFabricValidator, pathPrefix string) map
 					Optional:            true,
 					Validators: []validator.String{
 						validators.GFFieldString(val, pathPrefix+".valueFrom.fieldRef.fieldPath"),
-						stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("config_file")),
+						stringvalidator.ExactlyOneOf(
+							path.MatchRelative().AtParent().AtName("config_file"),
+							path.MatchRelative().AtParent().AtName("secret"),
+						),
 					},
 				},
 				"config_file": schema.StringAttribute{
@@ -49,7 +52,34 @@ func EnvVarAttributes(val validators.GameFabricValidator, pathPrefix string) map
 					Optional:            true,
 					Validators: []validator.String{
 						validators.GFFieldString(val, pathPrefix+".valueFrom.configFileKeyRef.name"),
-						stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("field_path")),
+						stringvalidator.ExactlyOneOf(
+							path.MatchRelative().AtParent().AtName("field_path"),
+							path.MatchRelative().AtParent().AtName("secret"),
+						),
+					},
+				},
+				"secret": schema.SingleNestedAttribute{
+					Description:         "Secret selects the secret.",
+					MarkdownDescription: "Secret selects the secret.",
+					Optional:            true,
+					Validators: []validator.Object{
+						validators.GFFieldObject(val, pathPrefix+".valueFrom.secretKeyRef.name"),
+						objectvalidator.ExactlyOneOf(
+							path.MatchRelative().AtParent().AtName("config_file"),
+							path.MatchRelative().AtParent().AtName("field_path"),
+						),
+					},
+					Attributes: map[string]schema.Attribute{
+						"key": schema.StringAttribute{
+							Description:         "Key of the secret.",
+							MarkdownDescription: "Key of the secret.",
+							Required:            true,
+						},
+						"name": schema.StringAttribute{
+							Description:         "Name of the secret.",
+							MarkdownDescription: "Name of the secret.",
+							Required:            true,
+						},
 					},
 				},
 			},

@@ -27,6 +27,11 @@ func NewEnvVarModel(obj corev1.EnvVar) EnvVarModel {
 			model.ValueFrom.FieldPath = types.StringValue(obj.ValueFrom.FieldRef.FieldPath)
 		case obj.ValueFrom.ConfigFileKeyRef != nil:
 			model.ValueFrom.ConfigFile = types.StringValue(obj.ValueFrom.ConfigFileKeyRef.Name)
+		case obj.ValueFrom.SecretKeyRef != nil:
+			model.ValueFrom.Secret = &SecretType{
+				Key:  types.StringValue(obj.ValueFrom.SecretKeyRef.Key),
+				Name: types.StringValue(obj.ValueFrom.SecretKeyRef.Name),
+			}
 		}
 	}
 	return model
@@ -49,6 +54,11 @@ func (m EnvVarModel) ToObject() corev1.EnvVar {
 			obj.ValueFrom.ConfigFileKeyRef = &corev1.ConfigFileKeySelector{
 				Name: m.ValueFrom.ConfigFile.ValueString(),
 			}
+		case m.ValueFrom.Secret != nil && !m.ValueFrom.Secret.Key.IsNull() && !m.ValueFrom.Secret.Name.IsNull():
+			obj.ValueFrom.SecretKeyRef = &corev1.SecretKeySelector{
+				Key:  m.ValueFrom.Secret.Key.ValueString(),
+				Name: m.ValueFrom.Secret.Name.ValueString(),
+			}
 		}
 	}
 	return obj
@@ -58,15 +68,11 @@ func (m EnvVarModel) ToObject() corev1.EnvVar {
 type EnvVarSourceModel struct {
 	FieldPath  types.String `tfsdk:"field_path"`
 	ConfigFile types.String `tfsdk:"config_file"`
+	Secret     *SecretType  `tfsdk:"secret"`
 }
 
-// ObjectFieldSelectorModel selects a field of an object.
-type ObjectFieldSelectorModel struct {
-	APIVersion types.String `tfsdk:"api_version"`
-	FieldPath  types.String `tfsdk:"field_path"`
-}
-
-// ConfigFileKeySelectorModel selects a key of a ConfigFile.
-type ConfigFileKeySelectorModel struct {
+// SecretType represents a reference to a secret key.
+type SecretType struct {
+	Key  types.String `tfsdk:"key"`
 	Name types.String `tfsdk:"name"`
 }

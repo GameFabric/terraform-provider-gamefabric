@@ -98,6 +98,9 @@ func TestResourceArmadaSet(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.config_files.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.config_files.0.name", "example-config-file"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.config_files.0.mount_path", "/config/example-config-file"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.secrets.#", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.secrets.0.name", "example-secret"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.secrets.0.mount_path", "/secrets/example-secret"),
 
 					// Health checks.
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "health_checks.disabled", "false"),
@@ -586,6 +589,12 @@ func testResourceArmadaSetConfigFull() string {
           mount_path = "/config/example-config-file"
         }
       ]
+	  secrets = [
+		{
+		  name       = "example-secret"
+ 		  mount_path = "/secrets/example-secret"
+		}
+	  ]
     }
   ]
 
