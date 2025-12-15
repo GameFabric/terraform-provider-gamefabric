@@ -91,6 +91,7 @@ resource "gamefabric_secret" "api_key" {
 - `annotations` (Map of String) Annotations is an unstructured map of keys and values stored on an object.
 - `data` (Map of String, Sensitive) Data contains the secret key-value pairs. These are stored in state and persisted. Use data_wo for write-only ephemeral values.
 - `data_wo` (Map of String, Sensitive, [Write-only](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments)) DataWO is a write-only version of data. Values are sensitive and write-only - they are only transmitted to the server and never displayed or stored in state.
+- `data_wo_version` (Number) DataWOVersion is the version of the write-only data. This is used to force updates when using data_wo.
 - `description` (String) Description is the optional description of the secret.
 - `labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
 

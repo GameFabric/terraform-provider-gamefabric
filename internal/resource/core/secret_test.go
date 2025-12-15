@@ -131,6 +131,7 @@ func testResourceSecretConfigDataWO(name string) string {
     db_user     = "dbuser321"
     db_password = "super-secret-pass-321"
   }
+  data_wo_version = 1
 }`, name)
 }
 

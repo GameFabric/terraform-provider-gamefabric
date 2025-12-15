@@ -13,10 +13,12 @@ import (
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	secretreg "github.com/gamefabric/gf-core/pkg/apiserver/registry/core/secret"
 	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -128,6 +130,15 @@ func (r *secret) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
 					mapvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("data")),
+					mapvalidator.AlsoRequires(path.MatchRelative().AtParent().AtName("data_wo_version")),
+				},
+			},
+			"data_wo_version": schema.Int64Attribute{
+				Description:         "DataWOVersion is the version of the write-only data. This is used to force updates when using data_wo.",
+				MarkdownDescription: "DataWOVersion is the version of the write-only data. This is used to force updates when using data_wo.",
+				Optional:            true,
+				Validators: []validator.Int64{
+					int64validator.AlsoRequires(path.MatchRelative().AtParent().AtName("data_wo")),
 				},
 			},
 		},
@@ -159,6 +170,14 @@ func (r *secret) Create(ctx context.Context, req resource.CreateRequest, resp *r
 		return
 	}
 
+	// We must use the config, because write-only data is not part of the plan.
+	var config secretModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	plan.DataWO = config.DataWO
+
 	obj := plan.ToObject()
 	outObj, err := r.clientSet.CoreV1().Secrets(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
@@ -171,7 +190,7 @@ func (r *secret) Create(ctx context.Context, req resource.CreateRequest, resp *r
 
 	d := plan.Data
 
-	plan = newSecretModel(outObj)
+	plan = newSecretModel(outObj, config.DataWOVersion.ValueInt64())
 	// Preserve plan's data as the API returns masked secrets.
 	plan.Data = d
 	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
@@ -202,15 +221,19 @@ func (r *secret) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 		return
 	}
 
-	state = newSecretModel(outObj)
+	state = newSecretModel(outObj, state.DataWOVersion.ValueInt64())
 	state.Data = currentData
 	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state secretModel
+	var plan, config, state secretModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -221,6 +244,10 @@ func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 
 	oldObj := state.ToObject()
 	newObj := plan.ToObject()
+
+	if state.DataWOVersion != plan.DataWOVersion {
+		newObj.Data = conv.ForEachMapItem(chooseData(config), func(item types.String) string { return item.ValueString() })
+	}
 
 	pb, err := patch.Create(oldObj, newObj)
 	if err != nil {
@@ -240,7 +267,7 @@ func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	updated := newSecretModel(outObj)
+	updated := newSecretModel(outObj, plan.DataWOVersion.ValueInt64())
 	updated.Data = plan.Data
 
 	resp.Diagnostics.Append(normalize.Model(ctx, &updated, req.Plan)...)
