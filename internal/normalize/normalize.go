@@ -157,7 +157,9 @@ func primitiveType(ctx context.Context, v reflect.Value, state State, p path.Pat
 
 	val := v.Interface().(attr.Value)
 	if (tfVal.IsNull() && !val.IsNull() && isZeroAttr(ctx, val)) || (!tfVal.IsNull() && val.IsNull()) {
-		v.Set(reflect.ValueOf(tfVal))
+		if v.CanAddr() { // Avoid reflect.Value.Set using unaddressable value.
+			v.Set(reflect.ValueOf(tfVal))
+		}
 	}
 	return nil
 }

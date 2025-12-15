@@ -63,6 +63,9 @@ func (r *secret) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "The unique Terraform identifier.",
 				MarkdownDescription: "The unique Terraform identifier.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"name": schema.StringAttribute{
 				Description:         "The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.",
@@ -222,7 +225,7 @@ func (r *secret) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 	}
 
 	state = newSecretModel(outObj, state.DataWOVersion.ValueInt64())
-	state.Data = currentData
+	state.Data = mergeObfuscated(outObj.Data, makeStdMap(currentData))
 	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -270,6 +273,8 @@ func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 	updated := newSecretModel(outObj, plan.DataWOVersion.ValueInt64())
 	updated.Data = plan.Data
 
+	// panic(fmt.Sprintf("UPDATED: %v\nPLAN: %v", updated.Data, req.Plan))
+
 	resp.Diagnostics.Append(normalize.Model(ctx, &updated, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &updated)...)
 }
@@ -297,4 +302,32 @@ func (r *secret) Delete(ctx context.Context, req resource.DeleteRequest, resp *r
 		)
 		return
 	}
+}
+
+// mergeObfuscated takes the first map as a reference for the keys, usually the API response where the values are obfuscated,
+// and the second map for the values, usually the state or config.
+//
+// This allows detecting changes when keys are gone, or added, keeping the original value, assuming it has not changed.
+//
+// The case where the value has changed is not detectable, since the API does not return plain values.
+func mergeObfuscated(keepKeys, keepVals map[string]string) map[string]types.String {
+	res := make(map[string]types.String, len(keepKeys))
+	for key := range keepKeys {
+		val, ok := keepVals[key]
+		if !ok {
+			// StringUnknown() seems more logical here, but it is not an accepted value for TF from where we call it.
+			res[key] = types.StringNull()
+			continue
+		}
+		res[key] = types.StringValue(val)
+	}
+	return res
+}
+
+func makeStdMap(data map[string]types.String) map[string]string {
+	res := make(map[string]string, len(data))
+	for k, v := range data {
+		res[k] = v.ValueString()
+	}
+	return res
 }
