@@ -22,11 +22,10 @@ resource "gamefabric_secret" "api_key" {
     game       = "my_second_game"
     component  = "api"
   }
+
+  # Write-only attributes require Terraform v1.11 and later.
   data_wo = {
     api_key    = "sk-1234567890abcdef"
     api_secret = "secret-xyz-9876543210"
   }
 }
-
-```
-
