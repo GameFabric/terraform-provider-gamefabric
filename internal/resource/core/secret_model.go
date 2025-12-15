@@ -1,6 +1,9 @@
 package core
 
 import (
+	"fmt"
+
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gamefabric/gf-apiclient/tools/cache"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
@@ -33,7 +36,7 @@ func newSecretModel(obj *corev1.Secret) secretModel {
 }
 
 func (m secretModel) ToObject() *corev1.Secret {
-	return &corev1.Secret{
+	o := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        m.Name.ValueString(),
 			Environment: m.Environment.ValueString(),
@@ -43,6 +46,10 @@ func (m secretModel) ToObject() *corev1.Secret {
 		Description: m.Description.ValueString(),
 		Data:        conv.ForEachMapItem(chooseData(m), func(item types.String) string { return item.ValueString() }),
 	}
+
+	fmt.Printf("DEBUG: obj = %s", spew.Sdump(o))
+
+	return o
 }
 
 func chooseData(m secretModel) map[string]types.String {
