@@ -13,6 +13,8 @@ import (
 )
 
 // ContainersAttributes returns the schema attributes for containers.
+//
+//nolint:maintidx
 func ContainersAttributes(val validators.GameFabricValidator, pathPrefix string) schema.NestedAttributeObject {
 	return schema.NestedAttributeObject{
 		Attributes: map[string]schema.Attribute{
@@ -265,6 +267,34 @@ func ContainersAttributes(val validators.GameFabricValidator, pathPrefix string)
 							Required:            true,
 							Validators: []validator.String{
 								validators.GFFieldString(val, pathPrefix+".configFiles[?].mountPath"),
+							},
+						},
+					},
+				},
+			},
+			"secrets": schema.ListNestedAttribute{
+				Description:         "Secrets is a list of secrets to mount into the containers filesystem.",
+				MarkdownDescription: "Secrets is a list of secrets to mount into the containers filesystem.",
+				Optional:            true,
+				Validators: []validator.List{
+					validators.GFFieldList(val, pathPrefix+".secrets"),
+				},
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"name": schema.StringAttribute{
+							Description:         "Name is the name of the secret.",
+							MarkdownDescription: "Name is the name of the secret.",
+							Required:            true,
+							Validators: []validator.String{
+								validators.GFFieldString(val, pathPrefix+".secrets[?].name"),
+							},
+						},
+						"mount_path": schema.StringAttribute{
+							Description:         "MountPath is the path to mount the secret on.",
+							MarkdownDescription: "MountPath is the path to mount the secret on.",
+							Required:            true,
+							Validators: []validator.String{
+								validators.GFFieldString(val, pathPrefix+".secrets[?].mountPath"),
 							},
 						},
 					},

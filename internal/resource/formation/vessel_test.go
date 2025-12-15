@@ -81,6 +81,10 @@ func TestResourceVessel(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.config_files.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.config_files.0.name", "example-config-file"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.config_files.0.mount_path", "/config/example-config-file"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.secrets.0.name", "example-secret-1"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.secrets.0.mount_path", "/secrets/example-secret-1"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.secrets.1.name", "example-secret-2"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.secrets.1.mount_path", "/secrets/example-secret-2"),
 
 					// Health checks.
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "health_checks.disabled", "false"),
@@ -475,6 +479,16 @@ func testResourceVesselConfigFull() string {
         {
           name       = "example-config-file"
           mount_path = "/config/example-config-file"
+        }
+      ]
+      secrets = [
+        {
+          name       = "example-secret-1"
+          mount_path = "/secrets/example-secret-1"
+        },
+        {
+          name       = "example-secret-2"
+          mount_path = "/secrets/example-secret-2"
         }
       ]
     }
