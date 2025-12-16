@@ -357,7 +357,6 @@ func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 	}
 
 	updated := newSecretModel(outObj, plan.DataWOVersion.ValueInt64())
-	// delete(updated.Annotations, "tfp.g8c.io/secret-last-seen-data-change")
 
 	updated.Data = nil
 	if config.DataWOVersion.ValueInt64() == 0 {
