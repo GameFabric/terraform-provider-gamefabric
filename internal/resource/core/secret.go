@@ -314,12 +314,8 @@ func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 
 	updated := newSecretModel(outObj, plan.DataWOVersion.ValueInt64())
 
-	// Preserve the config data as the API returns masked secrets
-	if !config.DataWOVersion.IsNull() && config.DataWOVersion.ValueInt64() > 0 {
-		// Using data_wo - don't persist data in state (write-only)
-		updated.Data = nil
-	} else {
-		// Using data - preserve the actual config values
+	updated.Data = nil
+	if config.DataWOVersion.ValueInt64() == 0 {
 		updated.Data = config.Data
 	}
 
