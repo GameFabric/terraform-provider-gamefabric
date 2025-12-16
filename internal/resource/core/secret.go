@@ -231,17 +231,18 @@ func (r *secret) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 	state = newSecretModel(outObj, currentDataWOVersion.ValueInt64())
 
 	// Handle data based on whether using data_wo or regular data
-	if !currentDataWOVersion.IsNull() && currentDataWOVersion.ValueInt64() > 0 {
+	switch {
+	case currentDataWOVersion.ValueInt64() > 0:
 		// Using data_wo - don't persist any data in state (write-only)
 		state.Data = nil
-	} else if currentData != nil {
+	case currentData != nil:
 		// Using regular data - merge API keys with state values to detect drift
 		newData := make(map[string]types.String, len(outObj.Data))
 		for apiKey := range outObj.Data {
 			// If key exists in both API and state, preserve the state value
 			stateVal, exists := currentData[apiKey]
 			if !exists {
-				panic("unreachable: expected key to exist in current data")
+				stateVal = types.StringNull()
 			}
 			newData[apiKey] = stateVal
 		}
