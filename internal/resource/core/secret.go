@@ -288,6 +288,9 @@ func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 	// Remove any keys that are no longer present
 	for _, k := range keys {
 		if _, ok := chooseData(config)[k]; !ok {
+			if newObj.Data == nil {
+				newObj.Data = make(map[string]string)
+			}
 			newObj.Data[k] = ""
 		}
 	}
