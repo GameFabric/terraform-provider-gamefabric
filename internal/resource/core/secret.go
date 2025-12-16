@@ -3,11 +3,13 @@ package core
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/gamefabric/gf-apiclient/rest"
 	"github.com/gamefabric/gf-apiclient/tools/patch"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-apicore/runtime"
 	"github.com/gamefabric/gf-apiserver/registry/generic"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
@@ -28,6 +30,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+const lastChangeSeenAnnotation = "tfp.g8c.io/secret-last-seen-data-change"
 
 var (
 	_ resource.Resource              = &secret{}
@@ -63,6 +67,9 @@ func (r *secret) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "The unique Terraform identifier.",
 				MarkdownDescription: "The unique Terraform identifier.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"name": schema.StringAttribute{
 				Description:         "The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.",
@@ -228,6 +235,21 @@ func (r *secret) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 		return
 	}
 
+	lastChange, lastChangeSeen, err := r.acknowledgeLastSeen(outObj)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Determining Remote Secret Change",
+			err.Error(),
+		)
+		return
+	}
+
+	if !lastChange.Equal(lastChangeSeen) {
+		outObj.Data = map[string]string{
+			"force": "update",
+		}
+	}
+
 	state = newSecretModel(outObj, currentDataWOVersion.ValueInt64())
 
 	// Handle data based on whether using data_wo or regular data
@@ -315,7 +337,27 @@ func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
+	lastChange, lastChangeSeen, err := r.acknowledgeLastSeen(outObj)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Determining Remote Secret Change",
+			err.Error(),
+		)
+		return
+	}
+
+	if !lastChange.Equal(lastChangeSeen) {
+		if err = r.patchLastSeen(ctx, outObj, lastChange); err != nil {
+			resp.Diagnostics.AddError(
+				"Error Patching Secret Change Timestamp",
+				err.Error(),
+			)
+			return
+		}
+	}
+
 	updated := newSecretModel(outObj, plan.DataWOVersion.ValueInt64())
+	// delete(updated.Annotations, "tfp.g8c.io/secret-last-seen-data-change")
 
 	updated.Data = nil
 	if config.DataWOVersion.ValueInt64() == 0 {
@@ -349,4 +391,52 @@ func (r *secret) Delete(ctx context.Context, req resource.DeleteRequest, resp *r
 		)
 		return
 	}
+}
+
+func (r *secret) acknowledgeLastSeen(obj *corev1.Secret) (time.Time, time.Time, error) {
+	lastChange := obj.CreatedTimestamp
+	if obj.Status.LastDataChange != nil {
+		lastChange = *obj.Status.LastDataChange
+	}
+
+	if len(obj.Annotations) == 0 {
+		return lastChange, time.Time{}, nil
+	}
+
+	lastSeenStr := obj.Annotations[lastChangeSeenAnnotation]
+
+	// We need to remove it, otherwise there will be an unconfigured annotation diff,
+	// where Terraform will not be happy about.
+	delete(obj.Annotations, lastChangeSeenAnnotation)
+
+	if lastSeenStr == "" {
+		return lastChange, time.Time{}, nil
+	}
+
+	lastSeen, err := time.Parse(time.RFC3339Nano, lastSeenStr)
+	if err != nil {
+		return time.Time{}, time.Time{}, fmt.Errorf("parsing last seen timestamp %q from annotation %q: %w", lastSeenStr, lastChangeSeenAnnotation, err)
+	}
+
+	return lastChange, lastSeen, nil
+}
+
+func (r *secret) patchLastSeen(ctx context.Context, obj *corev1.Secret, lastChange time.Time) error {
+	patchObj := runtime.DeepCopy(obj)
+	if patchObj.Annotations == nil {
+		patchObj.Annotations = map[string]string{}
+	}
+	patchObj.Annotations[lastChangeSeenAnnotation] = lastChange.Format(time.RFC3339Nano)
+
+	pb, err := patch.Create(obj, patchObj)
+	if err != nil {
+		return fmt.Errorf("creating patch: %w", err)
+	}
+
+	_, err = r.clientSet.CoreV1().Secrets(patchObj.Environment).Patch(ctx, patchObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
+	if err != nil {
+		return fmt.Errorf("patching: %w", err)
+	}
+
+	return nil
 }
