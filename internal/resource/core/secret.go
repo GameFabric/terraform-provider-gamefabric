@@ -285,21 +285,14 @@ func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		keys = append(keys, k)
 	}
 
-	fmt.Printf("found secret data keys: %v\n", keys)
-
 	// Remove any keys that are no longer present
 	for _, k := range keys {
 		if _, ok := chooseData(config)[k]; !ok {
-			fmt.Printf("removing key %s from secret\n", k)
 			newObj.Data[k] = ""
 		}
-
-		fmt.Printf("presserving the key %s from secret\n", k)
 	}
 
-	//if state.DataWOVersion != plan.DataWOVersion {
 	newObj.Data = conv.ForEachMapItem(chooseData(config), func(item types.String) string { return item.ValueString() })
-	//}
 
 	pb, err := patch.Create(oldObj, newObj)
 	if err != nil {
