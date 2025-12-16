@@ -188,11 +188,17 @@ func (r *secret) Create(ctx context.Context, req resource.CreateRequest, resp *r
 		return
 	}
 
-	d := plan.Data
-
 	plan = newSecretModel(outObj, config.DataWOVersion.ValueInt64())
+
 	// Preserve plan's data as the API returns masked secrets.
-	plan.Data = d
+	if !config.DataWOVersion.IsNull() && config.DataWOVersion.ValueInt64() > 0 {
+		// Using data_wo - don't persist data in state (write-only)
+		plan.Data = nil
+	} else {
+		// Using data - preserve the actual config values
+		plan.Data = config.Data
+	}
+
 	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -206,6 +212,7 @@ func (r *secret) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 
 	// Store current data values before reading from API (API returns masked)
 	currentData := state.Data
+	currentDataWOVersion := state.DataWOVersion
 
 	outObj, err := r.clientSet.CoreV1().Secrets(state.Environment.ValueString()).Get(ctx, state.Name.ValueString(), metav1.GetOptions{})
 	if err != nil {
@@ -221,8 +228,26 @@ func (r *secret) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 		return
 	}
 
-	state = newSecretModel(outObj, state.DataWOVersion.ValueInt64())
-	state.Data = currentData
+	state = newSecretModel(outObj, currentDataWOVersion.ValueInt64())
+
+	// Handle data based on whether using data_wo or regular data
+	if !currentDataWOVersion.IsNull() && currentDataWOVersion.ValueInt64() > 0 {
+		// Using data_wo - don't persist any data in state (write-only)
+		state.Data = nil
+	} else if currentData != nil {
+		// Using regular data - merge API keys with state values to detect drift
+		newData := make(map[string]types.String, len(outObj.Data))
+		for apiKey := range outObj.Data {
+			// If key exists in both API and state, preserve the state value
+			stateVal, exists := currentData[apiKey]
+			if !exists {
+				panic("unreachable: expected key to exist in current data")
+			}
+			newData[apiKey] = stateVal
+		}
+		state.Data = newData
+	}
+
 	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -245,9 +270,35 @@ func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 	oldObj := state.ToObject()
 	newObj := plan.ToObject()
 
-	if state.DataWOVersion != plan.DataWOVersion {
-		newObj.Data = conv.ForEachMapItem(chooseData(config), func(item types.String) string { return item.ValueString() })
+	secret, err := r.clientSet.CoreV1().Secrets(newObj.Environment).Get(ctx, newObj.Name, metav1.GetOptions{})
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Secret for Update",
+			fmt.Sprintf("Could not read Secret %q for update: %v", newObj.Name, err),
+		)
+		return
 	}
+
+	keys := make([]string, 0, len(secret.Data))
+	for k := range secret.Data {
+		keys = append(keys, k)
+	}
+
+	fmt.Printf("found secret data keys: %v\n", keys)
+
+	// Remove any keys that are no longer present
+	for _, k := range keys {
+		if _, ok := chooseData(config)[k]; !ok {
+			fmt.Printf("removing key %s from secret\n", k)
+			newObj.Data[k] = ""
+		}
+
+		fmt.Printf("presserving the key %s from secret\n", k)
+	}
+
+	//if state.DataWOVersion != plan.DataWOVersion {
+	newObj.Data = conv.ForEachMapItem(chooseData(config), func(item types.String) string { return item.ValueString() })
+	//}
 
 	pb, err := patch.Create(oldObj, newObj)
 	if err != nil {
@@ -268,7 +319,15 @@ func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 	}
 
 	updated := newSecretModel(outObj, plan.DataWOVersion.ValueInt64())
-	updated.Data = plan.Data
+
+	// Preserve the config data as the API returns masked secrets
+	if !config.DataWOVersion.IsNull() && config.DataWOVersion.ValueInt64() > 0 {
+		// Using data_wo - don't persist data in state (write-only)
+		updated.Data = nil
+	} else {
+		// Using data - preserve the actual config values
+		updated.Data = config.Data
+	}
 
 	resp.Diagnostics.Append(normalize.Model(ctx, &updated, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &updated)...)
