@@ -17,80 +17,62 @@ Secrets are key-value data objects that store sensitive configuration informatio
 - **Referenced in environment variables** across all resources that support environment variable sources.
 - **Organized with labels** to enable filtering and discovery of related secrets.
 
-## Storage Options: `data` vs `data_wo`
+## Configuration Options: `data` vs `data_wo`
 
-GameFabric Secrets support two different storage modes depending on your security requirements:
+The GameFabric provider offers two different ways to pass in the values of the secrets depending on your security requirements:
 
 ### Regular Data (`data` attribute)
-Use the `data` attribute when you need to:
-- Store secret values persistently in Terraform state
-- Keep secret values visible in your state file (your state should be secured)
-- Manage secret values that don't change frequently
+Use the `data` attribute when:
+- You need to reference the secret values in other Terraform resources or outputs.
+- You want Terraform to automatically update the secret when the configuration changes (without manually updating a version field).
+- You are using a Terraform version older than 1.11.0.
 
-The `data` attribute values are stored in the Terraform state file and marked as sensitive, so they won't appear in logs or console output.
+**Note:** Using this attribute necessitates storing the raw secret values in the Terraform state file. Ensure your state file is encrypted and access-controlled.
+
+**Known Limitation:** The provider is unable to detect changes made to the secret values directly within GameFabric. If the values are modified outside of Terraform, Terraform will not detect this change.
 
 ### Write-Only Data (`data_wo` attribute)
-Use the `data_wo` attribute when you need to:
-- Pass temporary secret values during resource creation or updates
-- Avoid storing sensitive values in Terraform state
-- Keep secrets ephemeral and only used during operations
-- Maximize security by not persisting values
+
+**Note:** Write-only attributes are only supported in Terraform v1.11.0 and later.
+
+Use the `data_wo` attribute when:
+- You want to avoid storing the raw secret values in the Terraform state file.
+- You are using ephemeral resources to generate secrets that should not be persisted.
+- You have strict security requirements that prevent sensitive data from being written to the state file.
 
 Values in `data_wo` are write-only: they're transmitted to the server but never stored in state or displayed in plans.
-This is the recommended approach for highly sensitive credentials like API keys or temporary tokens.
+This is the recommended approach for highly sensitive credentials like API keys or passwords.
 
-In order to allow Terraform to detect changes to write-only secrets,
-you must also set the `data_wo_version` attribute, when ever you change the secrets in `data_wo`.
-If you do not change the `data_wo_version`, Terraform will not detect any changes and apply no change to the secret resource.
+To allow Terraform to detect changes to write-only secrets, you must update the `data_wo_version` attribute whenever you change the secrets in `data_wo`. If `data_wo_version` is not incremented, Terraform will not detect the change and will not update the secret resource.
 
 **Note:** Only one of `data` or `data_wo` can be specified for a secret resource. Choose based on your security requirements.
 
-## Example Usage
+## Example Usage - Basic Secret with Persistent Data
+
+This example demonstrates how to create a secret using the `data` attribute. The values will be stored in the Terraform state.
 
 ```terraform
-# Example 1: Secret with persistent data (will be stored in state)
 resource "gamefabric_secret" "db_credentials" {
   name        = "examplesecret"
   environment = data.gamefabric_environment.dev.name
   description = "Backend database credentials"
   labels = {
-    game       = "my_first_game"
-    component  = "database"
+    component = "database"
   }
   data = {
     db_user     = "dbuser123"
     db_password = "abcdef123456!#$&'*+-=?^_`{|}~"
   }
 }
-
-# Example 2: Secret with write-only data (will NOT be stored in state)
-resource "gamefabric_secret" "api_key" {
-  name        = "examplesecret"
-  environment = data.gamefabric_environment.prod.name
-  description = "API key for external service"
-  labels = {
-    game       = "my_second_game"
-    component  = "api"
-  }
-
-  # Write-only attributes require Terraform v1.11 and later.
-  data_wo = {
-    api_key    = "sk-1234567890abcdef"
-    api_secret = "secret-xyz-9876543210"
-  }
-}
 ```
 
-## Write-only secret data with an ephemeral resource
+## Example Usage - Write-Only Secret with Ephemeral Resource
 
 **Note**: Ephemeral resources are available in Terraform 1.10 and later, write-only attributes in 1.11 and later.
 
 This example demonstrates how to use a write-only secret data with an ephemeral resource.
 
 ```terraform
-# Example 3: Secret with write-only ephemeral data (will NOT be stored in state)
-#
-# Ephemeral resources are available in Terraform v1.10 and later.
 ephemeral "random_password" "db_password" {
   length           = 16
   override_special = "!#$%&*()-_=+[]{}<>:?"
@@ -101,7 +83,6 @@ resource "gamefabric_secret" "db_credentials" {
   environment = data.gamefabric_environment.prod.name
   description = "Database credentials"
 
-  # Write-only attributes require Terraform v1.11 and later.
   data_wo = {
     db_user    = "secr3t_user"
     api_secret = ephemeral.random_password.db_password.result
