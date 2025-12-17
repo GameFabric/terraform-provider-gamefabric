@@ -9,26 +9,28 @@ import (
 )
 
 type secretModel struct {
-	ID          types.String            `tfsdk:"id"`
-	Name        types.String            `tfsdk:"name"`
-	Environment types.String            `tfsdk:"environment"`
-	Labels      map[string]types.String `tfsdk:"labels"`
-	Annotations map[string]types.String `tfsdk:"annotations"`
-	Description types.String            `tfsdk:"description"`
-	Data        map[string]types.String `tfsdk:"data"`
-	DataWO      map[string]types.String `tfsdk:"data_wo"`
+	ID            types.String            `tfsdk:"id"`
+	Name          types.String            `tfsdk:"name"`
+	Environment   types.String            `tfsdk:"environment"`
+	Labels        map[string]types.String `tfsdk:"labels"`
+	Annotations   map[string]types.String `tfsdk:"annotations"`
+	Description   types.String            `tfsdk:"description"`
+	Data          map[string]types.String `tfsdk:"data"`
+	DataWO        map[string]types.String `tfsdk:"data_wo"`
+	DataWOVersion types.Int64             `tfsdk:"data_wo_version"`
 }
 
-func newSecretModel(obj *corev1.Secret) secretModel {
+func newSecretModel(obj *corev1.Secret, ver int64) secretModel {
 	return secretModel{
-		ID:          types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String()),
-		Name:        types.StringValue(obj.Name),
-		Environment: types.StringValue(obj.Environment),
-		Labels:      conv.ForEachMapItem(obj.Labels, func(item string) types.String { return types.StringValue(item) }),
-		Annotations: conv.ForEachMapItem(obj.Annotations, func(item string) types.String { return types.StringValue(item) }),
-		Description: conv.OptionalFunc(obj.Description, types.StringValue, types.StringNull),
-		Data:        conv.ForEachMapItem(obj.Data, func(v string) types.String { return types.StringValue(v) }),
-		DataWO:      nil,
+		ID:            types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String()),
+		Name:          types.StringValue(obj.Name),
+		Environment:   types.StringValue(obj.Environment),
+		Labels:        conv.ForEachMapItem(obj.Labels, func(item string) types.String { return types.StringValue(item) }),
+		Annotations:   conv.ForEachMapItem(obj.Annotations, func(item string) types.String { return types.StringValue(item) }),
+		Description:   conv.OptionalFunc(obj.Description, types.StringValue, types.StringNull),
+		Data:          conv.ForEachMapItem(obj.Data, func(v string) types.String { return types.StringValue(v) }),
+		DataWO:        nil,
+		DataWOVersion: types.Int64Value(ver),
 	}
 }
 
