@@ -303,7 +303,15 @@ func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	oldObj := state.ToObject()
+	oldObj, err := r.clientSet.CoreV1().Secrets(plan.Environment.ValueString()).Get(ctx, plan.Name.ValueString(), metav1.GetOptions{})
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Secret for Update",
+			fmt.Sprintf("Could not read Secret %q for update: %v", plan.Name.ValueString(), err),
+		)
+		return
+	}
+
 	newObj := plan.ToObject()
 	newObj.Data = conv.ForEachMapItem(chooseData(config), func(item types.String) string { return item.ValueString() })
 
@@ -333,7 +341,6 @@ func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		)
 		return
 	}
-
 	if !lastChange.Equal(lastChangeSeen) {
 		if err = r.patchLastSeen(ctx, outObj, lastChange); err != nil {
 			resp.Diagnostics.AddError(
