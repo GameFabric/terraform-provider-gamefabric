@@ -3,20 +3,24 @@ package core
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/gamefabric/gf-apiclient/rest"
 	"github.com/gamefabric/gf-apiclient/tools/patch"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-apicore/runtime"
 	"github.com/gamefabric/gf-apiserver/registry/generic"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	secretreg "github.com/gamefabric/gf-core/pkg/apiserver/registry/core/secret"
 	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -26,6 +30,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+const lastChangeSeenAnnotation = "tfp.g8c.io/secret-last-seen-data-change"
 
 var (
 	_ resource.Resource              = &secret{}
@@ -61,6 +67,9 @@ func (r *secret) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Description:         "The unique Terraform identifier.",
 				MarkdownDescription: "The unique Terraform identifier.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"name": schema.StringAttribute{
 				Description:         "The unique object name within its scope. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.",
@@ -128,6 +137,15 @@ func (r *secret) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				ElementType:         types.StringType,
 				Validators: []validator.Map{
 					mapvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("data")),
+					mapvalidator.AlsoRequires(path.MatchRelative().AtParent().AtName("data_wo_version")),
+				},
+			},
+			"data_wo_version": schema.Int64Attribute{
+				Description:         "DataWOVersion is the version of the write-only data. This is used to force updates when using data_wo.",
+				MarkdownDescription: "DataWOVersion is the version of the write-only data. This is used to force updates when using data_wo.",
+				Optional:            true,
+				Validators: []validator.Int64{
+					int64validator.AlsoRequires(path.MatchRelative().AtParent().AtName("data_wo")),
 				},
 			},
 		},
@@ -159,6 +177,14 @@ func (r *secret) Create(ctx context.Context, req resource.CreateRequest, resp *r
 		return
 	}
 
+	// We must use the config, because write-only data is not part of the plan.
+	var config secretModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	plan.DataWO = config.DataWO
+
 	obj := plan.ToObject()
 	outObj, err := r.clientSet.CoreV1().Secrets(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
@@ -169,11 +195,30 @@ func (r *secret) Create(ctx context.Context, req resource.CreateRequest, resp *r
 		return
 	}
 
-	d := plan.Data
+	lastSeen, _, err := r.acknowledgeLastSeen(outObj)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Determining Remote Secret Change",
+			err.Error(),
+		)
+		return
+	}
 
-	plan = newSecretModel(outObj)
-	// Preserve plan's data as the API returns masked secrets.
-	plan.Data = d
+	// We know that we don't know the last data change timestamp.
+	if err = r.patchLastSeen(ctx, outObj, lastSeen); err != nil {
+		resp.Diagnostics.AddError(
+			"Error Patching Secret Change Timestamp",
+			err.Error(),
+		)
+		return
+	}
+
+	plan = newSecretModel(outObj, config.DataWOVersion.ValueInt64())
+	plan.Data = config.Data // Preserve plan's data as the API returns masked secrets.
+	if !config.DataWOVersion.IsNull() && config.DataWOVersion.ValueInt64() != 0 {
+		plan.Data = nil
+	}
+
 	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -187,6 +232,7 @@ func (r *secret) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 
 	// Store current data values before reading from API (API returns masked)
 	currentData := state.Data
+	currentDataWOVersion := state.DataWOVersion
 
 	outObj, err := r.clientSet.CoreV1().Secrets(state.Environment.ValueString()).Get(ctx, state.Name.ValueString(), metav1.GetOptions{})
 	if err != nil {
@@ -202,15 +248,53 @@ func (r *secret) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 		return
 	}
 
-	state = newSecretModel(outObj)
-	state.Data = currentData
+	lastChange, lastChangeSeen, err := r.acknowledgeLastSeen(outObj)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Determining Remote Secret Change",
+			err.Error(),
+		)
+		return
+	}
+
+	if !lastChange.Equal(lastChangeSeen) && sameKeys(currentData, outObj.Data) {
+		// Key changes are detected already.
+		// We only need to force an update (by setting data to nil) when the values have changed (indicated by lastChange).
+		outObj.Data = nil
+	}
+
+	state = newSecretModel(outObj, currentDataWOVersion.ValueInt64())
+
+	// Handle data based on whether using data_wo or regular data
+	switch {
+	case currentDataWOVersion.ValueInt64() != 0:
+		// Using data_wo - don't persist any data in state (write-only)
+		state.Data = nil
+	case currentData != nil:
+		// Using regular data - merge API keys with state values to detect drift
+		newData := make(map[string]types.String, len(outObj.Data))
+		for apiKey := range outObj.Data {
+			// If key exists in both API and state, preserve the state value
+			stateVal, exists := currentData[apiKey]
+			if !exists {
+				stateVal = types.StringNull()
+			}
+			newData[apiKey] = stateVal
+		}
+		state.Data = newData
+	}
+
 	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state secretModel
+	var plan, config, state secretModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -219,8 +303,17 @@ func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	oldObj := state.ToObject()
+	oldObj, err := r.clientSet.CoreV1().Secrets(plan.Environment.ValueString()).Get(ctx, plan.Name.ValueString(), metav1.GetOptions{})
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Secret for Update",
+			fmt.Sprintf("Could not read Secret %q for update: %v", plan.Name.ValueString(), err),
+		)
+		return
+	}
+
 	newObj := plan.ToObject()
+	newObj.Data = conv.ForEachMapItem(chooseData(config), func(item types.String) string { return item.ValueString() })
 
 	pb, err := patch.Create(oldObj, newObj)
 	if err != nil {
@@ -240,8 +333,30 @@ func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	updated := newSecretModel(outObj)
-	updated.Data = plan.Data
+	lastChange, lastChangeSeen, err := r.acknowledgeLastSeen(outObj)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Determining Remote Secret Change",
+			err.Error(),
+		)
+		return
+	}
+	if !lastChange.Equal(lastChangeSeen) {
+		if err = r.patchLastSeen(ctx, outObj, lastChange); err != nil {
+			resp.Diagnostics.AddError(
+				"Error Patching Secret Change Timestamp",
+				err.Error(),
+			)
+			return
+		}
+	}
+
+	updated := newSecretModel(outObj, plan.DataWOVersion.ValueInt64())
+
+	updated.Data = nil
+	if config.DataWOVersion.ValueInt64() == 0 {
+		updated.Data = config.Data
+	}
 
 	resp.Diagnostics.Append(normalize.Model(ctx, &updated, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &updated)...)
@@ -270,4 +385,64 @@ func (r *secret) Delete(ctx context.Context, req resource.DeleteRequest, resp *r
 		)
 		return
 	}
+}
+
+func (r *secret) acknowledgeLastSeen(obj *corev1.Secret) (time.Time, time.Time, error) {
+	lastChange := obj.CreatedTimestamp
+	if obj.Status.LastDataChange != nil {
+		lastChange = *obj.Status.LastDataChange
+	}
+
+	if len(obj.Annotations) == 0 {
+		return lastChange, time.Time{}, nil
+	}
+
+	lastSeenStr := obj.Annotations[lastChangeSeenAnnotation]
+
+	// We need to remove it, otherwise there will be an unconfigured annotation diff,
+	// where Terraform will not be happy about.
+	delete(obj.Annotations, lastChangeSeenAnnotation)
+
+	if lastSeenStr == "" {
+		return lastChange, time.Time{}, nil
+	}
+
+	lastSeen, err := time.Parse(time.RFC3339Nano, lastSeenStr)
+	if err != nil {
+		return time.Time{}, time.Time{}, fmt.Errorf("parsing last seen timestamp %q from annotation %q: %w", lastSeenStr, lastChangeSeenAnnotation, err)
+	}
+
+	return lastChange, lastSeen, nil
+}
+
+func (r *secret) patchLastSeen(ctx context.Context, obj *corev1.Secret, lastChange time.Time) error {
+	patchObj := runtime.DeepCopy(obj)
+	if patchObj.Annotations == nil {
+		patchObj.Annotations = map[string]string{}
+	}
+	patchObj.Annotations[lastChangeSeenAnnotation] = lastChange.Format(time.RFC3339Nano)
+
+	pb, err := patch.Create(obj, patchObj)
+	if err != nil {
+		return fmt.Errorf("creating patch: %w", err)
+	}
+
+	_, err = r.clientSet.CoreV1().Secrets(patchObj.Environment).Patch(ctx, patchObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
+	if err != nil {
+		return fmt.Errorf("patching: %w", err)
+	}
+
+	return nil
+}
+
+func sameKeys(mp1 map[string]types.String, mp2 map[string]string) bool {
+	if len(mp1) != len(mp2) {
+		return false
+	}
+	for key := range mp1 {
+		if _, ok := mp2[key]; !ok {
+			return false
+		}
+	}
+	return true
 }

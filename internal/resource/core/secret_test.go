@@ -64,6 +64,16 @@ func TestSecretResource(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_secret.test", "data_wo.%", "0"),
 				),
 			},
+			{
+				Config: testResourceSecretConfigUpdateDataWO(nameWO),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_secret.test", "name", nameWO),
+					resource.TestCheckResourceAttr("gamefabric_secret.test", "environment", "dflt"),
+					resource.TestCheckResourceAttr("gamefabric_secret.test", "description", "Backend database credentials"),
+					resource.TestCheckResourceAttr("gamefabric_secret.test", "data.%", "0"),
+					resource.TestCheckResourceAttr("gamefabric_secret.test", "data_wo.%", "0"),
+				),
+			},
 		},
 	})
 }
@@ -116,7 +126,23 @@ func testResourceSecretConfigUpdateData(name string) string {
     one_more    = "secret-value"
   }
 }`, name)
+}
 
+func testResourceSecretConfigUpdateDataWO(name string) string {
+	return fmt.Sprintf(`resource "gamefabric_secret" "test" {
+  name        = "%s"
+  environment = "dflt"
+  description = "Backend database credentials"
+  labels = {
+	game = "my_first_game"
+  }
+  data_wo = {
+	db_user     = "different-user"
+	db_password = "different-pass"
+  }
+  data_wo_version = 2
+}
+`, name)
 }
 
 func testResourceSecretConfigDataWO(name string) string {
@@ -131,6 +157,7 @@ func testResourceSecretConfigDataWO(name string) string {
     db_user     = "dbuser321"
     db_password = "super-secret-pass-321"
   }
+  data_wo_version = 1
 }`, name)
 }
 
