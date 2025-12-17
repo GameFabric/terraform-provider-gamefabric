@@ -195,6 +195,24 @@ func (r *secret) Create(ctx context.Context, req resource.CreateRequest, resp *r
 		return
 	}
 
+	lastSeen, _, err := r.acknowledgeLastSeen(outObj)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Determining Remote Secret Change",
+			err.Error(),
+		)
+		return
+	}
+
+	// We know that we don't know the last data change timestamp.
+	if err = r.patchLastSeen(ctx, outObj, lastSeen); err != nil {
+		resp.Diagnostics.AddError(
+			"Error Patching Secret Change Timestamp",
+			err.Error(),
+		)
+		return
+	}
+
 	plan = newSecretModel(outObj, config.DataWOVersion.ValueInt64())
 	plan.Data = config.Data // Preserve plan's data as the API returns masked secrets.
 	if !config.DataWOVersion.IsNull() && config.DataWOVersion.ValueInt64() != 0 {
