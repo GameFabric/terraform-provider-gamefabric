@@ -196,14 +196,9 @@ func (r *secret) Create(ctx context.Context, req resource.CreateRequest, resp *r
 	}
 
 	plan = newSecretModel(outObj, config.DataWOVersion.ValueInt64())
-
-	// Preserve plan's data as the API returns masked secrets.
-	if !config.DataWOVersion.IsNull() && config.DataWOVersion.ValueInt64() > 0 {
-		// Using data_wo - don't persist data in state (write-only)
+	plan.Data = config.Data // Preserve plan's data as the API returns masked secrets.
+	if !config.DataWOVersion.IsNull() && config.DataWOVersion.ValueInt64() != 0 {
 		plan.Data = nil
-	} else {
-		// Using data - preserve the actual config values
-		plan.Data = config.Data
 	}
 
 	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
@@ -244,17 +239,17 @@ func (r *secret) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 		return
 	}
 
-	if !lastChange.Equal(lastChangeSeen) {
-		outObj.Data = map[string]string{
-			"force": "update",
-		}
+	if !lastChange.Equal(lastChangeSeen) && sameKeys(currentData, outObj.Data) {
+		// Key changes are detected already.
+		// We only need to force an update (by setting data to nil) when the values have changed (indicated by lastChange).
+		outObj.Data = nil
 	}
 
 	state = newSecretModel(outObj, currentDataWOVersion.ValueInt64())
 
 	// Handle data based on whether using data_wo or regular data
 	switch {
-	case currentDataWOVersion.ValueInt64() > 0:
+	case currentDataWOVersion.ValueInt64() != 0:
 		// Using data_wo - don't persist any data in state (write-only)
 		state.Data = nil
 	case currentData != nil:
@@ -292,31 +287,6 @@ func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 
 	oldObj := state.ToObject()
 	newObj := plan.ToObject()
-
-	secret, err := r.clientSet.CoreV1().Secrets(newObj.Environment).Get(ctx, newObj.Name, metav1.GetOptions{})
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Reading Secret for Update",
-			fmt.Sprintf("Could not read Secret %q for update: %v", newObj.Name, err),
-		)
-		return
-	}
-
-	keys := make([]string, 0, len(secret.Data))
-	for k := range secret.Data {
-		keys = append(keys, k)
-	}
-
-	// Remove any keys that are no longer present
-	for _, k := range keys {
-		if _, ok := chooseData(config)[k]; !ok {
-			if newObj.Data == nil {
-				newObj.Data = make(map[string]string)
-			}
-			newObj.Data[k] = ""
-		}
-	}
-
 	newObj.Data = conv.ForEachMapItem(chooseData(config), func(item types.String) string { return item.ValueString() })
 
 	pb, err := patch.Create(oldObj, newObj)
@@ -438,4 +408,16 @@ func (r *secret) patchLastSeen(ctx context.Context, obj *corev1.Secret, lastChan
 	}
 
 	return nil
+}
+
+func sameKeys(mp1 map[string]types.String, mp2 map[string]string) bool {
+	if len(mp1) != len(mp2) {
+		return false
+	}
+	for key := range mp1 {
+		if _, ok := mp2[key]; !ok {
+			return false
+		}
+	}
+	return true
 }
