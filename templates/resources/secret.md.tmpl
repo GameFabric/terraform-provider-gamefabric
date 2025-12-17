@@ -29,8 +29,6 @@ Use the `data` attribute when:
 
 **Note:** Using this attribute necessitates storing the raw secret values in the Terraform state file. Ensure your state file is encrypted and access-controlled.
 
-**Known Limitation:** The provider is unable to detect changes made to the secret values directly within GameFabric. If the values are modified outside of Terraform, Terraform will not detect this change.
-
 ### Write-Only Data (`data_wo` attribute)
 
 **Note:** Write-only attributes are only supported in Terraform v1.11.0 and later.
