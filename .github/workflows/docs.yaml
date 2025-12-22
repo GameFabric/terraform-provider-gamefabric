@@ -18,7 +18,7 @@ jobs:
       GONOSUMDB: ${{ secrets.GONOSUMDB }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
 
       - name: Setup Proxy Credentials
@@ -36,7 +36,7 @@ jobs:
 
       - name: Cache Go mod
         id: gomod
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ~/go/pkg/mod
