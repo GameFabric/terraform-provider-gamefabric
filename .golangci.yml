@@ -18,7 +18,6 @@ linters:
   default: all
   disable:
     - gocyclo # duplicate of cyclop
-    - unused # TODO: remove before first phase.
     - lll # TODO: remove before first phase.
     - contextcheck
     - depguard
@@ -48,13 +47,16 @@ linters:
   settings:
     cyclop:
       max-complexity: 15
-    gosec:
-      excludes:
-        - G101
-        - G402
-        - G601
     lll:
       line-length: 160
+    revive:
+      rules:
+        - name: var-naming
+          arguments:
+            - [ ]
+            - [ ]
+            - - skip-package-name-checks: true
+                skip-package-name-collision-with-go-std: true
     tagliatelle:
       case:
         rules:
