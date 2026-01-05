@@ -166,12 +166,3 @@ func (r *serviceAccountPassword) Update(ctx context.Context, req resource.Update
 	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
-
-// resetServiceAccountPassword resets the password for a service account with retry logic
-func (r *serviceAccountPassword) resetServiceAccountPassword(ctx context.Context, serviceAccountName string) (string, error) {
-	password, err := r.clientSet.AuthenticationV1Beta1().ServiceAccounts().Reset(ctx, serviceAccountName, metav1.UpdateOptions{})
-	if err != nil {
-		return "", err
-	}
-	return password, nil
-}
