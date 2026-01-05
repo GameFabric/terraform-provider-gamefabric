@@ -49,7 +49,6 @@ func (r *serviceAccountPassword) Schema(_ context.Context, _ resource.SchemaRequ
 				Required:    true,
 				Description: "The name of the service account.",
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
@@ -58,14 +57,13 @@ func (r *serviceAccountPassword) Schema(_ context.Context, _ resource.SchemaRequ
 				ElementType: types.StringType,
 				Description: "A map of labels to assign to the service account password.",
 				PlanModifiers: []planmodifier.Map{
-					mapplanmodifier.RequiresReplace(),
 					mapplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"password_wo": schema.StringAttribute{
 				Computed:    true,
 				Sensitive:   true,
-				Description: "The password for the service account (write-only, only available on creation).",
+				Description: "The password for the service account (write-only, only available on creation and updates).",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -148,11 +146,32 @@ func (r *serviceAccountPassword) Delete(ctx context.Context, req resource.Delete
 	// The password itself remains valid; we're just stopping tracking this resource
 }
 
-func (r *serviceAccountPassword) Update(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
-	// Update is not supported for this resource since service_account and labels require replace
-	// This method is required by the framework but should not be called
-	resp.Diagnostics.AddError(
-		"Update Not Supported",
-		"Service account password resources cannot be updated. Please destroy and recreate the resource.",
-	)
+func (r *serviceAccountPassword) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan serviceAccountPasswordResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Regenerate the password when the resource is updated
+	password, err := r.clientSet.AuthenticationV1Beta1().ServiceAccounts().Reset(ctx, plan.ServiceAccount.ValueString(), metav1.UpdateOptions{})
+	if err != nil {
+		resp.Diagnostics.AddError("Error Updating Service Account Password", fmt.Sprintf("Could not reset ServiceAccount password: %s", err))
+		return
+	}
+
+	plan.ID = types.StringValue(plan.ServiceAccount.ValueString())
+	plan.PasswordWo = types.StringValue(password)
+
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+}
+
+// resetServiceAccountPassword resets the password for a service account with retry logic
+func (r *serviceAccountPassword) resetServiceAccountPassword(ctx context.Context, serviceAccountName string) (string, error) {
+	password, err := r.clientSet.AuthenticationV1Beta1().ServiceAccounts().Reset(ctx, serviceAccountName, metav1.UpdateOptions{})
+	if err != nil {
+		return "", err
+	}
+	return password, nil
 }

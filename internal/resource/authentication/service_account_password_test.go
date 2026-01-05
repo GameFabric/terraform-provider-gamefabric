@@ -44,6 +44,22 @@ func TestServiceAccountPasswordResource(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_service_account_password.test", "labels.env", "test"),
 				),
 			},
+			{
+				Config: `resource "gamefabric_service_account_password" "test" {
+  service_account = "svc-test"
+  labels = {
+    env = "test"
+    updated = "true"
+  }
+}
+`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("gamefabric_service_account_password.test", "id"),
+					resource.TestCheckResourceAttr("gamefabric_service_account_password.test", "service_account", "svc-test"),
+					resource.TestCheckResourceAttr("gamefabric_service_account_password.test", "password_wo", "some-reset-password"),
+					resource.TestCheckResourceAttr("gamefabric_service_account_password.test", "labels.updated", "true"),
+				),
+			},
 		},
 	})
 }
