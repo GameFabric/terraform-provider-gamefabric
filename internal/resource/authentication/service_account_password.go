@@ -9,7 +9,6 @@ import (
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
@@ -19,9 +18,8 @@ import (
 )
 
 var (
-	_ resource.Resource                = &serviceAccountPassword{}
-	_ resource.ResourceWithConfigure   = &serviceAccountPassword{}
-	_ resource.ResourceWithImportState = &serviceAccountPassword{}
+	_ resource.Resource              = &serviceAccountPassword{}
+	_ resource.ResourceWithConfigure = &serviceAccountPassword{}
 )
 
 // serviceAccountPassword implements the Terraform resource for service account passwords.
@@ -66,9 +64,9 @@ func (r *serviceAccountPassword) Schema(_ context.Context, _ resource.SchemaRequ
 			},
 			"password_wo": schema.StringAttribute{
 				Computed:    true,
+				Sensitive:   true,
 				Description: "The password for the service account (write-only, only available on creation).",
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
@@ -157,8 +155,4 @@ func (r *serviceAccountPassword) Update(_ context.Context, _ resource.UpdateRequ
 		"Update Not Supported",
 		"Service account password resources cannot be updated. Please destroy and recreate the resource.",
 	)
-}
-
-func (r *serviceAccountPassword) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("service_account"), req, resp)
 }

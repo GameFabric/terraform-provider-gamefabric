@@ -3,6 +3,8 @@ package authentication_test
 import (
 	"testing"
 
+	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	authv1 "github.com/gamefabric/gf-core/pkg/api/authentication/v1beta1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -10,13 +12,23 @@ import (
 func TestServiceAccountPasswordResource(t *testing.T) {
 	t.Parallel()
 
-	pf, _ := providertest.ProtoV6ProviderFactories(t)
+	// Pre-create a service account that will be used for the password reset
+	serviceAccount := &authv1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "svc-test",
+		},
+		Spec: authv1.ServiceAccountSpec{
+			Username: "svc-test",
+			Email:    "svc-test@ec.nitrado.systems",
+		},
+	}
+
+	pf, _ := providertest.ProtoV6ProviderFactories(t, serviceAccount)
 
 	resource.Test(t, resource.TestCase{
 		IsUnitTest:               true,
 		ProtoV6ProviderFactories: pf,
 		Steps: []resource.TestStep{
-			// Create and Read testing
 			{
 				Config: `resource "gamefabric_service_account_password" "test" {
   service_account = "svc-test"
@@ -28,14 +40,9 @@ func TestServiceAccountPasswordResource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("gamefabric_service_account_password.test", "id"),
 					resource.TestCheckResourceAttr("gamefabric_service_account_password.test", "service_account", "svc-test"),
-					resource.TestCheckResourceAttrSet("gamefabric_service_account_password.test", "password_wo"),
+					resource.TestCheckResourceAttr("gamefabric_service_account_password.test", "password_wo", "some-reset-password"),
+					resource.TestCheckResourceAttr("gamefabric_service_account_password.test", "labels.env", "test"),
 				),
-			},
-			// ImportState testing
-			{
-				ResourceName:      "gamefabric_service_account_password.test",
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 		},
 	})
