@@ -5,8 +5,7 @@ import (
 )
 
 type serviceAccountPasswordResourceModel struct {
-	ID             types.String            `tfsdk:"id"`
-	ServiceAccount types.String            `tfsdk:"service_account"`
-	Labels         map[string]types.String `tfsdk:"labels"`
-	PasswordWo     types.String            `tfsdk:"password_wo"`
+	ID             types.String `tfsdk:"id"`
+	ServiceAccount types.String `tfsdk:"service_account"`
+	PasswordWo     types.String `tfsdk:"password_wo"`
 }

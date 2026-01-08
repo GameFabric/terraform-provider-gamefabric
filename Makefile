@@ -34,7 +34,7 @@ docs-gen:
 COMMIT=$(shell git rev-parse --short HEAD)
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
-DIR=.rafal
+DIR ?= .terraform-test
 
 provider:
 	@go build -gcflags="all=-N -l" -o ~/.terraform.d/plugins/registry.terraform.io/gamefabric/gamefabric/1.0.0/darwin_arm64/terraform-provider-gamefabric_v1

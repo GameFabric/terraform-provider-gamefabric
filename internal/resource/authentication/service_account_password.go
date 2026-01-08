@@ -11,7 +11,6 @@ import (
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -49,24 +48,13 @@ func (r *serviceAccountPassword) Schema(_ context.Context, _ resource.SchemaRequ
 				Required:    true,
 				Description: "The name of the service account.",
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"labels": schema.MapAttribute{
-				Optional:    true,
-				ElementType: types.StringType,
-				Description: "A map of labels to assign to the service account password.",
-				PlanModifiers: []planmodifier.Map{
-					mapplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"password_wo": schema.StringAttribute{
 				Computed:    true,
 				Sensitive:   true,
 				Description: "The password for the service account (write-only, only available on creation and updates).",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
 			},
 		},
 	}
@@ -94,7 +82,6 @@ func (r *serviceAccountPassword) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	// Call the Reset method to generate a new password for the service account
 	password, err := r.clientSet.AuthenticationV1Beta1().ServiceAccounts().Reset(ctx, plan.ServiceAccount.ValueString(), metav1.UpdateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError("Error Creating Service Account Password", fmt.Sprintf("Could not reset ServiceAccount password: %s", err))
@@ -115,7 +102,6 @@ func (r *serviceAccountPassword) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	// Verify that the service account still exists
 	_, err := r.clientSet.AuthenticationV1Beta1().ServiceAccounts().Get(ctx, state.ServiceAccount.ValueString(), metav1.GetOptions{})
 	if err != nil {
 		switch {
@@ -142,8 +128,8 @@ func (r *serviceAccountPassword) Delete(ctx context.Context, req resource.Delete
 		return
 	}
 
-	// Deleting a password resource just removes it from state; no actual deletion happens on the server
-	// The password itself remains valid; we're just stopping tracking this resource
+	// Deleting a password resource just removes it from state; no actual deletion happens on the server.
+	// The password itself remains valid; we're just stopping tracking this resource.
 }
 
 func (r *serviceAccountPassword) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
