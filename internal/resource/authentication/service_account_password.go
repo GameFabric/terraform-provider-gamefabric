@@ -51,7 +51,7 @@ func (r *serviceAccountPassword) Schema(_ context.Context, _ resource.SchemaRequ
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"password_wo": schema.StringAttribute{
+			"password": schema.StringAttribute{
 				Computed:    true,
 				Sensitive:   true,
 				Description: "The password for the service account (write-only, only available on creation and updates).",
@@ -89,7 +89,7 @@ func (r *serviceAccountPassword) Create(ctx context.Context, req resource.Create
 	}
 
 	plan.ID = types.StringValue(plan.ServiceAccount.ValueString())
-	plan.PasswordWo = types.StringValue(password)
+	plan.Password = types.StringValue(password)
 
 	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -147,7 +147,7 @@ func (r *serviceAccountPassword) Update(ctx context.Context, req resource.Update
 	}
 
 	plan.ID = types.StringValue(plan.ServiceAccount.ValueString())
-	plan.PasswordWo = types.StringValue(password)
+	plan.Password = types.StringValue(password)
 
 	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)

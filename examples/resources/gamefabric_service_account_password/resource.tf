@@ -4,9 +4,8 @@ resource "gamefabric_service_account" "example" {
 
 resource "gamefabric_service_account_password" "example" {
   service_account = gamefabric_service_account.example.name
-  labels = {
-    environment = "production"
-    team        = "platform"
-  }
 }
 
+output "password"  {
+  value = nonsensitive(gamefabric_service_account_password.example.password)
+}
