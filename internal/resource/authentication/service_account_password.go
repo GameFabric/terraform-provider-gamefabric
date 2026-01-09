@@ -54,7 +54,7 @@ func (r *serviceAccountPassword) Schema(_ context.Context, _ resource.SchemaRequ
 			"password": schema.StringAttribute{
 				Computed:    true,
 				Sensitive:   true,
-				Description: "The password for the service account (write-only, only available on creation and updates).",
+				Description: "The password for the service account (read-only, reset on creation or update).",
 			},
 		},
 	}
@@ -116,7 +116,6 @@ func (r *serviceAccountPassword) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	// Password is write-only and not retrievable from the API, so we just verify the service account exists
 	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -133,22 +132,15 @@ func (r *serviceAccountPassword) Delete(ctx context.Context, req resource.Delete
 }
 
 func (r *serviceAccountPassword) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan serviceAccountPasswordResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	// This method is required by the resource.Resource interface but should never be called
+	// because the only mutable field (service_account) has RequiresReplace(), which forces
+	// a destroy/recreate instead of an update.
+	//
+	// If this is somehow called, we just read the current state back.
+	var state serviceAccountPasswordResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	// Regenerate the password when the resource is updated
-	password, err := r.clientSet.AuthenticationV1Beta1().ServiceAccounts().Reset(ctx, plan.ServiceAccount.ValueString(), metav1.UpdateOptions{})
-	if err != nil {
-		resp.Diagnostics.AddError("Error Updating Service Account Password", fmt.Sprintf("Could not reset ServiceAccount password: %s", err))
-		return
-	}
-
-	plan.ID = types.StringValue(plan.ServiceAccount.ValueString())
-	plan.Password = types.StringValue(password)
-
-	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
