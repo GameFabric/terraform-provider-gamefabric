@@ -36,4 +36,4 @@ output "password"  {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-- `password` (String, Sensitive) The password for the service account (write-only, only available on creation and updates).
+- `password` (String, Sensitive) The password for the service account (read-only, reset on creation or update).
