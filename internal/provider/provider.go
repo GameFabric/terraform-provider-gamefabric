@@ -203,6 +203,7 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		armada.NewArmadaSet,
 		authentication.NewProvider,
 		authentication.NewServiceAccountResource,
+		authentication.NewServiceAccountPasswordResource,
 		container.NewBranch,
 		container.NewImageUpdater,
 		core.NewConfigFile,
