@@ -26,13 +26,30 @@ func TestServiceAccountResource(t *testing.T) {
   name = "svc-test"
   labels = {
     env = "test"
-    team = "devops"
+    team = "devops" 
   }
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("gamefabric_service_account.test", "name", "svc-test"),
 					resource.TestCheckResourceAttr("gamefabric_service_account.test", "labels.env", "test"),
+					resource.TestCheckResourceAttr("gamefabric_service_account.test", "labels.team", "devops"),
+					resource.TestCheckResourceAttr("gamefabric_service_account.test", "email", "svc-test@ec.nitrado.systems"),
+					resource.TestCheckResourceAttr("gamefabric_service_account.test", "password", "some-password"),
+				),
+			},
+			{
+				Config: `resource "gamefabric_service_account" "test" {
+  name = "svc-test"
+  labels = {
+    env = "staging"
+    team = "devops"
+  }
+}
+`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_service_account.test", "name", "svc-test"),
+					resource.TestCheckResourceAttr("gamefabric_service_account.test", "labels.env", "staging"),
 					resource.TestCheckResourceAttr("gamefabric_service_account.test", "labels.team", "devops"),
 					resource.TestCheckResourceAttr("gamefabric_service_account.test", "email", "svc-test@ec.nitrado.systems"),
 					resource.TestCheckResourceAttr("gamefabric_service_account.test", "password", "some-password"),

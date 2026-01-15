@@ -15,7 +15,7 @@ import (
 
 // State provides access to the current state or plan attributes.
 type State interface {
-	GetAttribute(ctx context.Context, path path.Path, target interface{}) diag.Diagnostics
+	GetAttribute(ctx context.Context, path path.Path, target any) diag.Diagnostics
 }
 
 // Model normalizes the given model in the context of the current state.
@@ -32,7 +32,7 @@ func Model(ctx context.Context, model any, state State) diag.Diagnostics {
 	return structType(ctx, v, v.Type(), state, path.Empty())
 }
 
-var attrValueType = reflect.TypeOf((*attr.Value)(nil)).Elem()
+var attrValueType = reflect.TypeFor[attr.Value]()
 
 func normTypes(ctx context.Context, v reflect.Value, t reflect.Type, state State, p path.Path) diag.Diagnostics {
 	if t.Implements(attrValueType) {
