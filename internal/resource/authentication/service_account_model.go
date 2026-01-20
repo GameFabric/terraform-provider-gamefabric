@@ -12,20 +12,18 @@ import (
 const ecDomain = "ec.nitrado.systems"
 
 type serviceAccountResourceModel struct {
-	ID       types.String            `tfsdk:"id"`
-	Name     types.String            `tfsdk:"name"`
-	Labels   map[string]types.String `tfsdk:"labels"`
-	Email    types.String            `tfsdk:"email"`
-	Password types.String            `tfsdk:"password"`
+	ID     types.String            `tfsdk:"id"`
+	Name   types.String            `tfsdk:"name"`
+	Labels map[string]types.String `tfsdk:"labels"`
+	Email  types.String            `tfsdk:"email"`
 }
 
 func newServiceAccountResourceModel(obj *authv1.ServiceAccount) serviceAccountResourceModel {
 	return serviceAccountResourceModel{
-		ID:       types.StringValue(obj.Name),
-		Name:     types.StringValue(obj.Name),
-		Labels:   toStringMap(obj.Labels),
-		Email:    types.StringValue(obj.Spec.Email),
-		Password: types.StringValue(obj.Status.Password),
+		ID:     types.StringValue(obj.Name),
+		Name:   types.StringValue(obj.Name),
+		Labels: toStringMap(obj.Labels),
+		Email:  types.StringValue(obj.Spec.Email),
 	}
 }
 
