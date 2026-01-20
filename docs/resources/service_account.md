@@ -9,7 +9,7 @@ description: |-
 
 A Service Account is a non-human identity used for programmatic access to GameFabric resources. Service accounts are typically used by automated processes, CI/CD pipelines, or applications that need to interact with the GameFabric API.
 
-docEach service account is automatically assigned an email address based on its name and can be granted permissions through role bindings, similar to regular user accounts. You can organize service accounts using labels for better management. A service account can't be changed after creation, so changes to the resource will trigger Terraform to recreate (delete and add) the service account.
+Each service account is automatically assigned an email address based on its name and can be granted permissions through role bindings, similar to regular user accounts. You can organize service accounts using labels for better management. A service account can't be changed after creation, so changes to the resource will trigger Terraform to recreate (delete and add) the service account.
 
 Passwords are managed separately using the `gamefabric_service_account_password` resource which allows resetting and retrieving a password for a service account (the password is returned only at creation/reset time). Example usage:
 
