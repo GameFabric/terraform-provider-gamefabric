@@ -98,9 +98,6 @@ Look for `gamefabric_service_account` resources in `.tf` files that reference th
 ```terraform
 resource "gamefabric_service_account" "ci_bot" {
   name = "ci-bot"
-  labels = {
-    team = "platform"
-  }
 }
 
 # Using the password somewhere
@@ -120,9 +117,6 @@ Add a `gamefabric_service_account_password` resource for each service account wh
 # Keep existing service account resource
 resource "gamefabric_service_account" "ci_bot" {
   name = "ci-bot"
-  labels = {
-    team = "platform"
-  }
 }
 
 # Add the new password resource
@@ -231,17 +225,10 @@ terraform {
 
 resource "gamefabric_service_account" "ci_bot" {
   name = "ci-bot"
-  labels = {
-    team    = "platform"
-    purpose = "ci-cd"
-  }
 }
 
 resource "gamefabric_service_account" "monitoring" {
   name = "monitoring-agent"
-  labels = {
-    team = "ops"
-  }
 }
 
 # Using passwords from service accounts
@@ -271,17 +258,10 @@ terraform {
 # Service account resources stay the same
 resource "gamefabric_service_account" "ci_bot" {
   name = "ci-bot"
-  labels = {
-    team    = "platform"
-    purpose = "ci-cd"
-  }
 }
 
 resource "gamefabric_service_account" "monitoring" {
   name = "monitoring-agent"
-  labels = {
-    team = "ops"
-  }
 }
 
 # New password resources
