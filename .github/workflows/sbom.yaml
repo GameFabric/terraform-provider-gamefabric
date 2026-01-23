@@ -15,8 +15,6 @@ jobs:
       - name: 'SBOM Change Review'
         uses: actions/dependency-review-action@v4
         with:
-          fail-on-severity: low
-
           # See https://spdx.org/licenses/.
           # Use comma-separated names to pass list arguments:
           deny-licenses: AGPL-1.0-only, AGPL-1.0-or-later, AGPL-3.0-only, AGPL-3.0-or-later
