@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
@@ -77,18 +76,10 @@ func (r *serviceAccountPassword) Open(ctx context.Context, req ephemeral.OpenReq
 	// Verify the service account exists
 	_, err := r.clientSet.AuthenticationV1Beta1().ServiceAccounts().Get(ctx, config.ServiceAccount.ValueString(), metav1.GetOptions{})
 	if err != nil {
-		switch {
-		case apierrors.IsNotFound(err):
-			resp.Diagnostics.AddError(
-				"Service Account Not Found",
-				fmt.Sprintf("Service account %q does not exist", config.ServiceAccount.ValueString()),
-			)
-		default:
-			resp.Diagnostics.AddError(
-				"Error Reading Service Account",
-				fmt.Sprintf("Could not read ServiceAccount: %s", err),
-			)
-		}
+		resp.Diagnostics.AddError(
+			"Error Reading Service Account",
+			fmt.Sprintf("Could not read ServiceAccount: %s", err),
+		)
 		return
 	}
 
