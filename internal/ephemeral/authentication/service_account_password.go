@@ -73,7 +73,7 @@ func (r *serviceAccountPassword) Open(ctx context.Context, req ephemeral.OpenReq
 		return
 	}
 
-	// Verify the service account exists
+	// Verify the service account exists.
 	_, err := r.clientSet.AuthenticationV1Beta1().ServiceAccounts().Get(ctx, config.ServiceAccount.ValueString(), metav1.GetOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
