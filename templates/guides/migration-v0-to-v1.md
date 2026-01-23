@@ -83,8 +83,8 @@ v0.3/v0.4/v0.5/v0.6 → [Upgrade] → v0.7 → [Follow this guide] → v1.0
 
 **For users already on v0.7+:**
 ```
-v0.7/v0.8/v0.9 → [Follow this guide] → v1.0
-                  (Steps 1-8)
+v0.7 → [Follow this guide] → v1.0
+            (Steps 1-8)
 ```
 
 The following 8 steps assume already on v0.7 or later. If on earlier versions, first upgrade to v0.7 using normal Terraform upgrade procedures, then return to Step 1.
@@ -170,9 +170,7 @@ Apply the changes while still on v0.x:
 ```bash
 terraform apply
 ```
-
-**Important:** This operation resets the service account password. The new `gamefabric_service_account_password` resource generates a fresh password.
-
+⚠️ **Important:** This operation resets the service account password. The new `gamefabric_service_account_password` resource generates a fresh password.
 ### Step 6: Save the new password
 
 After applying, retrieve and save the new password:
@@ -334,36 +332,6 @@ Separating password management into its own resource provides:
 - **Better security:** Manage passwords independently without recreating the service account
 - **More flexibility:** Rotate passwords by updating the password resource
 - **Clearer intent:** Explicitly declare when password access is needed versus managing the account
-
-## Troubleshooting
-
-### "Resource not found" error after migration
-
-If errors appear about the service account not being found, ensure applying the changes before upgrading to v1.0.
-
-### Password stopped working
-
-The `gamefabric_service_account_password` resource generates a new password. Retrieve it with:
-
-```bash
-terraform output -raw ci_bot_password
-```
-
-Then update all systems using the old password.
-
-### Want to keep the old password?
-
-Terraform doesn't have access to the existing password after creation. Accept the new password and update all systems accordingly.
-
-### Multiple service accounts to migrate
-
-Migrate multiple service accounts one at a time or in small batches to minimize disruption:
-
-1. Create the password resource for one service account
-2. Apply and retrieve the new password
-3. Update all systems using that service account
-4. Verify that everything works
-5. Repeat for the next service account
 
 ## Getting help
 
