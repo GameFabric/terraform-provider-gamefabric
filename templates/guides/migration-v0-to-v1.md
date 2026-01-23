@@ -2,33 +2,96 @@
 page_title: "Migrating to GameFabric Provider v1.0"
 subcategory: "Guides"
 description: |-
-  Learn how to upgrade your Terraform configuration from GameFabric Provider v0.x to v1.0.
+  Learn how to upgrade Terraform configuration from GameFabric Provider v0.x to v1.0.
 ---
 
 # Migrating to GameFabric Provider v1.0
 
-This guide helps you upgrade your Terraform configuration from GameFabric Provider v0.x to v1.0.
+This guide helps upgrade Terraform configuration from GameFabric Provider v0.x to v1.0.
+
+> **Note:** This guide applies when upgrading from any v0.x version (v0.3, v0.7, etc.) to v1.0 or later. Skip this guide if already on v1.0.
+
+⚠️ **CRITICAL REQUIREMENT:** This migration only works on GameFabric Provider v0.7 or later. If running v0.3 to v0.6, first upgrade to v0.7 using standard Terraform upgrade procedures, then return to follow this guide.
 
 ## What's Changing in v1.0
 
-GameFabric Provider v1.0 removes the deprecated `password` attribute from the `gamefabric_service_account` resource. If you're currently using service account passwords in your Terraform configuration, you'll need to migrate to the new `gamefabric_service_account_password` resource.
+GameFabric Provider v1.0 removes the deprecated `password` attribute from the `gamefabric_service_account` resource. 
+
+**Why this change?**
+- In v0.7: `gamefabric_service_account_password` resource was introduced to separate password management from service account management
+- In v1.0: The old `password` attribute on `gamefabric_service_account` is removed because the new resource handles password management
+
+The `gamefabric_service_account_password` resource is available in v0.7+ and provides a better way to manage service account passwords separately.
+
+Migrate to the new `gamefabric_service_account_password` resource if currently using service account passwords in Terraform configuration.
+
+## Prerequisites
+
+**Important:** This migration requires a two-phase upgrade process because the new password management resource was added in v0.7.
+
+**Timeline of changes:**
+- **v0.3 through v0.6:** Only `gamefabric_service_account` with inline `password` attribute exists
+- **v0.7:** `gamefabric_service_account_password` resource introduced to separate password management
+- **v1.0:** `password` attribute removed from `gamefabric_service_account`; only `gamefabric_service_account_password` is supported
+
+**Why two phases are needed:**
+
+The migration cannot happen in one step because:
+1. Versions before v0.7 don't have the `gamefabric_service_account_password` resource
+2. Cannot remove the `password` attribute (v1.0) without having the new resource first
+3. Must have both resources available during migration to replace the old approach with the new one
+
+**Two-phase migration process:**
+
+**Phase 1: Upgrade to v0.7 (if not already on v0.7+)**
+1. If currently on v0.3, v0.4, v0.5, or v0.6: Upgrade to v0.7 first
+2. This adds the `gamefabric_service_account_password` resource
+3. Do NOT follow this migration guide yet
+4. Wait until v0.7 is stable in the environment
+
+**Phase 2: Migrate to v1.0 (this guide)**
+1. Once confirmed running v0.7 or later
+2. Follow the 8 migration steps in this guide
+3. Make the password management changes while on v0.7
+4. Then upgrade to v1.0
+
+**Cannot upgrade directly:** Direct upgrades from v0.3-v0.6 to v1.0 are not supported because:
+- Versions v0.3-v0.6 don't have the new `gamefabric_service_account_password` resource
+- The `password` attribute cannot be replaced without the new resource existing first
+- Migration must use the new resource introduced in v0.7
 
 ## Do I Need to Migrate?
 
-**You need to migrate if:**
-- You have `gamefabric_service_account` resources in your Terraform configuration
-- You're currently reading or using the `password` attribute from these resources
+**Migrate if:**
+- Terraform configuration includes `gamefabric_service_account` resources that reference the `password` attribute
 
-**You don't need to migrate if:**
-- You're not using service accounts in Terraform
-- You're already using the `gamefabric_service_account_password` resource
-- You don't access the password attribute at all
+**Skip this guide if:**
+- Terraform configuration doesn't use service accounts
+- Already using `gamefabric_service_account_password` resource
 
 ## Migration Steps
 
-### Step 1: Check Your Current Configuration
+### Overview: Complete Upgrade Workflow
 
-Look for any `gamefabric_service_account` resources in your `.tf` files that reference the `password` attribute.
+This is the complete workflow for upgrading from any v0.x version to v1.0:
+
+**For users on v0.3 - v0.6:**
+```
+v0.3/v0.4/v0.5/v0.6 → [Upgrade] → v0.7 → [Follow this guide] → v1.0
+                        (Step 1)                (Steps 2-8)
+```
+
+**For users already on v0.7+:**
+```
+v0.7/v0.8/v0.9 → [Follow this guide] → v1.0
+                  (Steps 1-8)
+```
+
+The following 8 steps assume already on v0.7 or later. If on earlier versions, first upgrade to v0.7 using normal Terraform upgrade procedures, then return to Step 1.
+
+### Step 1: Check current configuration
+
+Look for `gamefabric_service_account` resources in `.tf` files that reference the `password` attribute.
 
 **Example of old configuration that needs migration:**
 
@@ -47,14 +110,14 @@ output "ci_bot_password" {
 }
 ```
 
-### Step 2: Add the New Password Resource
+### Step 2: Add the new password resource
 
-Add a `gamefabric_service_account_password` resource for each service account where you need the password.
+Add a `gamefabric_service_account_password` resource for each service account where the password is needed.
 
 **New configuration:**
 
 ```terraform
-# Keep your existing service account resource
+# Keep existing service account resource
 resource "gamefabric_service_account" "ci_bot" {
   name = "ci-bot"
   labels = {
@@ -74,7 +137,7 @@ output "ci_bot_password" {
 }
 ```
 
-### Step 3: Update All Password References
+### Step 3: Update all password references
 
 Find and replace all references to the old password attribute with the new resource.
 
@@ -88,19 +151,19 @@ gamefabric_service_account.ci_bot.password
 gamefabric_service_account_password.ci_bot.password
 ```
 
-### Step 4: Run Terraform Plan
+### Step 4: Run Terraform plan
 
-Before upgrading to v1.0, test your changes with your current provider version:
+Before upgrading to v1.0, test changes with current provider version:
 
 ```bash
 terraform plan
 ```
 
-You should see that Terraform will:
-- Create new `gamefabric_service_account_password` resources
-- The existing `gamefabric_service_account` resources remain unchanged
+Terraform displays:
+- New `gamefabric_service_account_password` resources to be created
+- Existing `gamefabric_service_account` resources remain unchanged
 
-### Step 5: Apply the Changes
+### Step 5: Apply the changes
 
 Apply the changes while still on v0.x:
 
@@ -108,9 +171,9 @@ Apply the changes while still on v0.x:
 terraform apply
 ```
 
-**Important:** This will reset the service account password! The new `gamefabric_service_account_password` resource will generate a fresh password.
+**Important:** This operation resets the service account password. The new `gamefabric_service_account_password` resource generates a fresh password.
 
-### Step 6: Save the New Password
+### Step 6: Save the new password
 
 After applying, retrieve and save the new password:
 
@@ -118,9 +181,9 @@ After applying, retrieve and save the new password:
 terraform output ci_bot_password
 ```
 
-Store this password securely (e.g., in your secret management system, CI/CD platform, etc.).
+Store this password securely (e.g., in a secret management system, CI/CD platform, etc.).
 
-### Step 7: Update Systems Using the Password
+### Step 7: Update systems using the password
 
 Update all systems that use the service account password with the new password value:
 - CI/CD pipelines
@@ -130,7 +193,7 @@ Update all systems that use the service account password with the new password v
 
 ### Step 8: Update to v1.0
 
-Now you can safely upgrade to v1.0. Update your provider version in your Terraform configuration:
+Now safely upgrade to v1.0. Update provider version in Terraform configuration:
 
 ```terraform
 terraform {
@@ -150,9 +213,9 @@ terraform init -upgrade
 terraform plan
 ```
 
-The plan should show no changes because you've already migrated to the new password resource.
+The plan shows no changes because migration to the new password resource has already been completed.
 
-## Complete Example
+## Complete example
 
 Here's a complete before and after example:
 
@@ -246,41 +309,41 @@ output "monitoring_password" {
 
 ## Important Notes
 
-### Password Will Be Reset
+### Password will be reset
 
-⚠️ **Warning:** When you create the `gamefabric_service_account_password` resource, a new password will be generated. The old password will no longer work.
+⚠️ **Warning:** Creating the `gamefabric_service_account_password` resource generates a new password. The old password no longer works.
 
-**What you need to do:**
+**Required actions:**
 1. Apply the migration changes
 2. Retrieve the new password using `terraform output`
 3. Update the password in all systems that use it (CI/CD, applications, scripts, etc.)
 4. Test that everything works with the new password before upgrading to v1.0
 
-### State Management
+### State management
 
-The password is stored in your Terraform state file as a sensitive value. Make sure your state file is:
-- Encrypted at rest (use remote backends like Terraform Cloud, S3 with encryption, etc.)
-- Access-controlled (only authorized team members can access it)
-- Not committed to version control
+Store the Terraform state file securely:
+- Encrypt data at rest using remote backends (Terraform Cloud, S3 with encryption, etc.)
+- Restrict access to authorized team members only
+- Never commit state files to version control
 
 For more information, see [Terraform's documentation on managing sensitive data](https://developer.hashicorp.com/terraform/language/manage-sensitive-data).
 
-### Why This Change?
+### Why this change?
 
 Separating password management into its own resource provides:
-- **Better security:** You can manage passwords independently without recreating the service account
-- **More flexibility:** You can rotate passwords by updating the password resource
-- **Clearer intent:** It's explicit when you need password access vs. just managing the account
+- **Better security:** Manage passwords independently without recreating the service account
+- **More flexibility:** Rotate passwords by updating the password resource
+- **Clearer intent:** Explicitly declare when password access is needed versus managing the account
 
 ## Troubleshooting
 
 ### "Resource not found" error after migration
 
-If you see errors about the service account not being found, make sure you've applied the changes before upgrading to v1.0.
+If errors appear about the service account not being found, ensure applying the changes before upgrading to v1.0.
 
 ### Password stopped working
 
-This is expected after migration. The `gamefabric_service_account_password` resource generates a new password. Retrieve it with:
+The `gamefabric_service_account_password` resource generates a new password. Retrieve it with:
 
 ```bash
 terraform output -raw ci_bot_password
@@ -290,37 +353,46 @@ Then update all systems using the old password.
 
 ### Want to keep the old password?
 
-Unfortunately, Terraform doesn't have access to the existing password after it's been created. You'll need to accept the new password and update your systems accordingly.
+Terraform doesn't have access to the existing password after creation. Accept the new password and update all systems accordingly.
 
 ### Multiple service accounts to migrate
 
-If you have many service accounts, consider migrating them one at a time or in small batches to minimize disruption:
+Migrate multiple service accounts one at a time or in small batches to minimize disruption:
 
 1. Create the password resource for one service account
 2. Apply and retrieve the new password
 3. Update all systems using that service account
-4. Verify everything works
+4. Verify that everything works
 5. Repeat for the next service account
 
-## Getting Help
+## Getting help
 
-If you encounter issues during migration:
+If issues occur during migration:
 
 - Check the [GameFabric Provider documentation](https://registry.terraform.io/providers/gamefabric/gamefabric/latest/docs)
 - Review the [service_account resource docs](https://registry.terraform.io/providers/gamefabric/gamefabric/latest/docs/resources/service_account)
 - Review the [service_account_password resource docs](https://registry.terraform.io/providers/gamefabric/gamefabric/latest/docs/resources/service_account_password)
-- Contact your Customer Success Management team for assistance
+- Contact the Customer Success Management team for assistance
 
 ## Summary
 
-To migrate from GameFabric Provider v0.x to v1.0:
+**Important:** This migration requires two phases and only works on v0.7+.
 
-1. **Identify** service accounts that reference the `password` attribute
-2. **Create** new `gamefabric_service_account_password` resources
-3. **Update** all password references to use the new resource
-4. **Apply** changes while still on v0.x (this resets passwords!)
-5. **Retrieve** and save the new passwords
-6. **Update** all systems using the service account passwords
-7. **Upgrade** to v1.0 provider version
+**Phase 1 (if needed): Upgrade to v0.7**
+- If on v0.3 to v0.6: First upgrade to v0.7 using standard Terraform procedures
+- Skip to Phase 2 if already on v0.7 or later
 
-By following these steps, you'll have a smooth migration with minimal downtime. Just remember that passwords will be reset, so plan accordingly and update all dependent systems.
+**Phase 2: Migrate from v0.7 to v1.0 (this guide)**
+
+To migrate the password attribute from v0.7 to v1.0:
+
+1. **Ensure** running GameFabric Provider v0.7 or later
+2. **Identify** service accounts that reference the `password` attribute
+3. **Create** new `gamefabric_service_account_password` resources
+4. **Update** all password references to use the new resource
+5. **Apply** changes while still on v0.7 (this resets passwords)
+6. **Retrieve** and save the new passwords
+7. **Update** all systems using the service account passwords
+8. **Upgrade** to v1.0 provider version
+
+Following this two-phase process creates a smooth migration with minimal downtime. Passwords reset during migration, so plan accordingly and update all dependent systems.
