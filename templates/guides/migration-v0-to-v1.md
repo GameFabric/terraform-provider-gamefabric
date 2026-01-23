@@ -38,13 +38,13 @@ Migrate to the new `gamefabric_service_account_password` resource if currently u
 
 The migration cannot happen in one step because:
 1. Versions before v0.7 don't have the `gamefabric_service_account_password` resource
-2. Cannot remove the `password` attribute (v1.0) without having the new resource first
-3. Must have both resources available during migration to replace the old approach with the new one
+2. The `password` attribute (v1.0) cannot be removed without having the new resource first
+3. Both resources must be available during migration to replace the old approach with the new one
 
 **Two-phase migration process:**
 
 **Phase 1: Upgrade to v0.7 (if not already on v0.7+)**
-1. If currently on v0.3, v0.4, v0.5, or v0.6: Upgrade to v0.7 first
+1. If currently on v0.6 or older: Upgrade to v0.7 first
 2. This adds the `gamefabric_service_account_password` resource
 3. Do NOT follow this migration guide yet
 4. Wait until v0.7 is stable in the environment
@@ -77,7 +77,7 @@ This is the complete workflow for upgrading from any v0.x version to v1.0:
 
 **For users on v0.3 - v0.6:**
 ```
-v0.3/v0.4/v0.5/v0.6 → [Upgrade] → v0.7 → [Follow this guide] → v1.0
+v0.6 (or older) → [Upgrade] → v0.7 → [Follow this guide] → v1.0
                         (Step 1)                (Steps 2-8)
 ```
 
