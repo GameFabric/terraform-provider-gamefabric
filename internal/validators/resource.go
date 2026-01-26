@@ -37,7 +37,7 @@ func (v QuantityValidator) ValidateString(_ context.Context, req validator.Strin
 		)
 		return
 	}
-	if qty.String() != val {
+	if qty.Cmp(resource.MustParse(val)) != 0 {
 		res.Diagnostics.AddError(
 			"Invalid resource quantity format",
 			fmt.Sprintf("Resource quantity %q is not in canonical form, should be %q", val, qty.String()),
