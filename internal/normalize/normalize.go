@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 // State provides access to the current state or plan attributes.
@@ -157,19 +156,10 @@ func primitiveType(ctx context.Context, v reflect.Value, state State, p path.Pat
 	}
 
 	val := v.Interface().(attr.Value)
-
-	// Preserve plan value if that's quantity.
-	if shouldUsePlanValue(ctx, tfVal, val) {
+	if (tfVal.IsNull() && !val.IsNull() && isZeroAttr(ctx, val)) || (!tfVal.IsNull() && val.IsNull()) {
 		v.Set(reflect.ValueOf(tfVal))
 	}
-
 	return nil
-}
-
-func shouldUsePlanValue(ctx context.Context, tfVal attr.Value, val attr.Value) bool {
-	return (tfVal.IsNull() && !val.IsNull() && isZeroAttr(ctx, val)) ||
-		(!tfVal.IsNull() && val.IsNull()) ||
-		areQuantitiesEqual(tfVal, val)
 }
 
 func isZeroValue(ctx context.Context, v reflect.Value) bool {
@@ -233,31 +223,4 @@ func isZeroAttr(ctx context.Context, v attr.Value) bool {
 	default:
 		return false
 	}
-}
-
-// areQuantitiesEqual checks if two attr.Values represent semantically equal quantities.
-// Returns true if both are strings that can be parsed as equal quantities (e.g., "1000m" == "1").
-// Returns false for non-string types or if strings differ and aren't valid quantities.
-func areQuantitiesEqual(a, b attr.Value) bool {
-	// Only compare string types
-	aStr, aOk := a.(types.String)
-	bStr, bOk := b.(types.String)
-	if !aOk || !bOk || aStr.IsNull() || bStr.IsNull() {
-		return false
-	}
-
-	aVal := aStr.ValueString()
-	bVal := bStr.ValueString()
-
-	// If exactly equal, no need to parse
-	if aVal == bVal {
-		return false // Already equal, no normalization needed
-	}
-
-	// Try to parse as quantities
-	qA, errA := resource.ParseQuantity(aVal)
-	qB, errB := resource.ParseQuantity(bVal)
-
-	// Both must be valid quantities and semantically equal
-	return errA == nil && errB == nil && qA.Cmp(qB) == 0
 }

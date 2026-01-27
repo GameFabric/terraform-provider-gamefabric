@@ -92,6 +92,12 @@ func (m armadaSetModel) ToObject() *armadav1.ArmadaSet {
 	}
 }
 
+// GetContainers returns the containers from the armadaSet model.
+// Implements the mps.ContainerProvider interface.
+func (m armadaSetModel) GetContainers() []mps.ContainerModel {
+	return m.Containers
+}
+
 func newRegionModels(spec armadav1.ArmadaSetSpec) []regionModel {
 	regs := make([]regionModel, 0, len(spec.Armadas))
 	regIdx := make(map[string]int, len(spec.Armadas))

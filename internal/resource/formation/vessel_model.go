@@ -87,6 +87,12 @@ func (m vesselModel) ToObject() *formationv1.Vessel {
 	}
 }
 
+// GetContainers returns the containers from the vessel model.
+// Implements the mps.ContainerProvider interface.
+func (m vesselModel) GetContainers() []mps.ContainerModel {
+	return m.Containers
+}
+
 func toTerminationGracePeriods(term *terminationConfigModel) *formationv1.VesselTerminationGracePeriods {
 	if term == nil || !(conv.IsKnown(term.Maintenance) || conv.IsKnown(term.SpecChange) || conv.IsKnown(term.UserInitiated)) { //nolint:staticcheck // This is simpler.
 		return nil

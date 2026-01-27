@@ -90,6 +90,12 @@ func (m formationModel) ToObject() *formationv1.Formation {
 	}
 }
 
+// GetContainers returns the containers from the formation model.
+// This implements the mps.ContainerProvider interface.
+func (m formationModel) GetContainers() []mps.ContainerModel {
+	return m.Containers
+}
+
 // VolumeTemplateModel represents a volume template within a formation.
 type VolumeTemplateModel struct {
 	Name            types.String `tfsdk:"name"`

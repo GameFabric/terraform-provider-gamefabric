@@ -75,9 +75,9 @@ func TestResourceArmadaSet(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.command.0", "example-command"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.args.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.args.0", "example-arg"),
-					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.resources.limits.cpu", "500m"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.resources.limits.cpu", "2500m"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.resources.limits.memory", "512Mi"),
-					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.resources.requests.cpu", "250m"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.resources.requests.cpu", "2000m"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.resources.requests.memory", "256Mi"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.envs.#", "3"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.envs.0.name", "EXAMPLE_ENV"),
@@ -465,7 +465,7 @@ func testResourceArmadaSetConfigBasicNamed(name, env string, extras ...string) s
       }
       resources = {
         requests = {
-          cpu    = "250m"
+          cpu    = "2000m"
           memory = "256Mi"
         }
       }
@@ -542,11 +542,11 @@ func testResourceArmadaSetConfigFull() string {
       args    = ["example-arg"]
       resources = {
         limits = {
-          cpu    = "500m"
+          cpu    = "2500m"
           memory = "512Mi"
         }
         requests = {
-          cpu    = "250m"
+          cpu    = "2000m"
           memory = "256Mi"
         }
       }

@@ -103,6 +103,12 @@ func (m armadaModel) ToObject() *armadav1.Armada {
 	}
 }
 
+// GetContainers returns the containers from the armada model.
+// Implements the mps.ContainerProvider interface.
+func (m armadaModel) GetContainers() []mps.ContainerModel {
+	return m.Containers
+}
+
 func toStrategy(strat *strategyModel) appsv1.DeploymentStrategy {
 	switch {
 	case strat == nil:
