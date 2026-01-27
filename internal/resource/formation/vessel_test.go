@@ -56,7 +56,7 @@ func TestResourceVessel(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.command.0", "example-command"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.args.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.args.0", "example-arg"),
-					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.resources.limits.cpu", "1000m"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.resources.limits.cpu", "1.1"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.resources.limits.memory", "512Mi"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.resources.requests.cpu", "250m"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.resources.requests.memory", "256Mi"),
@@ -430,7 +430,7 @@ func testResourceVesselConfigFull() string {
       args    = ["example-arg"]
       resources = {
         limits = {
-          cpu    = "1000m"
+          cpu    = "1.1"
           memory = "512Mi"
         }
         requests = {

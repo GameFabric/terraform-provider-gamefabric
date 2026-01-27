@@ -405,7 +405,6 @@ func (r *armada) Create(ctx context.Context, req resource.CreateRequest, resp *r
 
 	state := newArmadaModel(outObj)
 	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.Plan)...)
-	// Preserve quantity values from plan when semantically equal (e.g., "1000m" vs "1")
 	resp.Diagnostics.Append(mps.PreserveContainerQuantities(ctx, &state, &plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -433,7 +432,6 @@ func (r *armada) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 
 	newState := newArmadaModel(outObj)
 	resp.Diagnostics.Append(normalize.Model(ctx, &newState, req.State)...)
-	// Preserve quantity values from old state when semantically equal (e.g., "1000m" vs "1")
 	resp.Diagnostics.Append(mps.PreserveContainerQuantities(ctx, &newState, &oldState)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }

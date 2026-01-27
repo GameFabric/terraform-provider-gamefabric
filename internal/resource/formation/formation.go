@@ -488,7 +488,6 @@ func (r *formation) Read(ctx context.Context, req resource.ReadRequest, resp *re
 
 	newState := newFormationModel(outObj)
 	resp.Diagnostics.Append(normalize.Model(ctx, &newState, req.State)...)
-	// Preserve quantity values from old state when semantically equal (e.g., "1000m" vs "1")
 	resp.Diagnostics.Append(mps.PreserveContainerQuantities(ctx, &newState, &oldState)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
