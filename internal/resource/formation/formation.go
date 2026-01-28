@@ -460,19 +460,17 @@ func (r *formation) Create(ctx context.Context, req resource.CreateRequest, resp
 
 	state := newFormationModel(outObj)
 	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.Plan)...)
-	// Preserve quantity values from plan when semantically equal (e.g., "1000m" vs "1")
-	resp.Diagnostics.Append(mps.PreserveContainerQuantities(ctx, &state, &plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *formation) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var oldState formationModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &oldState)...)
+	var state formationModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	outObj, err := r.clientSet.FormationV1().Formations(oldState.Environment.ValueString()).Get(ctx, oldState.Name.ValueString(), metav1.GetOptions{})
+	outObj, err := r.clientSet.FormationV1().Formations(state.Environment.ValueString()).Get(ctx, state.Name.ValueString(), metav1.GetOptions{})
 	if err != nil {
 		switch {
 		case apierrors.IsNotFound(err):
@@ -480,16 +478,15 @@ func (r *formation) Read(ctx context.Context, req resource.ReadRequest, resp *re
 		default:
 			resp.Diagnostics.AddError(
 				"Error Reading Formation",
-				fmt.Sprintf("Could not read Formation %q: %v", oldState.Name.ValueString(), err),
+				fmt.Sprintf("Could not read Formation %q: %v", state.Name.ValueString(), err),
 			)
 		}
 		return
 	}
 
-	newState := newFormationModel(outObj)
-	resp.Diagnostics.Append(normalize.Model(ctx, &newState, req.State)...)
-	resp.Diagnostics.Append(mps.PreserveContainerQuantities(ctx, &newState, &oldState)...)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
+	state = newFormationModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *formation) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {

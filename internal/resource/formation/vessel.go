@@ -356,20 +356,19 @@ func (r *vessel) Create(ctx context.Context, req resource.CreateRequest, resp *r
 		return
 	}
 
-	state := newVesselModel(outObj)
-	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.Plan)...)
-	resp.Diagnostics.Append(mps.PreserveContainerQuantities(ctx, &state, &plan)...)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	plan = newVesselModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *vessel) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var oldState vesselModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &oldState)...)
+	var state vesselModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	outObj, err := r.clientSet.FormationV1().Vessels(oldState.Environment.ValueString()).Get(ctx, oldState.Name.ValueString(), metav1.GetOptions{})
+	outObj, err := r.clientSet.FormationV1().Vessels(state.Environment.ValueString()).Get(ctx, state.Name.ValueString(), metav1.GetOptions{})
 	if err != nil {
 		switch {
 		case apierrors.IsNotFound(err):
@@ -377,16 +376,15 @@ func (r *vessel) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 		default:
 			resp.Diagnostics.AddError(
 				"Error Reading Vessel",
-				fmt.Sprintf("Could not read Vessel %q: %v", oldState.Name.ValueString(), err),
+				fmt.Sprintf("Could not read Vessel %q: %v", state.Name.ValueString(), err),
 			)
 		}
 		return
 	}
 
-	newState := newVesselModel(outObj)
-	resp.Diagnostics.Append(normalize.Model(ctx, &newState, req.State)...)
-	resp.Diagnostics.Append(mps.PreserveContainerQuantities(ctx, &newState, &oldState)...)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
+	state = newVesselModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *vessel) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {

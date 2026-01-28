@@ -403,20 +403,19 @@ func (r *armada) Create(ctx context.Context, req resource.CreateRequest, resp *r
 		return
 	}
 
-	state := newArmadaModel(outObj)
-	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.Plan)...)
-	resp.Diagnostics.Append(mps.PreserveContainerQuantities(ctx, &state, &plan)...)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	plan = newArmadaModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *armada) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var oldState armadaModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &oldState)...)
+	var state armadaModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	outObj, err := r.clientSet.ArmadaV1().Armadas(oldState.Environment.ValueString()).Get(ctx, oldState.Name.ValueString(), metav1.GetOptions{})
+	outObj, err := r.clientSet.ArmadaV1().Armadas(state.Environment.ValueString()).Get(ctx, state.Name.ValueString(), metav1.GetOptions{})
 	if err != nil {
 		switch {
 		case apierrors.IsNotFound(err):
@@ -424,16 +423,15 @@ func (r *armada) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 		default:
 			resp.Diagnostics.AddError(
 				"Error Reading Armada",
-				fmt.Sprintf("Could not read Armada %q: %v", oldState.Name.ValueString(), err),
+				fmt.Sprintf("Could not read Armada %q: %v", state.Name.ValueString(), err),
 			)
 		}
 		return
 	}
 
-	newState := newArmadaModel(outObj)
-	resp.Diagnostics.Append(normalize.Model(ctx, &newState, req.State)...)
-	resp.Diagnostics.Append(mps.PreserveContainerQuantities(ctx, &newState, &oldState)...)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
+	state = newArmadaModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *armada) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {

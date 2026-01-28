@@ -6,11 +6,13 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 // State provides access to the current state or plan attributes.
@@ -156,6 +158,27 @@ func primitiveType(ctx context.Context, v reflect.Value, state State, p path.Pat
 	}
 
 	val := v.Interface().(attr.Value)
+	// New: preserve CPU quantity formatting for container cpu paths when plan and state differ
+	if !tfVal.IsNull() && !val.IsNull() {
+		if tfVal.Type(ctx) == types.StringType && val.Type(ctx) == types.StringType {
+			planStr := tfVal.(types.String).ValueString()
+			stateStr := val.(types.String).ValueString()
+			if planStr != stateStr {
+				ps := p.String()
+				// detect container CPU paths like "...containers.<idx>.resources.limits.cpu" or "...containers.<idx>.resources.requests.cpu"
+				if strings.HasSuffix(ps, "resources.limits.cpu") || strings.HasSuffix(ps, "resources.requests.cpu") {
+					planQty, pErr := resource.ParseQuantity(planStr)
+					stateQty, sErr := resource.ParseQuantity(stateStr)
+					if pErr == nil && sErr == nil && planQty.Cmp(stateQty) == 0 {
+						// set model to plan textual representation
+						v.Set(reflect.ValueOf(tfVal))
+						return nil
+					}
+				}
+			}
+		}
+	}
+
 	if (tfVal.IsNull() && !val.IsNull() && isZeroAttr(ctx, val)) || (!tfVal.IsNull() && val.IsNull()) {
 		v.Set(reflect.ValueOf(tfVal))
 	}
