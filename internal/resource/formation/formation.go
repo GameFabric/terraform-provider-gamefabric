@@ -458,9 +458,9 @@ func (r *formation) Create(ctx context.Context, req resource.CreateRequest, resp
 		return
 	}
 
-	state := newFormationModel(outObj)
-	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.Plan)...)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	plan = newFormationModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *formation) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
