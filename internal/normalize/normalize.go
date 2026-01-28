@@ -166,13 +166,8 @@ func primitiveType(ctx context.Context, v reflect.Value, state State, p path.Pat
 		return nil
 	}
 
-	// If either side is null/unknown or types differ, nothing more to do.
-	if tfVal.IsNull() || val.IsNull() {
-		return nil
-	}
-
-	// Only strings can be CPU quantities; preserve plan formatting for CPU fields
-	if tfVal.Type(ctx) != types.StringType || val.Type(ctx) != types.StringType {
+	// If either side is null/unknown, or of bad type,  nothing more to do.
+	if tfVal.IsNull() || val.IsNull() || tfVal.Type(ctx) != types.StringType || val.Type(ctx) != types.StringType {
 		return nil
 	}
 
@@ -192,7 +187,6 @@ func primitiveType(ctx context.Context, v reflect.Value, state State, p path.Pat
 		}
 	}
 
-	// No special case matched; nothing else to do for primitives.
 	return nil
 }
 
