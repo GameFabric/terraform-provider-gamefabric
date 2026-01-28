@@ -172,20 +172,22 @@ func primitiveType(ctx context.Context, v reflect.Value, state State, p path.Pat
 	}
 
 	// Only strings can be CPU quantities; preserve plan formatting for CPU fields
-	if tfVal.Type(ctx) == types.StringType && val.Type(ctx) == types.StringType {
-		planStr := tfVal.(types.String).ValueString()
-		stateStr := val.(types.String).ValueString()
-		if planStr != stateStr {
-			ps := p.String()
-			// detect container CPU paths like "...containers.<idx>.resources.limits.cpu" or "...containers.<idx>.resources.requests.cpu"
-			if strings.HasSuffix(ps, "resources.limits.cpu") || strings.HasSuffix(ps, "resources.requests.cpu") {
-				planQty, pErr := resource.ParseQuantity(planStr)
-				stateQty, sErr := resource.ParseQuantity(stateStr)
-				if pErr == nil && sErr == nil && planQty.Cmp(stateQty) == 0 {
-					// set model to plan textual representation
-					v.Set(reflect.ValueOf(tfVal))
-					return nil
-				}
+	if tfVal.Type(ctx) != types.StringType || val.Type(ctx) != types.StringType {
+		return nil
+	}
+
+	planStr := tfVal.(types.String).ValueString()
+	stateStr := val.(types.String).ValueString()
+	if planStr != stateStr {
+		ps := p.String()
+		// detect container CPU paths like "...containers.<idx>.resources.limits.cpu" or "...containers.<idx>.resources.requests.cpu"
+		if strings.HasSuffix(ps, "resources.limits.cpu") || strings.HasSuffix(ps, "resources.requests.cpu") {
+			planQty, pErr := resource.ParseQuantity(planStr)
+			stateQty, sErr := resource.ParseQuantity(stateStr)
+			if pErr == nil && sErr == nil && planQty.Cmp(stateQty) == 0 {
+				// set model to plan textual representation
+				v.Set(reflect.ValueOf(tfVal))
+				return nil
 			}
 		}
 	}
