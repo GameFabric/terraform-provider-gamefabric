@@ -150,6 +150,7 @@ func sliceType(ctx context.Context, v reflect.Value, t reflect.Type, state State
 	return diags
 }
 
+//nolint:gocyclo, cyclop // Making this less complex would reduce readability.
 func primitiveType(ctx context.Context, v reflect.Value, state State, p path.Path) diag.Diagnostics {
 	var tfVal attr.Value
 	diags := state.GetAttribute(ctx, p, &tfVal)
@@ -158,30 +159,38 @@ func primitiveType(ctx context.Context, v reflect.Value, state State, p path.Pat
 	}
 
 	val := v.Interface().(attr.Value)
-	// New: preserve CPU quantity formatting for container cpu paths when plan and state differ
-	if !tfVal.IsNull() && !val.IsNull() {
-		if tfVal.Type(ctx) == types.StringType && val.Type(ctx) == types.StringType {
-			planStr := tfVal.(types.String).ValueString()
-			stateStr := val.(types.String).ValueString()
-			if planStr != stateStr {
-				ps := p.String()
-				// detect container CPU paths like "...containers.<idx>.resources.limits.cpu" or "...containers.<idx>.resources.requests.cpu"
-				if strings.HasSuffix(ps, "resources.limits.cpu") || strings.HasSuffix(ps, "resources.requests.cpu") {
-					planQty, pErr := resource.ParseQuantity(planStr)
-					stateQty, sErr := resource.ParseQuantity(stateStr)
-					if pErr == nil && sErr == nil && planQty.Cmp(stateQty) == 0 {
-						// set model to plan textual representation
-						v.Set(reflect.ValueOf(tfVal))
-						return nil
-					}
+
+	// Handle null / zero mismatches and apply tfVal immediately.
+	if (tfVal.IsNull() && !val.IsNull() && isZeroAttr(ctx, val)) || (!tfVal.IsNull() && val.IsNull()) {
+		v.Set(reflect.ValueOf(tfVal))
+		return nil
+	}
+
+	// If either side is null/unknown or types differ, nothing more to do.
+	if tfVal.IsNull() || val.IsNull() {
+		return nil
+	}
+
+	// Only strings can be CPU quantities; preserve plan formatting for CPU fields
+	if tfVal.Type(ctx) == types.StringType && val.Type(ctx) == types.StringType {
+		planStr := tfVal.(types.String).ValueString()
+		stateStr := val.(types.String).ValueString()
+		if planStr != stateStr {
+			ps := p.String()
+			// detect container CPU paths like "...containers.<idx>.resources.limits.cpu" or "...containers.<idx>.resources.requests.cpu"
+			if strings.HasSuffix(ps, "resources.limits.cpu") || strings.HasSuffix(ps, "resources.requests.cpu") {
+				planQty, pErr := resource.ParseQuantity(planStr)
+				stateQty, sErr := resource.ParseQuantity(stateStr)
+				if pErr == nil && sErr == nil && planQty.Cmp(stateQty) == 0 {
+					// set model to plan textual representation
+					v.Set(reflect.ValueOf(tfVal))
+					return nil
 				}
 			}
 		}
 	}
 
-	if (tfVal.IsNull() && !val.IsNull() && isZeroAttr(ctx, val)) || (!tfVal.IsNull() && val.IsNull()) {
-		v.Set(reflect.ValueOf(tfVal))
-	}
+	// No special case matched; nothing else to do for primitives.
 	return nil
 }
 
