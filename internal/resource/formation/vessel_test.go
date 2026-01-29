@@ -57,7 +57,7 @@ func TestResourceVessel(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.args.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.args.0", "example-arg"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.resources.limits.cpu", "1.1"),
-					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.resources.limits.memory", "512Mi"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.resources.limits.memory", "1512Mi"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.resources.requests.cpu", "250m"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.resources.requests.memory", "256Mi"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.envs.#", "3"),
@@ -101,7 +101,7 @@ func TestResourceVessel(t *testing.T) {
 					// Volumes.
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "volumes.#", "2"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "volumes.0.name", "example-volume"),
-					resource.TestCheckResourceAttr("gamefabric_vessel.test", "volumes.0.empty_dir.size_limit", "1Gi"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "volumes.0.empty_dir.size_limit", "1.1Gi"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "volumes.1.name", "persistent-volume"),
 					resource.TestCheckResourceAttr("gamefabric_vessel.test", "volumes.1.persistent.volume_name", "perm-vol"),
 
@@ -430,8 +430,8 @@ func testResourceVesselConfigFull() string {
       args    = ["example-arg"]
       resources = {
         limits = {
-          cpu    = "1.1"
-          memory = "512Mi"
+          cpu    = 1.1
+          memory = "1512Mi"
         }
         requests = {
           cpu    = "250m"
@@ -515,7 +515,7 @@ func testResourceVesselConfigFull() string {
     {
       name = "example-volume"
       empty_dir = {
-        size_limit = "1Gi"
+        size_limit = "1.1Gi"
       }
     },
     {

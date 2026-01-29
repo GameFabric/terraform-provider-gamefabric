@@ -166,17 +166,26 @@ func primitiveType(ctx context.Context, v reflect.Value, state State, p path.Pat
 		return nil
 	}
 
-	// If either side is null/unknown, or of bad type,  nothing more to do.
+	// If either side is null/unknown, or not a string type, nothing more to do.
 	if tfVal.IsNull() || val.IsNull() || tfVal.Type(ctx) != types.StringType || val.Type(ctx) != types.StringType {
 		return nil
 	}
 
 	planStr := tfVal.(types.String).ValueString()
 	stateStr := val.(types.String).ValueString()
-	if planStr != stateStr {
-		ps := p.String()
-		// detect container CPU paths like "...containers.<idx>.resources.limits.cpu" or "...containers.<idx>.resources.requests.cpu"
-		if strings.HasSuffix(ps, "resources.limits.cpu") || strings.HasSuffix(ps, "resources.requests.cpu") {
+	if planStr == stateStr {
+		return nil
+	}
+
+	for _, ap := range []string{
+		"resources.limits.cpu",
+		"resources.requests.cpu",
+		"resources.limits.memory",
+		"resources.requests.memory",
+		"empty_dir.size_limit",
+		"capacity",
+	} {
+		if strings.HasSuffix(p.String(), ap) {
 			planQty, pErr := resource.ParseQuantity(planStr)
 			stateQty, sErr := resource.ParseQuantity(stateStr)
 			if pErr == nil && sErr == nil && planQty.Cmp(stateQty) == 0 {
