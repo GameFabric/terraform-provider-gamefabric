@@ -15,6 +15,18 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
+// quantityPaths defines the attribute paths that should be treated as resource.Quantity values.
+// These paths are relative and will be matched using suffix matching.
+// Every time a new quantity field is added to a model, its path should be added here.
+var quantityPaths = []string{
+	"resources.limits.cpu",
+	"resources.requests.cpu",
+	"resources.limits.memory",
+	"resources.requests.memory",
+	"empty_dir.size_limit",
+	"capacity",
+}
+
 // State provides access to the current state or plan attributes.
 type State interface {
 	GetAttribute(ctx context.Context, path path.Path, target any) diag.Diagnostics
@@ -177,15 +189,8 @@ func primitiveType(ctx context.Context, v reflect.Value, state State, p path.Pat
 		return nil
 	}
 
-	for _, ap := range []string{
-		"resources.limits.cpu",
-		"resources.requests.cpu",
-		"resources.limits.memory",
-		"resources.requests.memory",
-		"empty_dir.size_limit",
-		"capacity",
-	} {
-		if strings.HasSuffix(p.String(), ap) {
+	for _, qp := range quantityPaths {
+		if strings.HasSuffix(p.String(), qp) {
 			planQty, pErr := resource.ParseQuantity(planStr)
 			stateQty, sErr := resource.ParseQuantity(stateStr)
 			if pErr == nil && sErr == nil && planQty.Cmp(stateQty) == 0 {
