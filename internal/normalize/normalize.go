@@ -6,12 +6,26 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
+
+// quantityPaths defines the attribute paths that should be treated as resource.Quantity values.
+// These paths are relative and will be matched using suffix matching.
+// Every time a new quantity field is added to a model, its path should be added here.
+var quantityPaths = []string{
+	"resources.limits.cpu",
+	"resources.requests.cpu",
+	"resources.limits.memory",
+	"resources.requests.memory",
+	"empty_dir.size_limit",
+	"capacity",
+}
 
 // State provides access to the current state or plan attributes.
 type State interface {
@@ -148,6 +162,7 @@ func sliceType(ctx context.Context, v reflect.Value, t reflect.Type, state State
 	return diags
 }
 
+//nolint:gocyclo, cyclop // Making this less complex would reduce readability.
 func primitiveType(ctx context.Context, v reflect.Value, state State, p path.Path) diag.Diagnostics {
 	var tfVal attr.Value
 	diags := state.GetAttribute(ctx, p, &tfVal)
@@ -156,9 +171,36 @@ func primitiveType(ctx context.Context, v reflect.Value, state State, p path.Pat
 	}
 
 	val := v.Interface().(attr.Value)
+
+	// Handle null / zero mismatches and apply tfVal immediately.
 	if (tfVal.IsNull() && !val.IsNull() && isZeroAttr(ctx, val)) || (!tfVal.IsNull() && val.IsNull()) {
 		v.Set(reflect.ValueOf(tfVal))
+		return nil
 	}
+
+	// If either side is null/unknown, or not a string type, nothing more to do.
+	if tfVal.IsNull() || val.IsNull() || tfVal.Type(ctx) != types.StringType || val.Type(ctx) != types.StringType {
+		return nil
+	}
+
+	planStr := tfVal.(types.String).ValueString()
+	stateStr := val.(types.String).ValueString()
+	if planStr == stateStr {
+		return nil
+	}
+
+	for _, qp := range quantityPaths {
+		if strings.HasSuffix(p.String(), qp) {
+			planQty, pErr := resource.ParseQuantity(planStr)
+			stateQty, sErr := resource.ParseQuantity(stateStr)
+			if pErr == nil && sErr == nil && planQty.Cmp(stateQty) == 0 {
+				// set model to plan textual representation
+				v.Set(reflect.ValueOf(tfVal))
+				return nil
+			}
+		}
+	}
+
 	return nil
 }
 

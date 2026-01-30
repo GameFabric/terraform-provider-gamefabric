@@ -79,7 +79,7 @@ func TestResourceFormation(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.command.0", "example-command"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.args.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.args.0", "example-arg"),
-					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.resources.limits.cpu", "500m"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.resources.limits.cpu", "2000m"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.resources.limits.memory", "512Mi"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.resources.requests.cpu", "250m"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.resources.requests.memory", "256Mi"),
@@ -520,7 +520,7 @@ func testResourceFormationConfigFull() string {
       args    = ["example-arg"]
       resources = {
         limits = {
-          cpu    = "500m"
+          cpu    = "2000m"
           memory = "512Mi"
         }
         requests = {
