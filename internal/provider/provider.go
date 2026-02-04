@@ -15,7 +15,6 @@ import (
 	dsprotection "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/protection"
 	dsrbac "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/rbac"
 	dsstorage "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/storage"
-	ephauthentication "github.com/gamefabric/terraform-provider-gamefabric/internal/ephemeral/authentication"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/armada"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/authentication"
@@ -27,7 +26,6 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/storage"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -121,7 +119,6 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 		provCtx := provcontext.NewContext(p.clientSet)
 		resp.DataSourceData = provCtx
 		resp.ResourceData = provCtx
-		resp.EphemeralResourceData = provCtx
 		return
 	}
 
@@ -166,7 +163,6 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 	provCtx := provcontext.NewContext(p.clientSet)
 	resp.DataSourceData = provCtx
 	resp.ResourceData = provCtx
-	resp.EphemeralResourceData = provCtx
 }
 
 // DataSources defines the data sources implemented in the provider.
@@ -222,13 +218,6 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		rbac.NewRoleBinding,
 		storage.NewVolume,
 		storage.NewVolumeStoreRetentionPolicy,
-	}
-}
-
-// EphemeralResources defines the ephemeral resources implemented in the provider.
-func (p *Provider) EphemeralResources(_ context.Context) []func() ephemeral.EphemeralResource {
-	return []func() ephemeral.EphemeralResource{
-		ephauthentication.NewServiceAccountPasswordEphemeralResource,
 	}
 }
 
