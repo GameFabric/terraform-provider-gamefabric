@@ -89,6 +89,8 @@ func (r *serviceAccountPassword) Open(ctx context.Context, req ephemeral.OpenReq
 		return
 	}
 
+	resp.Diagnostics.AddWarning("Password reset dsiufghwofiwe", "The service account password has been reset.")
+
 	config.ID = types.StringValue(config.ServiceAccount.ValueString())
 	config.Password = types.StringValue(password)
 
