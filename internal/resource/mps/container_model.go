@@ -39,8 +39,8 @@ func NewContainerForArmada(obj armadav1.Container) ContainerModel {
 		Envs:         conv.ForEachSliceItem(obj.Env, core.NewEnvVarModel),
 		Ports:        conv.ForEachSliceItem(obj.Ports, newPortModelForArmada),
 		VolumeMounts: conv.ForEachSliceItem(obj.VolumeMounts, newVolumeMountModel),
-		ConfigFiles:  conv.ForEachSliceItem(obj.ConfigFiles, newConfigFileModelForArmada),
-		Secrets:      conv.ForEachSliceItem(obj.Secrets, newSecretMountModelForArmada),
+		ConfigFiles:  conv.ForEachSliceItem(obj.ConfigFiles, NewConfigFileModelForArmada),
+		Secrets:      conv.ForEachSliceItem(obj.Secrets, NewSecretMountModelForArmada),
 	}
 }
 
@@ -75,8 +75,8 @@ func ToContainerForArmada(ctr ContainerModel) armadav1.Container {
 		Env:          conv.ForEachSliceItem(ctr.Envs, func(item core.EnvVarModel) corev1.EnvVar { return item.ToObject() }),
 		Ports:        conv.ForEachSliceItem(ctr.Ports, toPortForArmada),
 		VolumeMounts: conv.ForEachSliceItem(ctr.VolumeMounts, toVolumeMount),
-		ConfigFiles:  conv.ForEachSliceItem(ctr.ConfigFiles, toConfigFileForArmada),
-		Secrets:      conv.ForEachSliceItem(ctr.Secrets, toArmadaSecretMount),
+		ConfigFiles:  conv.ForEachSliceItem(ctr.ConfigFiles, ToConfigFileForArmada),
+		Secrets:      conv.ForEachSliceItem(ctr.Secrets, ToArmadaSecretMount),
 	}
 }
 
@@ -259,7 +259,7 @@ type ConfigFileModel struct {
 	MountPath types.String `tfsdk:"mount_path"`
 }
 
-func newConfigFileModelForArmada(obj armadav1.ConfigFileMount) ConfigFileModel {
+func NewConfigFileModelForArmada(obj armadav1.ConfigFileMount) ConfigFileModel {
 	return ConfigFileModel{
 		Name:      types.StringValue(obj.Name),
 		MountPath: types.StringValue(obj.MountPath),
@@ -273,7 +273,7 @@ func newConfigFileModelForFormation(obj formationv1.ConfigFileMount) ConfigFileM
 	}
 }
 
-func toConfigFileForArmada(file ConfigFileModel) armadav1.ConfigFileMount {
+func ToConfigFileForArmada(file ConfigFileModel) armadav1.ConfigFileMount {
 	return armadav1.ConfigFileMount{
 		Name:      file.Name.ValueString(),
 		MountPath: file.MountPath.ValueString(),
@@ -293,7 +293,7 @@ type SecretMountModel struct {
 	MountPath types.String `tfsdk:"mount_path"`
 }
 
-func newSecretMountModelForArmada(obj armadav1.SecretMount) SecretMountModel {
+func NewSecretMountModelForArmada(obj armadav1.SecretMount) SecretMountModel {
 	return SecretMountModel{
 		Name:      types.StringValue(obj.Name),
 		MountPath: types.StringValue(obj.MountPath),
@@ -307,7 +307,7 @@ func newSecretMountModelForFormation(obj formationv1.SecretMount) SecretMountMod
 	}
 }
 
-func toArmadaSecretMount(secret SecretMountModel) armadav1.SecretMount {
+func ToArmadaSecretMount(secret SecretMountModel) armadav1.SecretMount {
 	return armadav1.SecretMount{
 		Name:      secret.Name.ValueString(),
 		MountPath: secret.MountPath.ValueString(),

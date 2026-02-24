@@ -220,6 +220,58 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 								validators.LabelsValidator{},
 							},
 						},
+						"config_files": schema.ListNestedAttribute{
+							Description:         "Configuration file mounts for this region.",
+							MarkdownDescription: "Configuration file mounts for this region.",
+							Optional:            true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"name": schema.StringAttribute{
+										Description:         "Name of the ConfigFile resource to mount.",
+										MarkdownDescription: "Name of the ConfigFile resource to mount.",
+										Required:            true,
+										Validators: []validator.String{
+											validators.NameValidator{},
+											validators.GFFieldString(armadaSetValidator, "spec.override[?].configFiles[?].name"),
+										},
+									},
+									"mount_path": schema.StringAttribute{
+										Description:         "Path where the config file will be mounted in the container.",
+										MarkdownDescription: "Path where the config file will be mounted in the container.",
+										Required:            true,
+										Validators: []validator.String{
+											validators.GFFieldString(armadaSetValidator, "spec.override[?].configFiles[?].mountPath"),
+										},
+									},
+								},
+							},
+						},
+						"secrets": schema.ListNestedAttribute{
+							Description:         "Secret mounts for this region.",
+							MarkdownDescription: "Secret mounts for this region.",
+							Optional:            true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"name": schema.StringAttribute{
+										Description:         "Name of the Secret resource to mount.",
+										MarkdownDescription: "Name of the Secret resource to mount.",
+										Required:            true,
+										Validators: []validator.String{
+											validators.NameValidator{},
+											validators.GFFieldString(armadaSetValidator, "spec.override[?].secrets[?].name"),
+										},
+									},
+									"mount_path": schema.StringAttribute{
+										Description:         "Path where the secret will be mounted in the container.",
+										MarkdownDescription: "Path where the secret will be mounted in the container.",
+										Required:            true,
+										Validators: []validator.String{
+											validators.GFFieldString(armadaSetValidator, "spec.override[?].secrets[?].mountPath"),
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},

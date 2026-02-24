@@ -80,8 +80,6 @@ github.com/gamefabric/gf-apicore v1.9.1 h1:z0AJ18gDM7zlObDK7gGfpp4mEHB3qYC+eb0Dn
 github.com/gamefabric/gf-apicore v1.9.1/go.mod h1:8EPB+Ici80fmdikJDvKfsktGh5MDvnWwFcZ37cRxO7U=
 github.com/gamefabric/gf-apiserver v1.13.0 h1:nH4DNQROu3Jv8nobQjcq9GZ4cGEmEm0E9reSlQHz9WI=
 github.com/gamefabric/gf-apiserver v1.13.0/go.mod h1:Jb6eUJ5v+Fur14sFd++LPJbVnICbQCVI18DdwKcBDyA=
-github.com/gamefabric/gf-core v0.32.0 h1:pf9PDHlnoCzvFxf5GMZU0g7mwxykR4r+f302UE7c/hk=
-github.com/gamefabric/gf-core v0.32.0/go.mod h1:kHpdTUKQUXyA6h+0dCjdYDlUcwo01v+pCTip9iUUutE=
 github.com/gamefabric/gf-core v0.33.0 h1:+/hTKQ/1cg95z2Hz4XYWp1N1BZpslYpGp8IdryTG8Aw=
 github.com/gamefabric/gf-core v0.33.0/go.mod h1:cjS0hihHmkfIYL1Ru+HmMA02G7xSoNMCIOq5y1n2HMk=
 github.com/go-chi/chi/v5 v5.2.3 h1:WQIt9uxdsAbgIYgid+BpYc+liqQZGMHRaUwp0JUcvdE=
