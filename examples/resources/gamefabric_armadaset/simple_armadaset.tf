@@ -89,6 +89,19 @@ resource "gamefabric_armadaset" "this" {
           }
         }
       ]
+      config_files = [
+        {
+          name       = "us-east-config"
+          mount_path = "/config/us-east"
+        }
+      ]
+      secrets = [
+        {
+          name       = "us-east-secrets"
+          mount_path = "/secrets/us-east"
+        }
+      ]
+    },
       labels = {
         region = "us-east"
       }

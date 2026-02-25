@@ -112,6 +112,19 @@ resource "gamefabric_armadaset" "this" {
           }
         }
       ]
+      config_files = [
+        {
+          name       = "us-east-config"
+          mount_path = "/config/us-east"
+        }
+      ]
+      secrets = [
+        {
+          name       = "us-east-secrets"
+          mount_path = "/secrets/us-east"
+        }
+      ]
+    },
       labels = {
         region = "us-east"
       }
@@ -349,8 +362,10 @@ Required:
 
 Optional:
 
+- `config_files` (Attributes List) Configuration file mounts for this region. (see [below for nested schema](#nestedatt--regions--config_files))
 - `envs` (Attributes List) Environment variables for the region. (see [below for nested schema](#nestedatt--regions--envs))
 - `gameserver_labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
+- `secrets` (Attributes List) Secret mounts for this region. (see [below for nested schema](#nestedatt--regions--secrets))
 
 <a id="nestedatt--regions--replicas"></a>
 ### Nested Schema for `regions.replicas`
@@ -361,6 +376,15 @@ Required:
 - `max_replicas` (Number) MaxReplicas is the maximum number of replicas in the region type.
 - `min_replicas` (Number) MinReplicas is the minimum number of replicas in the region type.
 - `region_type` (String) RegionType is the name of the region type.
+
+
+<a id="nestedatt--regions--config_files"></a>
+### Nested Schema for `regions.config_files`
+
+Required:
+
+- `mount_path` (String) Path where the config file will be mounted in the container.
+- `name` (String) Name of the ConfigFile resource to mount.
 
 
 <a id="nestedatt--regions--envs"></a>
@@ -393,6 +417,15 @@ Required:
 - `name` (String) Name of the secret.
 
 
+
+
+<a id="nestedatt--regions--secrets"></a>
+### Nested Schema for `regions.secrets`
+
+Required:
+
+- `mount_path` (String) Path where the secret will be mounted in the container.
+- `name` (String) Name of the Secret resource to mount.
 
 
 

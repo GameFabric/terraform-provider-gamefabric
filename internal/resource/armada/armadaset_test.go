@@ -57,6 +57,22 @@ func TestResourceArmadaSet(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.envs.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.envs.0.name", "REGION_ENV"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.envs.0.value", "eu_value"),
+
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.config_files.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("gamefabric_armadaset.test", "regions.0.config_files.*", map[string]string{
+						"name":       "europe-regional-config",
+						"mount_path": "/config/europe",
+					}),
+
+					resource.TestCheckTypeSetElemNestedAttrs("gamefabric_armadaset.test", "regions.0.config_files.*", map[string]string{
+						"name":       "europe-feature-flags",
+						"mount_path": "/config/features",
+					}),
+
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.secrets.#", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.secrets.0.name", "europe-regional-secrets"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.secrets.0.mount_path", "/secrets/europe"),
+
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.gameserver_labels.%", "1"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.gameserver_labels.region-label-key", "region-label-value"),
 
@@ -516,6 +532,22 @@ func testResourceArmadaSetConfigFull() string {
         {
           name  = "REGION_ENV"
           value = "eu_value"
+        }
+      ]
+      config_files = [
+        {
+          name       = "europe-regional-config"
+          mount_path = "/config/europe"
+        },
+        {
+          name       = "europe-feature-flags"
+          mount_path = "/config/features"
+        }
+      ]
+      secrets = [
+        {
+          name       = "europe-regional-secrets"
+          mount_path = "/secrets/europe"
         }
       ]
       gameserver_labels = {
