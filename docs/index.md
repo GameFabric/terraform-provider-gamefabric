@@ -22,11 +22,13 @@ provider "gamefabric" {
 }
 ```
 
+If both `host` and `customer_id` are set, the provider expects both to result in the same effective host. For example, if `customer_id` is set to `customerID`, the provider expects `host` to be `customerID.gamefabric.dev`. If they do not match, the provider will return an error.
+
 ### Environment Variables
 
 The following environment variables can be used to configure the provider:
 
-- `GAMEFABRIC_HOST`: The GameFabric API host URL.
+- `GAMEFABRIC_HOST`: The GameFabric API host for example: `example.gamefabric.dev`.
 - `GAMEFABRIC_CUSTOMER_ID`: The customer ID (first segment of your installation URL). If your installation URL is `customerID.gamefabric.dev`, set this to `customerID`.
 - `GAMEFABRIC_SERVICE_ACCOUNT`: The service account username.
 - `GAMEFABRIC_PASSWORD`: The service account password.
@@ -37,7 +39,7 @@ The following environment variables can be used to configure the provider:
 ### Optional
 
 - `customer_id` (String) The customer ID (first segment of your installation URL). If your installation URL is `customerID.gamefabric.dev`, set this to `customerID`.
-- `host` (String) The GameFabric API host URL.
+- `host` (String) The GameFabric API host for example: `example.gamefabric.dev`.
 - `password` (String, Sensitive) The service account password.
 - `service_account` (String) The service account username.
 

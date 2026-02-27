@@ -88,8 +88,8 @@ func (p *Provider) Schema(_ context.Context, _ provider.SchemaRequest, resp *pro
 		MarkdownDescription: "GameFabric provider is used to interact, provision and manage your GameFabric resources.",
 		Attributes: map[string]schema.Attribute{
 			"host": schema.StringAttribute{
-				Description:         "The GameFabric API host URL.",
-				MarkdownDescription: "The GameFabric API host URL.",
+				Description:         "The GameFabric API host for example: 'example.gamefabric.dev'.",
+				MarkdownDescription: "The GameFabric API host for example: `example.gamefabric.dev`.",
 				Optional:            true,
 			},
 			"customer_id": schema.StringAttribute{
