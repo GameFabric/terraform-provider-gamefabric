@@ -22,6 +22,8 @@ provider "gamefabric" {
 }
 ```
 
+If both `host` and `customer_id` are set, the provider expects both to result in the same effective host. For example, if `customer_id` is set to `customerID`, the provider expects `host` to be `customerID.gamefabric.dev`. If they do not match, the provider will return an error.
+
 ### Environment Variables
 
 The following environment variables can be used to configure the provider:
