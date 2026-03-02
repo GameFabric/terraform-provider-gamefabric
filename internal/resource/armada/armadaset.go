@@ -217,7 +217,7 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 											"dynamic_max_buffer_threshold": schema.Int32Attribute{
 												Description:         "DynamicMaxBufferThreshold is the max threshold for the dynamic buffer size.",
 												MarkdownDescription: "DynamicMaxBufferThreshold is the max threshold for the dynamic buffer size.",
-												Optional:            true,
+												Required:            true,
 												Validators: []validator.Int32{
 													int32validator.Between(0, 500),
 													validators.GFFieldInt32(armadaValidator, "spec.distribution[?].dynamicBuffer.dynamicMaxBufferThreshold"),
@@ -226,7 +226,7 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 											"dynamic_min_buffer_threshold": schema.Int32Attribute{
 												Description:         "DynamicMinBufferThreshold is the min threshold for the dynamic buffer size.",
 												MarkdownDescription: "DynamicMinBufferThreshold is the min threshold for the dynamic buffer size.",
-												Optional:            true,
+												Required:            true,
 												Validators: []validator.Int32{
 													int32validator.Between(10, 50),
 													validators.GFFieldInt32(armadaValidator, "spec.distribution[?].dynamicBuffer.dynamicMinBufferThreshold"),
