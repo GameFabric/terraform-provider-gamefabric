@@ -189,6 +189,40 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 								validators.GFFieldInt32(armadaValidator, "spec.distribution[?].bufferSize"),
 							},
 						},
+						"dynamic_buffer": schema.SingleNestedAttribute{
+							Description:         "DynamicBuffer configures the dynamic buffer for the region type.",
+							MarkdownDescription: "DynamicBuffer configures the dynamic buffer for the region type.",
+							Optional:            true,
+							Attributes: map[string]schema.Attribute{
+								"max_buffer_utilization": schema.Int32Attribute{
+									Description:         " MaxBufferUtilization is the maximum buffer utilization percentage, in integer form.",
+									MarkdownDescription: " MaxBufferUtilization is the maximum buffer utilization percentage, in integer form.",
+									Required:            true,
+									Validators: []validator.Int32{
+										int32validator.Between(10, 90),
+										validators.GFFieldInt32(armadaValidator, "spec.distribution[?].dynamicBuffer.maxBufferUtilization"),
+									},
+								},
+								"dynamic_max_buffer_threshold": schema.Int32Attribute{
+									Description:         "DynamicMaxBufferThreshold is the max threshold for the dynamic buffer size.",
+									MarkdownDescription: "DynamicMaxBufferThreshold is the max threshold for the dynamic buffer size.",
+									Optional:            true,
+									Validators: []validator.Int32{
+										int32validator.Between(0, 500),
+										validators.GFFieldInt32(armadaValidator, "spec.distribution[?].dynamicBuffer.dynamicMaxBufferThreshold"),
+									},
+								},
+								"dynamic_min_buffer_threshold": schema.Int32Attribute{
+									Description:         "DynamicMinBufferThreshold is the min threshold for the dynamic buffer size.",
+									MarkdownDescription: "DynamicMinBufferThreshold is the min threshold for the dynamic buffer size.",
+									Optional:            true,
+									Validators: []validator.Int32{
+										int32validator.Between(10, 50),
+										validators.GFFieldInt32(armadaValidator, "spec.distribution[?].dynamicBuffer.dynamicMinBufferThreshold"),
+									},
+								},
+							},
+						},
 					},
 				},
 			},

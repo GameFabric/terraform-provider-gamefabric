@@ -73,10 +73,11 @@ func (m armadaModel) ToObject() *armadav1.Armada {
 			Region:      m.Region.ValueString(),
 			Distribution: conv.ForEachSliceItem(m.Replicas, func(r replicaModel) armadav1.ArmadaRegionType {
 				return armadav1.ArmadaRegionType{
-					Name:        r.RegionType.ValueString(),
-					MinReplicas: r.MinReplicas.ValueInt32(),
-					MaxReplicas: r.MaxReplicas.ValueInt32(),
-					BufferSize:  r.BufferSize.ValueInt32(),
+					Name:          r.RegionType.ValueString(),
+					MinReplicas:   r.MinReplicas.ValueInt32(),
+					MaxReplicas:   r.MaxReplicas.ValueInt32(),
+					BufferSize:    r.BufferSize.ValueInt32(),
+					DynamicBuffer: toDynamicBuffer(r.DynamicBuffer),
 				}
 			}),
 			Autoscaling: armadav1.ArmadaAutoscaling{
@@ -156,19 +157,54 @@ func toFixedInterval(scaling *autoscalingModel) *armadav1.ArmadaFixInterval {
 }
 
 type replicaModel struct {
-	RegionType  types.String `tfsdk:"region_type"`
-	MinReplicas types.Int32  `tfsdk:"min_replicas"`
-	MaxReplicas types.Int32  `tfsdk:"max_replicas"`
-	BufferSize  types.Int32  `tfsdk:"buffer_size"`
+	RegionType    types.String        `tfsdk:"region_type"`
+	MinReplicas   types.Int32         `tfsdk:"min_replicas"`
+	MaxReplicas   types.Int32         `tfsdk:"max_replicas"`
+	BufferSize    types.Int32         `tfsdk:"buffer_size"`
+	DynamicBuffer *dynamicBufferModel `tfsdk:"dynamic_buffer"`
 }
 
 func newReplicas(obj armadav1.ArmadaRegionType) replicaModel {
 	return replicaModel{
-		RegionType:  types.StringValue(obj.Name),
-		MinReplicas: types.Int32Value(obj.MinReplicas),
-		MaxReplicas: types.Int32Value(obj.MaxReplicas),
-		BufferSize:  types.Int32Value(obj.BufferSize),
+		RegionType:    types.StringValue(obj.Name),
+		MinReplicas:   types.Int32Value(obj.MinReplicas),
+		MaxReplicas:   types.Int32Value(obj.MaxReplicas),
+		BufferSize:    types.Int32Value(obj.BufferSize),
+		DynamicBuffer: newDynamicBufferModel(obj.DynamicBuffer),
 	}
+}
+
+type dynamicBufferModel struct {
+	MaxBufferUtilization      types.Int32 `tfsdk:"max_buffer_utilization"`
+	DynamicMaxBufferThreshold types.Int32 `tfsdk:"dynamic_max_buffer_threshold"`
+	DynamicMinBufferThreshold types.Int32 `tfsdk:"dynamic_min_buffer_threshold"`
+}
+
+func newDynamicBufferModel(obj *armadav1.ArmadaDynamicBuffers) *dynamicBufferModel {
+	if obj == nil {
+		return nil
+	}
+	return &dynamicBufferModel{
+		MaxBufferUtilization:      types.Int32Value(int32(obj.MaxBufferUtilization)),
+		DynamicMaxBufferThreshold: types.Int32Value(int32(obj.DynamicMaxBufferThreshold)),
+		DynamicMinBufferThreshold: types.Int32Value(int32(obj.DynamicMinBufferThreshold)),
+	}
+}
+
+func toDynamicBuffer(model *dynamicBufferModel) *armadav1.ArmadaDynamicBuffers {
+	if model == nil || !conv.IsKnown(model.MaxBufferUtilization) {
+		return nil
+	}
+	res := &armadav1.ArmadaDynamicBuffers{
+		MaxBufferUtilization: uint32(model.MaxBufferUtilization.ValueInt32()),
+	}
+	if conv.IsKnown(model.DynamicMaxBufferThreshold) {
+		res.DynamicMaxBufferThreshold = uint32(model.DynamicMaxBufferThreshold.ValueInt32())
+	}
+	if conv.IsKnown(model.DynamicMinBufferThreshold) {
+		res.DynamicMinBufferThreshold = uint32(model.DynamicMinBufferThreshold.ValueInt32())
+	}
+	return res
 }
 
 type terminationConfigModel struct {

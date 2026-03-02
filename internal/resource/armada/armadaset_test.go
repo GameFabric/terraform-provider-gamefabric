@@ -520,6 +520,11 @@ func testResourceArmadaSetConfigFull() string {
           min_replicas = 1
           max_replicas = 2
           buffer_size  = 1
+          dynamic_buffer = {
+            max_buffer_utilization = 45
+            dynamic_max_buffer_threshold = 200
+            dynamic_min_buffer_threshold = 20
+          }
         },
         {
           region_type  = "gcp"

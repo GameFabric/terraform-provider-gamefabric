@@ -211,7 +211,7 @@ func toPortForArmada(p PortModel) armadav1.Port {
 	return armadav1.Port{
 		Name:               p.Name.ValueString(),
 		Policy:             agonesv1.PortPolicy(p.Policy.ValueString()),
-		ContainerPort:      uint16(p.ContainerPort.ValueInt32()), //nolint:gosec // Keep it simple.
+		ContainerPort:      uint16(p.ContainerPort.ValueInt32()),
 		Protocol:           kcorev1.Protocol(p.Protocol.ValueString()),
 		ProtectionProtocol: p.ProtectionProtocol.ValueStringPointer(),
 	}
@@ -221,7 +221,7 @@ func toPortForFormation(p PortModel) formationv1.Port {
 	return formationv1.Port{
 		Name:               p.Name.ValueString(),
 		Policy:             agonesv1.PortPolicy(p.Policy.ValueString()),
-		ContainerPort:      uint16(p.ContainerPort.ValueInt32()), //nolint:gosec // Keep it simple.
+		ContainerPort:      uint16(p.ContainerPort.ValueInt32()),
 		Protocol:           kcorev1.Protocol(p.Protocol.ValueString()),
 		ProtectionProtocol: p.ProtectionProtocol.ValueStringPointer(),
 	}

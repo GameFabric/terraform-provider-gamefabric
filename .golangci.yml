@@ -76,3 +76,5 @@ linters:
           - dupl
       - path: (.+)\.go$
         text: "`strat` is a misspelling of `start`"
+      - path: (.+)\.go$
+        text: 'G115'

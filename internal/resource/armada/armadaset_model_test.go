@@ -52,6 +52,11 @@ var (
 							MinReplicas: 1,
 							MaxReplicas: 5,
 							BufferSize:  1,
+							DynamicBuffer: &armadav1.ArmadaDynamicBuffers{
+								MaxBufferUtilization:      45,
+								DynamicMaxBufferThreshold: 200,
+								DynamicMinBufferThreshold: 20,
+							},
 						},
 						{
 							Name:        "cloud",
@@ -206,6 +211,11 @@ var (
 						MinReplicas: types.Int32Value(1),
 						MaxReplicas: types.Int32Value(5),
 						BufferSize:  types.Int32Value(1),
+						DynamicBuffer: &dynamicBufferModel{
+							MaxBufferUtilization:      types.Int32Value(45),
+							DynamicMaxBufferThreshold: types.Int32Value(200),
+							DynamicMinBufferThreshold: types.Int32Value(20),
+						},
 					},
 					{
 						RegionType:  types.StringValue("cloud"),

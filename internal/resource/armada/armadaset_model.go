@@ -134,10 +134,11 @@ func toArmadaTemplate(reg regionModel) armadav1.ArmadaTemplate {
 		Region: reg.Name.ValueString(),
 		Distribution: conv.ForEachSliceItem(reg.Replicas, func(r replicaModel) armadav1.ArmadaRegionType {
 			return armadav1.ArmadaRegionType{
-				Name:        r.RegionType.ValueString(),
-				MinReplicas: r.MinReplicas.ValueInt32(),
-				MaxReplicas: r.MaxReplicas.ValueInt32(),
-				BufferSize:  r.BufferSize.ValueInt32(),
+				Name:          r.RegionType.ValueString(),
+				MinReplicas:   r.MinReplicas.ValueInt32(),
+				MaxReplicas:   r.MaxReplicas.ValueInt32(),
+				BufferSize:    r.BufferSize.ValueInt32(),
+				DynamicBuffer: toDynamicBuffer(r.DynamicBuffer),
 			}
 		}),
 	}

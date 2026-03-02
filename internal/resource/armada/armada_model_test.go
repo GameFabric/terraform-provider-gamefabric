@@ -50,12 +50,22 @@ var (
 					MinReplicas: 1,
 					MaxReplicas: 5,
 					BufferSize:  1,
+					DynamicBuffer: &armadav1.ArmadaDynamicBuffers{
+						MaxBufferUtilization:      45,
+						DynamicMaxBufferThreshold: 200,
+						DynamicMinBufferThreshold: 20,
+					},
 				},
 				{
 					Name:        "cloud",
 					MinReplicas: 3,
 					MaxReplicas: 5,
 					BufferSize:  2,
+					DynamicBuffer: &armadav1.ArmadaDynamicBuffers{
+						MaxBufferUtilization:      60,
+						DynamicMaxBufferThreshold: 300,
+						DynamicMinBufferThreshold: 30,
+					},
 				},
 			},
 			Autoscaling: armadav1.ArmadaAutoscaling{
@@ -183,12 +193,22 @@ var (
 				MinReplicas: types.Int32Value(1),
 				MaxReplicas: types.Int32Value(5),
 				BufferSize:  types.Int32Value(1),
+				DynamicBuffer: &dynamicBufferModel{
+					MaxBufferUtilization:      types.Int32Value(45),
+					DynamicMaxBufferThreshold: types.Int32Value(200),
+					DynamicMinBufferThreshold: types.Int32Value(20),
+				},
 			},
 			{
 				RegionType:  types.StringValue("cloud"),
 				MinReplicas: types.Int32Value(3),
 				MaxReplicas: types.Int32Value(5),
 				BufferSize:  types.Int32Value(2),
+				DynamicBuffer: &dynamicBufferModel{
+					MaxBufferUtilization:      types.Int32Value(60),
+					DynamicMaxBufferThreshold: types.Int32Value(300),
+					DynamicMinBufferThreshold: types.Int32Value(30),
+				},
 			},
 		},
 		Autoscaling: &autoscalingModel{

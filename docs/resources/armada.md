@@ -289,6 +289,23 @@ Required:
 - `min_replicas` (Number) MinReplicas is the minimum number of replicas in the region type.
 - `region_type` (String) RegionType is the name of the region type.
 
+Optional:
+
+- `dynamic_buffer` (Attributes) DynamicBuffer configures the dynamic buffer for the region type. (see [below for nested schema](#nestedatt--replicas--dynamic_buffer))
+
+<a id="nestedatt--replicas--dynamic_buffer"></a>
+### Nested Schema for `replicas.dynamic_buffer`
+
+Required:
+
+- `max_buffer_utilization` (Number) MaxBufferUtilization is the maximum buffer utilization percentage, in integer form.
+
+Optional:
+
+- `dynamic_max_buffer_threshold` (Number) DynamicMaxBufferThreshold is the max threshold for the dynamic buffer size.
+- `dynamic_min_buffer_threshold` (Number) DynamicMinBufferThreshold is the min threshold for the dynamic buffer size.
+
+
 
 <a id="nestedatt--strategy"></a>
 ### Nested Schema for `strategy`
