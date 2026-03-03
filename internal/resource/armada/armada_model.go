@@ -195,16 +195,11 @@ func toDynamicBuffer(model *dynamicBufferModel) *armadav1.ArmadaDynamicBuffers {
 	if model == nil || !conv.IsKnown(model.MaxBufferUtilization) {
 		return nil
 	}
-	res := &armadav1.ArmadaDynamicBuffers{
-		MaxBufferUtilization: uint32(model.MaxBufferUtilization.ValueInt32()),
+	return &armadav1.ArmadaDynamicBuffers{
+		MaxBufferUtilization:      uint32(model.MaxBufferUtilization.ValueInt32()),
+		DynamicMaxBufferThreshold: uint32(model.DynamicMaxBufferThreshold.ValueInt32()),
+		DynamicMinBufferThreshold: uint32(model.DynamicMinBufferThreshold.ValueInt32()),
 	}
-	if conv.IsKnown(model.DynamicMaxBufferThreshold) {
-		res.DynamicMaxBufferThreshold = uint32(model.DynamicMaxBufferThreshold.ValueInt32())
-	}
-	if conv.IsKnown(model.DynamicMinBufferThreshold) {
-		res.DynamicMinBufferThreshold = uint32(model.DynamicMinBufferThreshold.ValueInt32())
-	}
-	return res
 }
 
 type terminationConfigModel struct {

@@ -195,11 +195,10 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 							Optional:            true,
 							Attributes: map[string]schema.Attribute{
 								"max_buffer_utilization": schema.Int32Attribute{
-									Description:         " MaxBufferUtilization is the maximum buffer utilization percentage, in integer form.",
-									MarkdownDescription: " MaxBufferUtilization is the maximum buffer utilization percentage, in integer form.",
+									Description:         "MaxBufferUtilization is the maximum buffer utilization percentage, in integer form.",
+									MarkdownDescription: "MaxBufferUtilization is the maximum buffer utilization percentage, in integer form.",
 									Required:            true,
 									Validators: []validator.Int32{
-										int32validator.Between(10, 90),
 										validators.GFFieldInt32(armadaValidator, "spec.distribution[?].dynamicBuffer.maxBufferUtilization"),
 									},
 								},
@@ -208,7 +207,6 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 									MarkdownDescription: "DynamicMaxBufferThreshold is the max threshold for the dynamic buffer size.",
 									Required:            true,
 									Validators: []validator.Int32{
-										int32validator.Between(0, 500),
 										validators.GFFieldInt32(armadaValidator, "spec.distribution[?].dynamicBuffer.dynamicMaxBufferThreshold"),
 									},
 								},
@@ -217,7 +215,6 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 									MarkdownDescription: "DynamicMinBufferThreshold is the min threshold for the dynamic buffer size.",
 									Required:            true,
 									Validators: []validator.Int32{
-										int32validator.Between(10, 50),
 										validators.GFFieldInt32(armadaValidator, "spec.distribution[?].dynamicBuffer.dynamicMinBufferThreshold"),
 									},
 								},
