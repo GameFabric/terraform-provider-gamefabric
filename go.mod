@@ -10,7 +10,7 @@ require (
 	github.com/gamefabric/gf-apiclient v0.2.1
 	github.com/gamefabric/gf-apicore v1.9.1
 	github.com/gamefabric/gf-apiserver v1.13.0
-	github.com/gamefabric/gf-core v0.33.0
+	github.com/gamefabric/gf-core v0.34.1-0.20260302120634-779daeedae71
 	github.com/google/uuid v1.6.0
 	github.com/hamba/pkg/v2 v2.14.0
 	github.com/hashicorp/terraform-plugin-framework v1.16.1
@@ -56,20 +56,20 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.22.1 // indirect
-	github.com/go-openapi/jsonreference v0.21.2 // indirect
-	github.com/go-openapi/spec v0.22.0 // indirect
-	github.com/go-openapi/swag v0.25.1 // indirect
-	github.com/go-openapi/swag/cmdutils v0.25.1 // indirect
-	github.com/go-openapi/swag/conv v0.25.1 // indirect
-	github.com/go-openapi/swag/fileutils v0.25.1 // indirect
-	github.com/go-openapi/swag/jsonname v0.25.1 // indirect
-	github.com/go-openapi/swag/jsonutils v0.25.1 // indirect
-	github.com/go-openapi/swag/loading v0.25.1 // indirect
-	github.com/go-openapi/swag/mangling v0.25.1 // indirect
-	github.com/go-openapi/swag/netutils v0.25.1 // indirect
-	github.com/go-openapi/swag/stringutils v0.25.1 // indirect
-	github.com/go-openapi/swag/typeutils v0.25.1 // indirect
-	github.com/go-openapi/swag/yamlutils v0.25.1 // indirect
+	github.com/go-openapi/jsonreference v0.21.3 // indirect
+	github.com/go-openapi/spec v0.22.1 // indirect
+	github.com/go-openapi/swag v0.25.4 // indirect
+	github.com/go-openapi/swag/cmdutils v0.25.4 // indirect
+	github.com/go-openapi/swag/conv v0.25.4 // indirect
+	github.com/go-openapi/swag/fileutils v0.25.4 // indirect
+	github.com/go-openapi/swag/jsonname v0.25.4 // indirect
+	github.com/go-openapi/swag/jsonutils v0.25.4 // indirect
+	github.com/go-openapi/swag/loading v0.25.4 // indirect
+	github.com/go-openapi/swag/mangling v0.25.4 // indirect
+	github.com/go-openapi/swag/netutils v0.25.4 // indirect
+	github.com/go-openapi/swag/stringutils v0.25.4 // indirect
+	github.com/go-openapi/swag/typeutils v0.25.4 // indirect
+	github.com/go-openapi/swag/yamlutils v0.25.4 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -157,14 +157,14 @@ require (
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.64.0 // indirect
 	go.opentelemetry.io/otel v1.39.0 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.38.0 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.38.0 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.38.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.39.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.39.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.39.0 // indirect
 	go.opentelemetry.io/otel/exporters/zipkin v1.38.0 // indirect
 	go.opentelemetry.io/otel/metric v1.39.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.39.0 // indirect
 	go.opentelemetry.io/otel/trace v1.39.0 // indirect
-	go.opentelemetry.io/proto/otlp v1.8.0 // indirect
+	go.opentelemetry.io/proto/otlp v1.9.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.1 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
@@ -181,7 +181,7 @@ require (
 	golang.org/x/tools v0.39.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20251111163417-95abcf5c77ba // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20251213004720-97cd9d5aeac2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
 	google.golang.org/grpc v1.78.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect

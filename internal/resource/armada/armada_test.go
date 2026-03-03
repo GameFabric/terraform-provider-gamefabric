@@ -49,6 +49,9 @@ func TestResourceArmada(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "replicas.0.min_replicas", "1"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "replicas.0.max_replicas", "2"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "replicas.0.buffer_size", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "replicas.0.dynamic_buffer.max_buffer_utilization", "45"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "replicas.0.dynamic_buffer.dynamic_max_buffer_threshold", "200"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "replicas.0.dynamic_buffer.dynamic_min_buffer_threshold", "20"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "replicas.1.region_type", "gcp"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "replicas.1.min_replicas", "2"),
 					resource.TestCheckResourceAttr("gamefabric_armada.test", "replicas.1.max_replicas", "5"),
@@ -489,6 +492,11 @@ func testResourceArmadaConfigFull() string {
       min_replicas = 1
       max_replicas = 2
       buffer_size  = 1
+      dynamic_buffer = {
+        max_buffer_utilization = 45
+        dynamic_max_buffer_threshold = 200
+        dynamic_min_buffer_threshold = 20
+      }
     },
     {
       region_type  = "gcp"
