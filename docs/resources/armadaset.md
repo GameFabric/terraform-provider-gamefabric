@@ -386,9 +386,12 @@ Optional:
 
 Required:
 
+- `max_buffer_utilization` (Number) MaxBufferUtilization is the maximum buffer utilization percentage, in integer form.
+
+Optional:
+
 - `dynamic_max_buffer_threshold` (Number) DynamicMaxBufferThreshold is the max threshold for the dynamic buffer size.
 - `dynamic_min_buffer_threshold` (Number) DynamicMinBufferThreshold is the min threshold for the dynamic buffer size.
-- `max_buffer_utilization` (Number) MaxBufferUtilization is the maximum buffer utilization percentage, in integer form.
 
 
 
