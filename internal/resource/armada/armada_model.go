@@ -1,6 +1,8 @@
 package armada
 
 import (
+	"math"
+
 	"github.com/gamefabric/gf-apiclient/tools/cache"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	armadav1 "github.com/gamefabric/gf-core/pkg/api/armada/v1"
@@ -195,11 +197,86 @@ func toDynamicBuffer(model *dynamicBufferModel) *armadav1.ArmadaDynamicBuffers {
 	if model == nil || !conv.IsKnown(model.MaxBufferUtilization) {
 		return nil
 	}
-	return &armadav1.ArmadaDynamicBuffers{
-		MaxBufferUtilization:      uint32(model.MaxBufferUtilization.ValueInt32()),
-		DynamicMaxBufferThreshold: uint32(model.DynamicMaxBufferThreshold.ValueInt32()),
-		DynamicMinBufferThreshold: uint32(model.DynamicMinBufferThreshold.ValueInt32()),
+
+	percentage := model.MaxBufferUtilization.ValueInt32()
+	maxThreshold := derivedDynamicMaxBufferThreshold(percentage)
+	if conv.IsKnown(model.DynamicMaxBufferThreshold) {
+		maxThreshold = model.DynamicMaxBufferThreshold.ValueInt32()
 	}
+	minThreshold := derivedDynamicMinBufferThreshold(percentage)
+	if conv.IsKnown(model.DynamicMinBufferThreshold) {
+		minThreshold = model.DynamicMinBufferThreshold.ValueInt32()
+	}
+
+	return &armadav1.ArmadaDynamicBuffers{
+		MaxBufferUtilization:      uint32(percentage),
+		DynamicMaxBufferThreshold: uint32(maxThreshold),
+		DynamicMinBufferThreshold: uint32(minThreshold),
+	}
+}
+
+func derivedDynamicMinBufferThreshold(percentage int32) int32 {
+	// Linear mapping from 10% -> 10% to 80% -> 50%.
+	m := 0.4 / 70.0
+	b := 0.1 - (m * 10.0)
+	val := (m * float64(percentage)) + b
+
+	res := int32(math.Round(val * 100))
+	if res > 50 {
+		return 50
+	}
+	return res
+}
+
+type dynamicBufferPoint struct {
+	percentage float64
+	factor     float64
+}
+
+var dynamicBufferPoints = []dynamicBufferPoint{
+	{80, 1.00},
+	{75, 1.07},
+	{70, 1.14},
+	{65, 1.21},
+	{60, 1.29},
+	{55, 1.36},
+	{50, 1.43},
+	{45, 2.00},
+	{40, 1.57},
+	{35, 1.64},
+	{30, 1.71},
+	{25, 1.79},
+	{20, 1.86},
+	{15, 1.93},
+	{10, 3.00},
+}
+
+func derivedDynamicMaxBufferThreshold(percentage int32) int32 {
+	p := float64(percentage)
+	if p >= dynamicBufferPoints[0].percentage {
+		return int32(math.Round(dynamicBufferPoints[0].factor * 100))
+	}
+	if p <= dynamicBufferPoints[len(dynamicBufferPoints)-1].percentage {
+		return int32(math.Round(dynamicBufferPoints[len(dynamicBufferPoints)-1].factor * 100))
+	}
+
+	for i := range len(dynamicBufferPoints) - 1 {
+		left := dynamicBufferPoints[i]
+		right := dynamicBufferPoints[i+1]
+
+		switch {
+		case p == left.percentage:
+			return int32(math.Round(left.factor * 100))
+		case p == right.percentage:
+			return int32(math.Round(right.factor * 100))
+		case p < left.percentage && p > right.percentage:
+			ratio := (p - left.percentage) / (right.percentage - left.percentage)
+			val := left.factor + ratio*(right.factor-left.factor)
+			return int32(math.Round(val * 100))
+		}
+	}
+
+	return 0
 }
 
 type terminationConfigModel struct {

@@ -203,17 +203,19 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 									},
 								},
 								"dynamic_max_buffer_threshold": schema.Int32Attribute{
-									Description:         "DynamicMaxBufferThreshold is the max threshold for the dynamic buffer size.",
-									MarkdownDescription: "DynamicMaxBufferThreshold is the max threshold for the dynamic buffer size.",
-									Required:            true,
+									Description:         "DynamicMaxBufferThreshold is the max threshold for the dynamic buffer size. If not set, it will be derived from max_buffer_utilization.",
+									MarkdownDescription: "DynamicMaxBufferThreshold is the max threshold for the dynamic buffer size. If not set, it will be derived from max_buffer_utilization.",
+									Optional:            true,
+									Computed:            true,
 									Validators: []validator.Int32{
 										validators.GFFieldInt32(armadaValidator, "spec.distribution[?].dynamicBuffer.dynamicMaxBufferThreshold"),
 									},
 								},
 								"dynamic_min_buffer_threshold": schema.Int32Attribute{
-									Description:         "DynamicMinBufferThreshold is the min threshold for the dynamic buffer size.",
-									MarkdownDescription: "DynamicMinBufferThreshold is the min threshold for the dynamic buffer size.",
-									Required:            true,
+									Description:         "DynamicMinBufferThreshold is the min threshold for the dynamic buffer size. If not set, it will be derived from max_buffer_utilization.",
+									MarkdownDescription: "DynamicMinBufferThreshold is the min threshold for the dynamic buffer size. If not set, it will be derived from max_buffer_utilization.",
+									Optional:            true,
+									Computed:            true,
 									Validators: []validator.Int32{
 										validators.GFFieldInt32(armadaValidator, "spec.distribution[?].dynamicBuffer.dynamicMinBufferThreshold"),
 									},
@@ -436,6 +438,7 @@ func (r *armada) Create(ctx context.Context, req resource.CreateRequest, resp *r
 
 	plan = newArmadaModel(outObj)
 	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
+	applyDynamicBufferDefaultsToArmadaModel(&plan)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -499,6 +502,7 @@ func (r *armada) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 
 	plan.ID = types.StringValue(cache.NewObjectName(newObj.Environment, newObj.Name).String())
 	plan.ImageUpdaterTarget = container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeArmada, oldObj.Name, oldObj.Environment)
+	applyDynamicBufferDefaultsToArmadaModel(&plan)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

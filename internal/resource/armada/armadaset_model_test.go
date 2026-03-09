@@ -13,6 +13,7 @@ import (
 	"github.com/hamba/pkg/v2/ptr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
 	kcorev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -337,3 +338,17 @@ var (
 		ImageUpdaterTarget: container.NewImageUpdaterTargetModel("armadaset", "test-armadaset", "test-environment"),
 	}
 )
+
+func TestDynamicBufferThresholdDerivation(t *testing.T) {
+	t.Parallel()
+
+	obj := toDynamicBuffer(&dynamicBufferModel{
+		MaxBufferUtilization:      types.Int32Value(77),
+		DynamicMaxBufferThreshold: types.Int32Null(),
+		DynamicMinBufferThreshold: types.Int32Null(),
+	})
+
+	require.NotNil(t, obj)
+	require.Equal(t, uint32(104), obj.DynamicMinBufferThreshold)
+	require.Equal(t, uint32(104), obj.DynamicMaxBufferThreshold)
+}
