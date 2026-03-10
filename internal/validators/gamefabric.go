@@ -9,6 +9,7 @@ import (
 
 	"github.com/gamefabric/gf-apicore/api/validation"
 	"github.com/gamefabric/gf-apicore/runtime"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/tfutils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -54,6 +55,14 @@ func NewGameFabricValidator[T runtime.Object, M Model[T]](fn func() StoreValidat
 }
 
 func (v *gamefabricStoreValidator[T, M]) Validate(ctx context.Context, req GameFabricValidatorRequest) diag.Diagnostics {
+	if !conv.IsKnown(req.ConfigValue) {
+		// If the value is marked as optional in Terraform,
+		// but is not in the API, we want to skip.
+		// This is the case when plan modifiers set the value,
+		// but the validator runs before that.
+		return nil
+	}
+
 	v.pathExprOnce.Do(func() {
 		// The first time we run, we need to collect all path expressions from the schema.
 		tfutils.WalkResourceSchema(req.Config.Schema.(rschema.Schema), func(attr rschema.Attribute, p path.Path) {
