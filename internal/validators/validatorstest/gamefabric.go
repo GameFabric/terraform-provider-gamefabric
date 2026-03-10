@@ -16,7 +16,7 @@ import (
 //
 // Path expressions for wrapped validators can not be exposed.
 func CollectPathExpressions(s schema.Schema) []string {
-	var res []string
+	res := make([]string, 0, len(s.Attributes))
 	for _, attr := range s.Attributes {
 		res = append(res, collectPathExprs(attr, "")...)
 	}
