@@ -13,7 +13,6 @@ import (
 	"github.com/hamba/pkg/v2/ptr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
 	kcorev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -317,36 +316,3 @@ var (
 		ImageUpdaterTarget: container.NewImageUpdaterTargetModel("armada", "test-armada", "test-environment"),
 	}
 )
-
-func TestToDynamicBuffer_DerivedThresholdsWhenMissing(t *testing.T) {
-	t.Parallel()
-
-	model := &dynamicBufferModel{
-		MaxBufferUtilization:      types.Int32Value(77),
-		DynamicMaxBufferThreshold: types.Int32Null(),
-		DynamicMinBufferThreshold: types.Int32Null(),
-	}
-
-	obj := toDynamicBuffer(model)
-
-	require.NotNil(t, obj)
-	assert.Equal(t, uint32(77), obj.MaxBufferUtilization)
-	assert.Equal(t, uint32(48), obj.DynamicMinBufferThreshold)
-	assert.Equal(t, uint32(104), obj.DynamicMaxBufferThreshold)
-}
-
-func TestToDynamicBuffer_UsesProvidedThresholds(t *testing.T) {
-	t.Parallel()
-
-	model := &dynamicBufferModel{
-		MaxBufferUtilization:      types.Int32Value(77),
-		DynamicMaxBufferThreshold: types.Int32Value(222),
-		DynamicMinBufferThreshold: types.Int32Value(111),
-	}
-
-	obj := toDynamicBuffer(model)
-
-	require.NotNil(t, obj)
-	assert.Equal(t, uint32(222), obj.DynamicMaxBufferThreshold)
-	assert.Equal(t, uint32(111), obj.DynamicMinBufferThreshold)
-}

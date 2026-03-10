@@ -222,6 +222,76 @@ func TestResourceArmadaSetConfigAutoscaling(t *testing.T) {
 	})
 }
 
+func TestResourceArmadaSetConfigDynamicBuffer(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckArmadaSetDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				Config: testResourceArmadaSetConfigBasicDynamicBuffer(
+					`
+dynamic_buffer = {
+	max_buffer_utilization = 80
+	dynamic_min_buffer_threshold = 44
+	dynamic_max_buffer_threshold = 77
+}`,
+				),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.#", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.replicas.#", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.replicas.0.dynamic_buffer.%", "3"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.replicas.0.dynamic_buffer.max_buffer_utilization", "80"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.replicas.0.dynamic_buffer.dynamic_min_buffer_threshold", "44"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.replicas.0.dynamic_buffer.dynamic_max_buffer_threshold", "77"),
+				),
+			},
+			{
+				ResourceName: "gamefabric_armadaset.test",
+				ImportState:  true,
+			},
+		},
+	})
+}
+
+func TestResourceArmadaSetConfigDynamicBufferAppliesDefaults(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckArmadaSetDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				Config: testResourceArmadaSetConfigBasicDynamicBuffer(
+					`
+dynamic_buffer = {
+	max_buffer_utilization = 80
+}`,
+				),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.#", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.replicas.#", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.replicas.0.dynamic_buffer.%", "3"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.replicas.0.dynamic_buffer.max_buffer_utilization", "80"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.replicas.0.dynamic_buffer.dynamic_min_buffer_threshold", "50"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.replicas.0.dynamic_buffer.dynamic_max_buffer_threshold", "100"),
+				),
+			},
+			{
+				ResourceName: "gamefabric_armadaset.test",
+				ImportState:  true,
+			},
+		},
+	})
+}
+
 func TestResourceArmadaSetConfigValidates(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -490,6 +560,43 @@ func testResourceArmadaSetConfigBasicNamed(name, env string, extras ...string) s
 
   %s
 }`, name, env, strings.Join(extras, "\n"))
+}
+
+func testResourceArmadaSetConfigBasicDynamicBuffer(extras ...string) string {
+	return fmt.Sprintf(`resource "gamefabric_armadaset" "test" {
+  name        = "my-armadaset"
+  environment = "test"
+  description = "My New ArmadaSet Description"
+  regions = [
+    {
+      name = "eu"
+      replicas = [
+        {
+          region_type  = "baremetal"
+          min_replicas = 1
+          max_replicas = 2
+          buffer_size  = 1
+          %s
+        }
+      ]
+    }
+  ]
+  containers = [
+    {
+      name = "example-container"
+      image_ref = {
+        name   = "gameserver-asoda0s"
+        branch = "prod"
+      }
+      resources = {
+        requests = {
+          cpu    = "2000m"
+          memory = "256Mi"
+        }
+      }
+    }
+  ]
+}`, strings.Join(extras, "\n"))
 }
 
 func testResourceArmadaSetConfigBasic(extras ...string) string {

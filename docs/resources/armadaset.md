@@ -379,7 +379,7 @@ Required:
 
 Optional:
 
-- `dynamic_buffer` (Attributes) DynamicBuffer configures the dynamic buffer for the region type. (see [below for nested schema](#nestedatt--regions--replicas--dynamic_buffer))
+- `dynamic_buffer` (Attributes) DynamicBuffer configures the dynamic buffer for the region type. For details see https://docs.gamefabric.com/multiplayer-servers/getting-started/glossary#dynamic-buffer. (see [below for nested schema](#nestedatt--regions--replicas--dynamic_buffer))
 
 <a id="nestedatt--regions--replicas--dynamic_buffer"></a>
 ### Nested Schema for `regions.replicas.dynamic_buffer`
@@ -390,8 +390,8 @@ Required:
 
 Optional:
 
-- `dynamic_max_buffer_threshold` (Number) DynamicMaxBufferThreshold is the max threshold for the dynamic buffer size.
-- `dynamic_min_buffer_threshold` (Number) DynamicMinBufferThreshold is the min threshold for the dynamic buffer size.
+- `dynamic_max_buffer_threshold` (Number) DynamicMaxBufferThreshold is the max threshold for the dynamic buffer size. If not set, it will be derived from max_buffer_utilization.
+- `dynamic_min_buffer_threshold` (Number) DynamicMinBufferThreshold is the min threshold for the dynamic buffer size. If not set, it will be derived from max_buffer_utilization.
 
 
 
