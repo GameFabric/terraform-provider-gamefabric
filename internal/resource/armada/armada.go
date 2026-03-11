@@ -15,6 +15,7 @@ import (
 	armadareg "github.com/gamefabric/gf-core/pkg/apiserver/registry/armada/armada"
 	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/planmodifiers"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
@@ -190,8 +191,8 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 							},
 						},
 						"dynamic_buffer": schema.SingleNestedAttribute{
-							Description:         "DynamicBuffer configures the dynamic buffer for the region type.",
-							MarkdownDescription: "DynamicBuffer configures the dynamic buffer for the region type.",
+							Description:         "DynamicBuffer configures the dynamic buffer for the region type. For details see https://docs.gamefabric.com/multiplayer-servers/getting-started/glossary#dynamic-buffer.",
+							MarkdownDescription: "DynamicBuffer configures the dynamic buffer for the region type. For details see https://docs.gamefabric.com/multiplayer-servers/getting-started/glossary#dynamic-buffer.",
 							Optional:            true,
 							Attributes: map[string]schema.Attribute{
 								"max_buffer_utilization": schema.Int32Attribute{
@@ -203,17 +204,25 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 									},
 								},
 								"dynamic_max_buffer_threshold": schema.Int32Attribute{
-									Description:         "DynamicMaxBufferThreshold is the max threshold for the dynamic buffer size.",
-									MarkdownDescription: "DynamicMaxBufferThreshold is the max threshold for the dynamic buffer size.",
-									Required:            true,
+									Description:         "DynamicMaxBufferThreshold is the max threshold for the dynamic buffer size. If not set, it will be derived from max_buffer_utilization.",
+									MarkdownDescription: "DynamicMaxBufferThreshold is the max threshold for the dynamic buffer size. If not set, it will be derived from max_buffer_utilization.",
+									Optional:            true,
+									Computed:            true,
+									PlanModifiers: []planmodifier.Int32{
+										planmodifiers.NewDynamicMaxBufferThreshold(),
+									},
 									Validators: []validator.Int32{
 										validators.GFFieldInt32(armadaValidator, "spec.distribution[?].dynamicBuffer.dynamicMaxBufferThreshold"),
 									},
 								},
 								"dynamic_min_buffer_threshold": schema.Int32Attribute{
-									Description:         "DynamicMinBufferThreshold is the min threshold for the dynamic buffer size.",
-									MarkdownDescription: "DynamicMinBufferThreshold is the min threshold for the dynamic buffer size.",
-									Required:            true,
+									Description:         "DynamicMinBufferThreshold is the min threshold for the dynamic buffer size. If not set, it will be derived from max_buffer_utilization.",
+									MarkdownDescription: "DynamicMinBufferThreshold is the min threshold for the dynamic buffer size. If not set, it will be derived from max_buffer_utilization.",
+									Optional:            true,
+									Computed:            true,
+									PlanModifiers: []planmodifier.Int32{
+										planmodifiers.NewDynamicMinBufferThreshold(),
+									},
 									Validators: []validator.Int32{
 										validators.GFFieldInt32(armadaValidator, "spec.distribution[?].dynamicBuffer.dynamicMinBufferThreshold"),
 									},

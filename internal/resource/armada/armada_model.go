@@ -192,9 +192,10 @@ func newDynamicBufferModel(obj *armadav1.ArmadaDynamicBuffers) *dynamicBufferMod
 }
 
 func toDynamicBuffer(model *dynamicBufferModel) *armadav1.ArmadaDynamicBuffers {
-	if model == nil || !conv.IsKnown(model.MaxBufferUtilization) {
+	if model == nil {
 		return nil
 	}
+
 	return &armadav1.ArmadaDynamicBuffers{
 		MaxBufferUtilization:      uint32(model.MaxBufferUtilization.ValueInt32()),
 		DynamicMaxBufferThreshold: uint32(model.DynamicMaxBufferThreshold.ValueInt32()),
