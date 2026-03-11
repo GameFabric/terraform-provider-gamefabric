@@ -554,7 +554,10 @@ func (r *armadaSet) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	state = newArmadaSetModel(outObj)
-	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
+	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State,
+		// Dynamic buffer is an edge-case where changing values remotely via UI is not detected without this.
+		path.Root("regions[].replicas[].dynamic_buffer"),
+	)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
