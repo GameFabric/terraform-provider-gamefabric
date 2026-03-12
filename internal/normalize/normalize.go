@@ -275,6 +275,5 @@ func isZeroAttr(ctx context.Context, v attr.Value) bool {
 
 // normalizePath normalizes slice indexes.
 func normalizePath(p path.Path) string {
-	s := p.String()
-	return regexp.MustCompile(`\[\d+\]`).ReplaceAllString(s, "[]")
+	return regexp.MustCompile(`\[\d+\]`).ReplaceAllString(p.String(), "[]")
 }
