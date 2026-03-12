@@ -3,8 +3,12 @@ package normalize_test
 import (
 	"testing"
 
+	"github.com/gamefabric/gf-apicore/runtime"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/planmodifiers"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -303,6 +307,124 @@ func TestModelWithNull(t *testing.T) {
 
 	require.Empty(t, got)
 	assert.Equal(t, want, obj)
+}
+
+func TestModelWithIgnorePath(t *testing.T) {
+	type testDynamicBuffer struct {
+		MaxBufferUtilization      types.Int32 `tfsdk:"max_buffer_utilization"`
+		DynamicMaxBufferThreshold types.Int32 `tfsdk:"dynamic_max_buffer_threshold"`
+		DynamicMinBufferThreshold types.Int32 `tfsdk:"dynamic_min_buffer_threshold"`
+	}
+	type testObject struct {
+		Foo           types.String       `tfsdk:"foo"`
+		DynamicBuffer *testDynamicBuffer `tfsdk:"dynamic_buffer"`
+		Bar           types.String       `tfsdk:"bar"`
+	}
+
+	state := tfsdk.State{
+		Schema: schema.Schema{
+			Attributes: map[string]schema.Attribute{
+				"foo": schema.StringAttribute{},
+				"dynamic_buffer": schema.SingleNestedAttribute{
+					Optional: true,
+					Attributes: map[string]schema.Attribute{
+						"max_buffer_utilization": schema.Int32Attribute{
+							Required: true,
+						},
+						"dynamic_max_buffer_threshold": schema.Int32Attribute{
+							Optional: true,
+							Computed: true,
+							PlanModifiers: []planmodifier.Int32{
+								planmodifiers.NewDynamicMaxBufferThreshold(),
+							},
+						},
+						"dynamic_min_buffer_threshold": schema.Int32Attribute{
+							Optional: true,
+							Computed: true,
+							PlanModifiers: []planmodifier.Int32{
+								planmodifiers.NewDynamicMinBufferThreshold(),
+							},
+						},
+					},
+				},
+				"bar": schema.StringAttribute{},
+			},
+		},
+		Raw: tftypes.NewValue(
+			tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"foo": tftypes.String,
+					"dynamic_buffer": tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"max_buffer_utilization":       tftypes.Number,
+							"dynamic_max_buffer_threshold": tftypes.Number,
+							"dynamic_min_buffer_threshold": tftypes.Number,
+						},
+					},
+					"bar": tftypes.String,
+				},
+			},
+			map[string]tftypes.Value{
+				"foo": tftypes.NewValue(tftypes.String, "foo"),
+				"dynamic_buffer": tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"max_buffer_utilization":       tftypes.Number,
+							"dynamic_max_buffer_threshold": tftypes.Number,
+							"dynamic_min_buffer_threshold": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"max_buffer_utilization":       tftypes.NewValue(tftypes.Number, 10),
+						"dynamic_max_buffer_threshold": tftypes.NewValue(tftypes.Number, 20),
+						"dynamic_min_buffer_threshold": tftypes.NewValue(tftypes.Number, 30),
+					},
+				),
+				"bar": tftypes.NewValue(tftypes.String, "bar"),
+			},
+		),
+	}
+
+	apiResponse := testObject{
+		Foo: types.StringValue("foo"),
+		Bar: types.StringValue("bar"),
+	}
+
+	t.Run("does not detect remote change without ignore path", func(t *testing.T) {
+		state := runtime.DeepCopy(state)
+		apiResponse := runtime.DeepCopy(apiResponse)
+
+		diags := normalize.Model(t.Context(), &apiResponse, state)
+
+		require.Empty(t, diags)
+
+		// After normalization, the state has not changed, although remotely it is empty.
+		assert.Equal(t, testObject{
+			Foo: types.StringValue("foo"),
+			DynamicBuffer: &testDynamicBuffer{
+				MaxBufferUtilization:      types.Int32Value(10), // !
+				DynamicMaxBufferThreshold: types.Int32Value(20), // !
+				DynamicMinBufferThreshold: types.Int32Value(30), // !
+			},
+			Bar: types.StringValue("bar"),
+		}, apiResponse)
+	})
+
+	t.Run("does detect remote change with ignore path", func(t *testing.T) {
+		state := runtime.DeepCopy(state)
+		apiResponse := runtime.DeepCopy(apiResponse)
+
+		diags := normalize.Model(t.Context(), &apiResponse, state, path.Root("dynamic_buffer"))
+
+		require.Empty(t, diags)
+
+		// After normalization with ignore, the state has changed to match the remote value.
+		assert.Equal(t, testObject{
+			Foo:           types.StringValue("foo"),
+			DynamicBuffer: nil, // !
+			Bar:           types.StringValue("bar"),
+		}, apiResponse)
+	})
 }
 
 type TestObject struct {
