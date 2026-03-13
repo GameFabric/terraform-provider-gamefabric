@@ -62,7 +62,7 @@ var (
 					Name:        "test-vessel",
 					Region:      "test-region",
 					Description: "Test Vessel Description",
-					Suspend:     ptr.Of(true),
+					Suspend:     new(true),
 					Override: formationv1.VesselOverride{
 						Labels: map[string]string{
 							"override-label-key": "override-label-value",
@@ -111,7 +111,7 @@ var (
 									Policy:             "Passthrough",
 									ContainerPort:      8080,
 									Protocol:           kcorev1.ProtocolTCP,
-									ProtectionProtocol: ptr.Of("example-protocol"),
+									ProtectionProtocol: new("example-protocol"),
 								},
 							},
 							VolumeMounts: []kcorev1.VolumeMount{
@@ -148,7 +148,7 @@ var (
 							Name: "test-volume",
 							Type: formationv1.VolumeTypeEmptyDir,
 							EmptyDir: &formationv1.EmptyDirVolumeSource{
-								SizeLimit: ptr.Of(resource.MustParse("1Gi")),
+								SizeLimit: new(resource.MustParse("1Gi")),
 							},
 						},
 					},

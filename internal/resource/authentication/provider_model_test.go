@@ -5,7 +5,6 @@ import (
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	authenticationv1 "github.com/gamefabric/gf-core/pkg/api/authentication/v1beta1"
-	"github.com/hamba/pkg/v2/ptr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -37,7 +36,7 @@ var (
 					AuthURL:  "https://example.org/auth",
 					JWKSURL:  "https://example.org/jwks",
 				},
-				BasicAuthUnsupported:      ptr.Of(true),
+				BasicAuthUnsupported:      new(true),
 				Scopes:                    []string{"openid", "email", "profile"},
 				HostedDomains:             []string{"example.org", "example.com"},
 				RootCAs:                   []string{"-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"},
@@ -49,7 +48,7 @@ var (
 				GetUserInfo:               true,
 				UserIDKey:                 "userid",
 				UserNameKey:               "username",
-				PromptType:                ptr.Of("login"),
+				PromptType:                new("login"),
 				OverrideClaimMapping:      true,
 				ClaimMapping: authenticationv1.OIDCProviderClaimMapping{
 					PreferredUsernameKey: "preferred_username",

@@ -91,8 +91,8 @@ var (
 					Strategy: appsv1.DeploymentStrategy{
 						Type: appsv1.RollingUpdateDeploymentStrategyType,
 						RollingUpdate: &appsv1.RollingUpdateDeployment{
-							MaxUnavailable: ptr.Of(intstr.Parse("10%")),
-							MaxSurge:       ptr.Of(intstr.Parse("5")),
+							MaxUnavailable: new(intstr.Parse("10%")),
+							MaxSurge:       new(intstr.Parse("5")),
 						},
 					},
 					Health: agonesv1.Health{
@@ -112,7 +112,7 @@ var (
 									Policy:             agonesv1.Passthrough,
 									ContainerPort:      50000,
 									Protocol:           kcorev1.ProtocolUDP,
-									ProtectionProtocol: ptr.Of("protection-protocol"),
+									ProtectionProtocol: new("protection-protocol"),
 								},
 							},
 							Command: []string{"start.sh"},
@@ -167,7 +167,7 @@ var (
 					Volumes: []armadav1.Volume{
 						{
 							Name:      "volume-name",
-							SizeLimit: ptr.Of(resource.MustParse("10Gi")),
+							SizeLimit: new(resource.MustParse("10Gi")),
 						},
 					},
 				},

@@ -37,7 +37,7 @@ type State interface {
 // Model normalizes the given model in the context of the current state.
 func Model(ctx context.Context, model any, state State, ignore ...path.Path) diag.Diagnostics {
 	v := reflect.ValueOf(model)
-	if v.Kind() == reflect.Ptr {
+	if v.Kind() == reflect.Pointer {
 		v = v.Elem()
 	}
 	if v.Kind() != reflect.Struct {
@@ -61,7 +61,7 @@ func normTypes(ctx context.Context, v reflect.Value, t reflect.Type, state State
 	}
 
 	switch t.Kind() {
-	case reflect.Ptr:
+	case reflect.Pointer:
 		return ptrType(ctx, v, t, state, p, ignore)
 	case reflect.Struct:
 		return structType(ctx, v, t, state, p, ignore)
@@ -223,7 +223,7 @@ func isZeroValue(ctx context.Context, v reflect.Value) bool {
 	}
 
 	switch v.Kind() {
-	case reflect.Ptr:
+	case reflect.Pointer:
 		if v.IsNil() {
 			return true
 		}

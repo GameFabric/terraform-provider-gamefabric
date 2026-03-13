@@ -1,4 +1,4 @@
-name: Check docs
+name: Vulnerability
 
 permissions:
   contents: read
@@ -9,17 +9,20 @@ on:
     branches:
       - main
   pull_request:
+  schedule: # Mondays at 04:00 UTC
+    - cron: '0 4 * * Mon'
 
 jobs:
-  Check:
+  govulncheck:
+
     runs-on: ubuntu-latest
     env:
       GOPROXY: https://${{ secrets.GOPROXY }},direct
       GONOSUMDB: ${{ secrets.GONOSUMDB }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-
 
       - name: Setup Proxy Credentials
         uses: extractions/netrc@v2
@@ -29,6 +32,7 @@ jobs:
           password: ${{ secrets.GOPROXY_TOKEN }}
 
       - name: Install Go
+        id: install-go
         uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
@@ -44,9 +48,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-mod-
 
-      - name: Run TFPluginDocs Check
+      - name: Download dependencies
+        run: go mod download
+        if: steps.gomod.outputs.cache-hit != 'true'
+
+      - name: Run govulncheck
         run: |
-          make docs-gen
-          
-          echo "==> Checking TFPluginDocs Generation"
-          git diff --exit-code --quiet ./
+          go run golang.org/x/vuln/cmd/govulncheck@latest ./...
