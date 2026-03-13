@@ -42,7 +42,7 @@ var (
 		Spec: formationv1.VesselSpec{
 			Description: "Test Vessel Description",
 			Region:      "us-west",
-			Suspend:     ptr.Of(true),
+			Suspend:     new(true),
 			Template: formationv1.GameServerTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
@@ -98,7 +98,7 @@ var (
 									Policy:             "Passthrough",
 									ContainerPort:      7777,
 									Protocol:           kcorev1.ProtocolUDP,
-									ProtectionProtocol: ptr.Of("example-protocol"),
+									ProtectionProtocol: new("example-protocol"),
 								},
 							},
 							VolumeMounts: []kcorev1.VolumeMount{
@@ -121,7 +121,7 @@ var (
 							Name: "data-volume",
 							Type: formationv1.VolumeTypeEmptyDir,
 							EmptyDir: &formationv1.EmptyDirVolumeSource{
-								SizeLimit: ptr.Of(resource.MustParse("1Gi")),
+								SizeLimit: new(resource.MustParse("1Gi")),
 							},
 						},
 						{
@@ -148,7 +148,7 @@ var (
 		Environment: types.StringValue("test-env"),
 		Region:      types.StringValue("us-west"),
 		Description: types.StringValue("Test Vessel Description"),
-		Suspend:     types.BoolPointerValue(ptr.Of(true)),
+		Suspend:     types.BoolPointerValue(new(true)),
 		Labels: map[string]types.String{
 			"label-key": types.StringValue("label-value"),
 		},
