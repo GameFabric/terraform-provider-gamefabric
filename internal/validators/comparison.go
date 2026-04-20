@@ -113,7 +113,7 @@ func (av lessOrEqual) Description(_ context.Context) string {
 		paths = append(paths, p.String())
 	}
 
-	return "value must be greater than or equal to " + strings.Join(paths, " + ")
+	return "value must be less than or equal to " + strings.Join(paths, " + ")
 }
 
 // MarkdownDescription describes the validation in Markdown formatting.
