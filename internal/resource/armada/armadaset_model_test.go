@@ -5,6 +5,7 @@ import (
 
 	agonesv1 "agones.dev/agones/pkg/apis/agones/v1"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	"github.com/gamefabric/gf-apicore/runtime"
 	armadav1 "github.com/gamefabric/gf-core/pkg/api/armada/v1"
 	v1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
@@ -13,6 +14,7 @@ import (
 	"github.com/hamba/pkg/v2/ptr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
 	kcorev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -20,13 +22,52 @@ import (
 )
 
 func TestNewArmadaSetModel(t *testing.T) {
-	model := newArmadaSetModel(testArmadaSetObject)
+	model := newArmadaSetModel(testArmadaSetObject, nil)
 	assert.Equal(t, testArmadaSetModel, model)
 }
 
 func TestArmadaSetModel_ToObject(t *testing.T) {
 	obj := testArmadaSetModel.ToObject()
 	assert.Equal(t, testArmadaSetObject, obj)
+}
+
+func TestArmadaSetModel_ToObjectWithTopLevelScaleToZero(t *testing.T) {
+	want := testArmadaSetModel.ToObject()
+
+	newModel := runtime.DeepCopy(testArmadaSetModel)
+	newModel.Autoscaling.ScaleToZero = &scaleToZeroModel{
+		ScaleDownUtilization: types.Int32Value(75),
+		ScaleUpUtilization:   types.Int32Value(80),
+	}
+	newModel.Regions[0].Autoscaling.ScaleToZero = nil
+
+	got := newModel.ToObject()
+
+	assert.Equal(t, want, got)
+
+	t.Run("keeps armada-specific scale to zero values", func(t *testing.T) {
+		newModel.Regions = append(newModel.Regions, regionModel{
+			Name: types.StringValue("foobar"),
+			Autoscaling: &armadaTemplateAutoscaling{
+				ScaleToZero: &scaleToZeroModel{
+					ScaleDownUtilization: types.Int32Value(10),
+					ScaleUpUtilization:   types.Int32Value(20),
+				},
+			},
+		})
+
+		got = newModel.ToObject()
+
+		require.Len(t, got.Spec.Armadas, 2)
+
+		require.NotNil(t, got.Spec.Armadas[0].Autoscaling.ScaleToZero)
+		assert.Equal(t, 75, got.Spec.Armadas[0].Autoscaling.ScaleToZero.ScaleDownUtilization.IntValue())
+		assert.Equal(t, 80, got.Spec.Armadas[0].Autoscaling.ScaleToZero.ScaleUpUtilization.IntValue())
+
+		require.NotNil(t, got.Spec.Armadas[1].Autoscaling.ScaleToZero)
+		assert.Equal(t, 10, got.Spec.Armadas[1].Autoscaling.ScaleToZero.ScaleDownUtilization.IntValue())
+		assert.Equal(t, 20, got.Spec.Armadas[1].Autoscaling.ScaleToZero.ScaleUpUtilization.IntValue())
+	})
 }
 
 var (
@@ -46,6 +87,12 @@ var (
 			Armadas: []armadav1.ArmadaTemplate{
 				{
 					Region: "eu",
+					Autoscaling: armadav1.ArmadaTemplateAutoscaling{
+						ScaleToZero: &armadav1.ArmadaScaleToZero{
+							ScaleDownUtilization: intstr.FromInt32(75),
+							ScaleUpUtilization:   intstr.FromInt32(80),
+						},
+					},
 					Distribution: []armadav1.ArmadaRegionType{
 						{
 							Name:        "baremetal",
@@ -81,7 +128,7 @@ var (
 					},
 				},
 			},
-			Autoscaling: armadav1.ArmadaAutoscaling{
+			Autoscaling: armadav1.ArmadaSetAutoscaling{
 				FixedInterval: &armadav1.ArmadaFixInterval{
 					Seconds: 60,
 				},
@@ -199,12 +246,18 @@ var (
 		Annotations: map[string]types.String{
 			"annotation-key": types.StringValue("annotation-value"),
 		},
-		Autoscaling: &autoscalingModel{
+		Autoscaling: &armadaSetAutoscalingModel{
 			FixedIntervalSeconds: types.Int32Value(60),
 		},
 		Regions: []regionModel{
 			{
 				Name: types.StringValue("eu"),
+				Autoscaling: &armadaTemplateAutoscaling{
+					ScaleToZero: &scaleToZeroModel{
+						ScaleDownUtilization: types.Int32Value(75),
+						ScaleUpUtilization:   types.Int32Value(80),
+					},
+				},
 				Replicas: []replicaModel{
 					{
 						RegionType:  types.StringValue("baremetal"),
