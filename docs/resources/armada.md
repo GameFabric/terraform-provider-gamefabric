@@ -277,7 +277,7 @@ Required:
 
 Optional:
 
-- `scale_down_utilization` (Number) Defines at which utilization the next lower region type gets scaled to zero. Value as integer in percent.
+- `scale_down_utilization` (Number) Defines at which utilization the next lower region type gets scaled to zero. Value as integer in percent. Defaults to 5% less than scale up.
 
 
 

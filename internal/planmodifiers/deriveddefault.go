@@ -7,17 +7,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type derivedScaleDownDefault struct{}
+type derivedScaleDownDefault struct {
+	Add int32
+}
 
-func (m derivedScaleDownDefault) Description(_ context.Context) string {
+func (d derivedScaleDownDefault) Description(_ context.Context) string {
 	return "Defaults to other_attr minus 5."
 }
 
-func (m derivedScaleDownDefault) MarkdownDescription(_ context.Context) string {
+func (d derivedScaleDownDefault) MarkdownDescription(_ context.Context) string {
 	return "Defaults to `other_attr - 5`."
 }
 
-func (m derivedScaleDownDefault) PlanModifyInt32(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
+func (d derivedScaleDownDefault) PlanModifyInt32(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
 	if !req.ConfigValue.IsNull() {
 		return
 	}
@@ -34,9 +36,11 @@ func (m derivedScaleDownDefault) PlanModifyInt32(ctx context.Context, req planmo
 		return
 	}
 
-	resp.PlanValue = types.Int32Value(otherAttr.ValueInt32() - 5)
+	resp.PlanValue = types.Int32Value(otherAttr.ValueInt32() + d.Add)
 }
 
-func DerivedScaleDownDefault() planmodifier.Int32 {
-	return derivedScaleDownDefault{}
+func DerivedScaleDownDefault(add int32) planmodifier.Int32 {
+	return derivedScaleDownDefault{
+		Add: add,
+	}
 }
