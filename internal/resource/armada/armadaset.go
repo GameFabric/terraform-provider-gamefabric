@@ -145,7 +145,11 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 							"scale_down_utilization": schema.Int32Attribute{
 								Description:         "Defines at which utilization the next lower region type gets scaled to zero. Value as integer in percent.",
 								MarkdownDescription: "Defines at which utilization the next lower region type gets scaled to zero. Value as integer in percent.",
-								Required:            true,
+								Optional:            true,
+								Computed:            true,
+								PlanModifiers: []planmodifier.Int32{
+									planmodifiers.DerivedScaleDownDefault(),
+								},
 								Validators: []validator.Int32{
 									int32validator.Between(1, 99),
 									validators.LessOrEqualTo(path.MatchRelative().AtParent().AtName("scale_up_utilization")),
@@ -199,7 +203,11 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 										"scale_down_utilization": schema.Int32Attribute{
 											Description:         "Defines at which utilization the next lower region type gets scaled to zero. Value as integer in percent.",
 											MarkdownDescription: "Defines at which utilization the next lower region type gets scaled to zero. Value as integer in percent.",
-											Required:            true,
+											Optional:            true,
+											Computed:            true,
+											PlanModifiers: []planmodifier.Int32{
+												planmodifiers.DerivedScaleDownDefault(),
+											},
 											Validators: []validator.Int32{
 												int32validator.Between(1, 99),
 												validators.LessOrEqualTo(path.MatchRelative().AtParent().AtName("scale_up_utilization")),

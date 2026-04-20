@@ -408,8 +408,11 @@ Optional:
 
 Required:
 
-- `scale_down_utilization` (Number) Defines at which utilization the next lower region type gets scaled to zero. Value as integer in percent.
 - `scale_up_utilization` (Number) Defines at which utilization the next lower region type gets scaled up. Value as integer in percent.
+
+Optional:
+
+- `scale_down_utilization` (Number) Defines at which utilization the next lower region type gets scaled to zero. Value as integer in percent.
 
 
 
@@ -477,8 +480,11 @@ Optional:
 
 Required:
 
-- `scale_down_utilization` (Number) Defines at which utilization the next lower region type gets scaled to zero. Value as integer in percent.
 - `scale_up_utilization` (Number) Defines at which utilization the next lower region type gets scaled up. Value as integer in percent.
+
+Optional:
+
+- `scale_down_utilization` (Number) Defines at which utilization the next lower region type gets scaled to zero. Value as integer in percent.
 
 
 
