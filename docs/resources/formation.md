@@ -457,7 +457,18 @@ Optional:
 
 - `args` (List of String) Args are arguments to the entrypoint.
 - `command` (List of String) Command is the entrypoint array. This is not executed within a shell.
+- `config_files` (Attributes List) ConfigFiles is a list of configuration file mounts to override for this container. (see [below for nested schema](#nestedatt--vessels--override--containers--config_files))
 - `envs` (Attributes List) Envs is a list of environment variables to set on all containers in this Armada. (see [below for nested schema](#nestedatt--vessels--override--containers--envs))
+- `secrets` (Attributes List) Secrets is a list of secret mounts to override for this container. (see [below for nested schema](#nestedatt--vessels--override--containers--secrets))
+
+<a id="nestedatt--vessels--override--containers--config_files"></a>
+### Nested Schema for `vessels.override.containers.config_files`
+
+Required:
+
+- `mount_path` (String) Path where the config file will be mounted in the container.
+- `name` (String) Name of the ConfigFile resource to mount.
+
 
 <a id="nestedatt--vessels--override--containers--envs"></a>
 ### Nested Schema for `vessels.override.containers.envs`
@@ -489,6 +500,15 @@ Required:
 - `name` (String) Name of the secret.
 
 
+
+
+<a id="nestedatt--vessels--override--containers--secrets"></a>
+### Nested Schema for `vessels.override.containers.secrets`
+
+Required:
+
+- `mount_path` (String) Path where the secret will be mounted in the container.
+- `name` (String) Name of the Secret resource to mount.
 
 
 

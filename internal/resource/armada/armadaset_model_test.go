@@ -81,7 +81,7 @@ var (
 					},
 				},
 			},
-			Autoscaling: armadav1.ArmadaAutoscaling{
+			Autoscaling: armadav1.ArmadaSetAutoscaling{
 				FixedInterval: &armadav1.ArmadaFixInterval{
 					Seconds: 60,
 				},

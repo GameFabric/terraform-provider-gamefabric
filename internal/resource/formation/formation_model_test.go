@@ -77,6 +77,12 @@ var (
 										Value: "override-value",
 									},
 								},
+								ConfigFiles: []formationv1.ConfigFileMount{
+									{Name: "override-config", MountPath: "/config/override"},
+								},
+								Secrets: []formationv1.SecretMount{
+									{Name: "override-secret", MountPath: "/secrets/override"},
+								},
 							},
 						},
 					},
@@ -206,6 +212,12 @@ var (
 									Name:  types.StringValue("OVERRIDE_ENV"),
 									Value: types.StringValue("override-value"),
 								},
+							},
+							ConfigFiles: []mps.ConfigFileModel{
+								{Name: types.StringValue("override-config"), MountPath: types.StringValue("/config/override")},
+							},
+							Secrets: []mps.SecretMountModel{
+								{Name: types.StringValue("override-secret"), MountPath: types.StringValue("/secrets/override")},
 							},
 						},
 					},

@@ -41,7 +41,7 @@ func newArmadaSetModel(obj *armadav1.ArmadaSet) armadaSetModel {
 		Description:           conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
 		Labels:                conv.ForEachMapItem(obj.Labels, types.StringValue),
 		Annotations:           conv.ForEachMapItem(obj.Annotations, types.StringValue),
-		Autoscaling:           newAutoscalingModel(obj.Spec.Autoscaling),
+		Autoscaling:           newArmadaSetAutoscalingModel(obj.Spec.Autoscaling),
 		Regions:               newRegionModels(obj.Spec),
 		GameServerLabels:      conv.ForEachMapItem(conv.MapWithoutKey(obj.Spec.Template.Labels, profilingKey), types.StringValue),
 		GameServerAnnotations: conv.ForEachMapItem(obj.Spec.Template.Annotations, types.StringValue),
@@ -68,9 +68,7 @@ func (m armadaSetModel) ToObject() *armadav1.ArmadaSet {
 			Description: m.Description.ValueString(),
 			Armadas:     conv.ForEachSliceItem(m.Regions, toArmadaTemplate),
 			Override:    conv.ForEachSliceItem(m.Regions, toArmadaOverride),
-			Autoscaling: armadav1.ArmadaAutoscaling{
-				FixedInterval: toFixedInterval(m.Autoscaling),
-			},
+			Autoscaling: toArmadaSetAutoscaling(m.Autoscaling),
 			Template: armadav1.FleetTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: conv.ForEachMapItem(
@@ -151,5 +149,23 @@ func toArmadaOverride(reg regionModel) armadav1.ArmadaOverride {
 		Labels:      conv.ForEachMapItem(reg.GameServerLabels, func(v types.String) string { return v.ValueString() }),
 		ConfigFiles: conv.ForEachSliceItem(reg.ConfigFiles, mps.ToConfigFileForArmada),
 		Secrets:     conv.ForEachSliceItem(reg.Secrets, mps.ToArmadaSecretMount),
+	}
+}
+
+func newArmadaSetAutoscalingModel(obj armadav1.ArmadaSetAutoscaling) *autoscalingModel {
+	if obj.FixedInterval == nil {
+		return nil
+	}
+	return &autoscalingModel{
+		FixedIntervalSeconds: types.Int32Value(obj.FixedInterval.Seconds),
+	}
+}
+
+func toArmadaSetAutoscaling(m *autoscalingModel) armadav1.ArmadaSetAutoscaling {
+	if m == nil {
+		return armadav1.ArmadaSetAutoscaling{}
+	}
+	return armadav1.ArmadaSetAutoscaling{
+		FixedInterval: toFixedInterval(m),
 	}
 }

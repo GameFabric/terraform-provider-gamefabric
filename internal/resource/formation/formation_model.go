@@ -173,23 +173,29 @@ func newVesselOverrideModel(obj formationv1.VesselOverride) *VesselOverrideModel
 
 // VesselContainerOverrideModel represents overrides for a container within a vessel.
 type VesselContainerOverrideModel struct {
-	Command []types.String     `tfsdk:"command"`
-	Args    []types.String     `tfsdk:"args"`
-	Envs    []core.EnvVarModel `tfsdk:"envs"`
+	Command     []types.String         `tfsdk:"command"`
+	Args        []types.String         `tfsdk:"args"`
+	Envs        []core.EnvVarModel     `tfsdk:"envs"`
+	ConfigFiles []mps.ConfigFileModel  `tfsdk:"config_files"`
+	Secrets     []mps.SecretMountModel `tfsdk:"secrets"`
 }
 
 func newContainerOverrideModel(obj formationv1.VesselContainerOverride) VesselContainerOverrideModel {
 	return VesselContainerOverrideModel{
-		Command: conv.ForEachSliceItem(obj.Command, types.StringValue),
-		Args:    conv.ForEachSliceItem(obj.Args, types.StringValue),
-		Envs:    conv.ForEachSliceItem(obj.Env, core.NewEnvVarModel),
+		Command:     conv.ForEachSliceItem(obj.Command, types.StringValue),
+		Args:        conv.ForEachSliceItem(obj.Args, types.StringValue),
+		Envs:        conv.ForEachSliceItem(obj.Env, core.NewEnvVarModel),
+		ConfigFiles: conv.ForEachSliceItem(obj.ConfigFiles, mps.NewConfigFileModelForFormation),
+		Secrets:     conv.ForEachSliceItem(obj.Secrets, mps.NewSecretMountModelForFormation),
 	}
 }
 
 func toContainerOverrideModel(m VesselContainerOverrideModel) formationv1.VesselContainerOverride {
 	return formationv1.VesselContainerOverride{
-		Command: conv.ForEachSliceItem(m.Command, func(v types.String) string { return v.ValueString() }),
-		Args:    conv.ForEachSliceItem(m.Args, func(v types.String) string { return v.ValueString() }),
-		Env:     conv.ForEachSliceItem(m.Envs, func(m core.EnvVarModel) v1.EnvVar { return m.ToObject() }),
+		Command:     conv.ForEachSliceItem(m.Command, func(v types.String) string { return v.ValueString() }),
+		Args:        conv.ForEachSliceItem(m.Args, func(v types.String) string { return v.ValueString() }),
+		Env:         conv.ForEachSliceItem(m.Envs, func(m core.EnvVarModel) v1.EnvVar { return m.ToObject() }),
+		ConfigFiles: conv.ForEachSliceItem(m.ConfigFiles, mps.ToConfigFileForFormation),
+		Secrets:     conv.ForEachSliceItem(m.Secrets, mps.ToFormationSecretMount),
 	}
 }

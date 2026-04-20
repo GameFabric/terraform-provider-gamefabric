@@ -69,6 +69,12 @@ func TestResourceFormation(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.0.override.containers.0.envs.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.0.override.containers.0.envs.0.name", "OVERRIDE_ENV"),
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.0.override.containers.0.envs.0.value", "override_value"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.0.override.containers.0.config_files.#", "1"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.0.override.containers.0.config_files.0.name", "override-config"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.0.override.containers.0.config_files.0.mount_path", "/config/override"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.0.override.containers.0.secrets.#", "1"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.0.override.containers.0.secrets.0.name", "override-secret"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "vessels.0.override.containers.0.secrets.0.mount_path", "/secrets/override"),
 
 					// Containers.
 					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.#", "1"),
@@ -491,17 +497,29 @@ func testResourceFormationConfigFull() string {
       region = "eu"
       description = "Default vessel description"
       suspend = false
-      override = { 
+      override = {
         gameserver_labels = {
           "vessel-override-label": "override-value"
         }
         containers = [{
           command = ["start.sh"]
           args = ["--enable-feature", "--count=10"]
-          envs = [ 
+          envs = [
             {
               name  = "OVERRIDE_ENV"
               value = "override_value"
+            }
+          ]
+          config_files = [
+            {
+              name       = "override-config"
+              mount_path = "/config/override"
+            }
+          ]
+          secrets = [
+            {
+              name       = "override-secret"
+              mount_path = "/secrets/override"
             }
           ]
         }]
