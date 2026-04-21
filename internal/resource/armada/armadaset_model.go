@@ -229,21 +229,3 @@ func toArmadaOverride(reg regionModel) armadav1.ArmadaOverride {
 		Secrets:     conv.ForEachSliceItem(reg.Secrets, mps.ToArmadaSecretMount),
 	}
 }
-
-func newArmadaSetAutoscalingModel(obj armadav1.ArmadaSetAutoscaling) *autoscalingModel {
-	if obj.FixedInterval == nil {
-		return nil
-	}
-	return &autoscalingModel{
-		FixedIntervalSeconds: types.Int32Value(obj.FixedInterval.Seconds),
-	}
-}
-
-func toArmadaSetAutoscaling(m *autoscalingModel) armadav1.ArmadaSetAutoscaling {
-	if m == nil {
-		return armadav1.ArmadaSetAutoscaling{}
-	}
-	return armadav1.ArmadaSetAutoscaling{
-		FixedInterval: toFixedInterval(m),
-	}
-}
