@@ -21,7 +21,7 @@ type armadaModel struct {
 	Description           types.String                       `tfsdk:"description"`
 	Labels                map[string]types.String            `tfsdk:"labels"`
 	Annotations           map[string]types.String            `tfsdk:"annotations"`
-	Autoscaling           *autoscalingModel                  `tfsdk:"autoscaling"`
+	Autoscaling           *armadaAutoscalingModel            `tfsdk:"autoscaling"`
 	Region                types.String                       `tfsdk:"region"`
 	Replicas              []replicaModel                     `tfsdk:"replicas"`
 	GameServerLabels      map[string]types.String            `tfsdk:"gameserver_labels"`
@@ -44,7 +44,7 @@ func newArmadaModel(obj *armadav1.Armada) armadaModel {
 		Description:           conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
 		Labels:                conv.ForEachMapItem(obj.Labels, types.StringValue),
 		Annotations:           conv.ForEachMapItem(obj.Annotations, types.StringValue),
-		Autoscaling:           newAutoscalingModel(obj.Spec.Autoscaling),
+		Autoscaling:           newArmadaAutoscalingModel(obj.Spec.Autoscaling),
 		Region:                types.StringValue(obj.Spec.Region),
 		Replicas:              conv.ForEachSliceItem(obj.Spec.Distribution, newReplicas),
 		GameServerLabels:      conv.ForEachMapItem(conv.MapWithoutKey(obj.Spec.Template.Labels, profilingKey), types.StringValue),
@@ -81,7 +81,8 @@ func (m armadaModel) ToObject() *armadav1.Armada {
 				}
 			}),
 			Autoscaling: armadav1.ArmadaAutoscaling{
-				FixedInterval: toFixedInterval(m.Autoscaling),
+				FixedInterval: toArmadaFixedInterval(m.Autoscaling),
+				ScaleToZero:   toArmadaScaleToZero(m.Autoscaling),
 			},
 			Template: armadav1.FleetTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
@@ -101,6 +102,16 @@ func (m armadaModel) ToObject() *armadav1.Armada {
 				},
 			},
 		},
+	}
+}
+
+func toArmadaScaleToZero(as *armadaAutoscalingModel) *armadav1.ArmadaScaleToZero {
+	if as == nil || as.ScaleToZero == nil || (as.ScaleToZero.ScaleDownUtilization.ValueInt32() == 0 && as.ScaleToZero.ScaleUpUtilization.ValueInt32() == 0) {
+		return nil
+	}
+	return &armadav1.ArmadaScaleToZero{
+		ScaleDownUtilization: intstr.FromInt32(as.ScaleToZero.ScaleDownUtilization.ValueInt32()),
+		ScaleUpUtilization:   intstr.FromInt32(as.ScaleToZero.ScaleUpUtilization.ValueInt32()),
 	}
 }
 
@@ -134,26 +145,40 @@ func toIntOrString(val types.String) *intstr.IntOrString {
 	return &is
 }
 
-type autoscalingModel struct {
-	FixedIntervalSeconds types.Int32 `tfsdk:"fixed_interval_seconds"`
+type armadaAutoscalingModel struct {
+	FixedIntervalSeconds types.Int32       `tfsdk:"fixed_interval_seconds"`
+	ScaleToZero          *scaleToZeroModel `tfsdk:"scale_to_zero"`
 }
 
-func newAutoscalingModel(obj armadav1.ArmadaAutoscaling) *autoscalingModel {
-	if obj.FixedInterval == nil {
+func newArmadaAutoscalingModel(obj armadav1.ArmadaAutoscaling) *armadaAutoscalingModel {
+	if obj.FixedInterval == nil && obj.ScaleToZero == nil {
 		return nil
 	}
-	return &autoscalingModel{
-		FixedIntervalSeconds: types.Int32Value(obj.FixedInterval.Seconds),
+	as := &armadaAutoscalingModel{}
+	if obj.FixedInterval != nil && obj.FixedInterval.Seconds > 0 {
+		as.FixedIntervalSeconds = types.Int32Value(obj.FixedInterval.Seconds)
 	}
+	if obj.ScaleToZero != nil {
+		as.ScaleToZero = &scaleToZeroModel{
+			ScaleUpUtilization:   types.Int32Value(int32(obj.ScaleToZero.ScaleUpUtilization.IntValue())),
+			ScaleDownUtilization: types.Int32Value(int32(obj.ScaleToZero.ScaleDownUtilization.IntValue())),
+		}
+	}
+	return as
 }
 
-func toFixedInterval(scaling *autoscalingModel) *armadav1.ArmadaFixInterval {
+func toArmadaFixedInterval(scaling *armadaAutoscalingModel) *armadav1.ArmadaFixInterval {
 	if scaling == nil || !conv.IsKnown(scaling.FixedIntervalSeconds) {
 		return nil
 	}
 	return &armadav1.ArmadaFixInterval{
 		Seconds: scaling.FixedIntervalSeconds.ValueInt32(),
 	}
+}
+
+type scaleToZeroModel struct {
+	ScaleDownUtilization types.Int32 `tfsdk:"scale_down_utilization"`
+	ScaleUpUtilization   types.Int32 `tfsdk:"scale_up_utilization"`
 }
 
 type replicaModel struct {

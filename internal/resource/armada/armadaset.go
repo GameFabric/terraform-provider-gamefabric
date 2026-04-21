@@ -134,6 +134,38 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 							validators.GFFieldInt32(armadaSetValidator, "spec.autoscaling.fixedInterval.seconds"),
 						},
 					},
+					"scale_to_zero": schema.SingleNestedAttribute{
+						Description:         "Scale to zero configuration for all Armadas.",
+						MarkdownDescription: "Scale to zero configuration for all Armadas.",
+						Optional:            true,
+						PlanModifiers: []planmodifier.Object{
+							objectplanmodifier.UseStateForUnknown(),
+						},
+						Attributes: map[string]schema.Attribute{
+							"scale_down_utilization": schema.Int32Attribute{
+								Description:         "Defines at which utilization the next lower region type gets scaled to zero. Value as integer in percent. Defaults to 5% less than scale up.",
+								MarkdownDescription: "Defines at which utilization the next lower region type gets scaled to zero. Value as integer in percent. Defaults to 5% less than scale up.",
+								Optional:            true,
+								Computed:            true,
+								PlanModifiers: []planmodifier.Int32{
+									planmodifiers.DerivedScaleDownDefault(-5),
+								},
+								Validators: []validator.Int32{
+									int32validator.Between(1, 99),
+									validators.LessOrEqualTo(path.MatchRelative().AtParent().AtName("scale_up_utilization")),
+								},
+							},
+							"scale_up_utilization": schema.Int32Attribute{
+								Description:         "Defines at which utilization the next lower region type gets scaled up. Value as integer in percent.",
+								MarkdownDescription: "Defines at which utilization the next lower region type gets scaled up. Value as integer in percent.",
+								Required:            true,
+								Validators: []validator.Int32{
+									int32validator.Between(1, 99),
+									validators.GreaterOrEqualTo(path.MatchRelative().AtParent().AtName("scale_down_utilization")),
+								},
+							},
+						},
+					},
 				},
 			},
 			"regions": schema.ListNestedAttribute{
@@ -153,6 +185,47 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 								validators.NameValidator{},
 								validators.GFFieldString(armadaSetValidator, "spec.armadas[?].region"),
 								validators.GFFieldString(armadaSetValidator, "spec.override[?].region"),
+							},
+						},
+						"autoscaling": schema.SingleNestedAttribute{
+							Description:         "Autoscaling configuration.",
+							MarkdownDescription: "Autoscaling configuration.",
+							Optional:            true,
+							Attributes: map[string]schema.Attribute{
+								"scale_to_zero": schema.SingleNestedAttribute{
+									Description:         "Scale to zero configuration.",
+									MarkdownDescription: "Scale to zero configuration.",
+									Optional:            true,
+									PlanModifiers: []planmodifier.Object{
+										objectplanmodifier.UseStateForUnknown(),
+									},
+									Attributes: map[string]schema.Attribute{
+										"scale_down_utilization": schema.Int32Attribute{
+											Description:         "Defines at which utilization the next lower region type gets scaled to zero. Value as integer in percent. Defaults to 5% less than scale up.",
+											MarkdownDescription: "Defines at which utilization the next lower region type gets scaled to zero. Value as integer in percent. Defaults to 5% less than scale up.",
+											Optional:            true,
+											Computed:            true,
+											PlanModifiers: []planmodifier.Int32{
+												planmodifiers.DerivedScaleDownDefault(-5),
+											},
+											Validators: []validator.Int32{
+												int32validator.Between(1, 99),
+												validators.LessOrEqualTo(path.MatchRelative().AtParent().AtName("scale_up_utilization")),
+												validators.GFFieldInt32(armadaSetValidator, "spec.armadas[?].autoscaling.scaleToZero.scaleDownUtilization"),
+											},
+										},
+										"scale_up_utilization": schema.Int32Attribute{
+											Description:         "Defines at which utilization the next lower region type gets scaled up. Value as integer in percent.",
+											MarkdownDescription: "Defines at which utilization the next lower region type gets scaled up. Value as integer in percent.",
+											Required:            true,
+											Validators: []validator.Int32{
+												int32validator.Between(1, 99),
+												validators.GreaterOrEqualTo(path.MatchRelative().AtParent().AtName("scale_down_utilization")),
+												validators.GFFieldInt32(armadaSetValidator, "spec.armadas[?].autoscaling.scaleToZero.scaleUpUtilization"),
+											},
+										},
+									},
+								},
 							},
 						},
 						"replicas": schema.ListNestedAttribute{
@@ -527,7 +600,12 @@ func (r *armadaSet) Create(ctx context.Context, req resource.CreateRequest, resp
 		return
 	}
 
-	plan = newArmadaSetModel(outObj)
+	var shared *scaleToZeroModel
+	if plan.Autoscaling != nil {
+		shared = plan.Autoscaling.ScaleToZero
+	}
+
+	plan = newArmadaSetModel(outObj, shared)
 	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -553,11 +631,17 @@ func (r *armadaSet) Read(ctx context.Context, req resource.ReadRequest, resp *re
 		return
 	}
 
-	state = newArmadaSetModel(outObj)
+	var shared *scaleToZeroModel
+	if state.Autoscaling != nil {
+		shared = state.Autoscaling.ScaleToZero
+	}
+
+	state = newArmadaSetModel(outObj, shared)
 	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State,
 		// Dynamic buffer is an edge-case where changing values remotely via UI is not detected without this.
 		path.Root("regions[].replicas[].dynamic_buffer"),
 	)...)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 

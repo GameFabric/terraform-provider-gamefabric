@@ -362,6 +362,7 @@ Required:
 
 Optional:
 
+- `autoscaling` (Attributes) Autoscaling configuration. (see [below for nested schema](#nestedatt--regions--autoscaling))
 - `config_files` (Attributes List) Configuration file mounts for this region. (see [below for nested schema](#nestedatt--regions--config_files))
 - `envs` (Attributes List) Environment variables for the region. (see [below for nested schema](#nestedatt--regions--envs))
 - `gameserver_labels` (Map of String) A map of keys and values that can be used to organize and categorize objects.
@@ -392,6 +393,26 @@ Optional:
 
 - `dynamic_max_buffer_threshold` (Number) DynamicMaxBufferThreshold is the max threshold for the dynamic buffer size. If not set, it will be derived from max_buffer_utilization.
 - `dynamic_min_buffer_threshold` (Number) DynamicMinBufferThreshold is the min threshold for the dynamic buffer size. If not set, it will be derived from max_buffer_utilization.
+
+
+
+<a id="nestedatt--regions--autoscaling"></a>
+### Nested Schema for `regions.autoscaling`
+
+Optional:
+
+- `scale_to_zero` (Attributes) Scale to zero configuration. (see [below for nested schema](#nestedatt--regions--autoscaling--scale_to_zero))
+
+<a id="nestedatt--regions--autoscaling--scale_to_zero"></a>
+### Nested Schema for `regions.autoscaling.scale_to_zero`
+
+Required:
+
+- `scale_up_utilization` (Number) Defines at which utilization the next lower region type gets scaled up. Value as integer in percent.
+
+Optional:
+
+- `scale_down_utilization` (Number) Defines at which utilization the next lower region type gets scaled to zero. Value as integer in percent. Defaults to 5% less than scale up.
 
 
 
@@ -452,6 +473,19 @@ Required:
 Optional:
 
 - `fixed_interval_seconds` (Number) Defines how often the auto-scaler re-evaluates the number of game servers.
+- `scale_to_zero` (Attributes) Scale to zero configuration for all Armadas. (see [below for nested schema](#nestedatt--autoscaling--scale_to_zero))
+
+<a id="nestedatt--autoscaling--scale_to_zero"></a>
+### Nested Schema for `autoscaling.scale_to_zero`
+
+Required:
+
+- `scale_up_utilization` (Number) Defines at which utilization the next lower region type gets scaled up. Value as integer in percent.
+
+Optional:
+
+- `scale_down_utilization` (Number) Defines at which utilization the next lower region type gets scaled to zero. Value as integer in percent. Defaults to 5% less than scale up.
+
 
 
 <a id="nestedatt--health_checks"></a>

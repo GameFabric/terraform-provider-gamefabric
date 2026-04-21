@@ -266,6 +266,19 @@ Optional:
 Optional:
 
 - `fixed_interval_seconds` (Number) Defines how often the auto-scaler re-evaluates the number of game servers.
+- `scale_to_zero` (Attributes) Scale to zero configuration for the Armada (see [below for nested schema](#nestedatt--autoscaling--scale_to_zero))
+
+<a id="nestedatt--autoscaling--scale_to_zero"></a>
+### Nested Schema for `autoscaling.scale_to_zero`
+
+Required:
+
+- `scale_up_utilization` (Number) Defines at which utilization the next lower region type gets scaled up. Value as integer in percent.
+
+Optional:
+
+- `scale_down_utilization` (Number) Defines at which utilization the next lower region type gets scaled to zero. Value as integer in percent. Defaults to 5% less than scale up.
+
 
 
 <a id="nestedatt--health_checks"></a>

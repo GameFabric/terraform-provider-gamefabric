@@ -133,6 +133,37 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 							validators.GFFieldInt32(armadaValidator, "spec.autoscaling.fixedInterval.seconds"),
 						},
 					},
+					"scale_to_zero": schema.SingleNestedAttribute{
+						Description:         "Scale to zero configuration for the Armada.",
+						MarkdownDescription: "Scale to zero configuration for the Armada",
+						Optional:            true,
+						Attributes: map[string]schema.Attribute{
+							"scale_down_utilization": schema.Int32Attribute{
+								Description:         "Defines at which utilization the next lower region type gets scaled to zero. Value as integer in percent. Defaults to 5% less than scale up.",
+								MarkdownDescription: "Defines at which utilization the next lower region type gets scaled to zero. Value as integer in percent. Defaults to 5% less than scale up.",
+								Optional:            true,
+								Computed:            true,
+								PlanModifiers: []planmodifier.Int32{
+									planmodifiers.DerivedScaleDownDefault(-5),
+								},
+								Validators: []validator.Int32{
+									int32validator.Between(1, 99),
+									validators.LessOrEqualTo(path.MatchRelative().AtParent().AtName("scale_up_utilization")),
+									validators.GFFieldInt32(armadaValidator, "spec.autoscaling.scaleToZero.scaleDownUtilization"),
+								},
+							},
+							"scale_up_utilization": schema.Int32Attribute{
+								Description:         "Defines at which utilization the next lower region type gets scaled up. Value as integer in percent.",
+								MarkdownDescription: "Defines at which utilization the next lower region type gets scaled up. Value as integer in percent.",
+								Required:            true,
+								Validators: []validator.Int32{
+									int32validator.Between(1, 99),
+									validators.GreaterOrEqualTo(path.MatchRelative().AtParent().AtName("scale_down_utilization")),
+									validators.GFFieldInt32(armadaValidator, "spec.autoscaling.scaleToZero.scaleUpUtilization"),
+								},
+							},
+						},
+					},
 				},
 			},
 			"region": schema.StringAttribute{

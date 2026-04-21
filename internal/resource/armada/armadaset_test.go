@@ -208,10 +208,110 @@ func TestResourceArmadaSetConfigAutoscaling(t *testing.T) {
 		CheckDestroy:             testCheckArmadaSetDestroy(t, cs),
 		Steps: []resource.TestStep{
 			{
-				Config: testResourceArmadaSetConfigBasic("autoscaling = {\nfixed_interval_seconds = 1\n}\n"),
+				Config: testResourceArmadaSetConfigBasic(`
+autoscaling = {
+	fixed_interval_seconds = 1
+	scale_to_zero = {
+		scale_down_utilization = 75
+		scale_up_utilization = 80
+	}
+}`),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "autoscaling.%", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "autoscaling.%", "2"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "autoscaling.fixed_interval_seconds", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "autoscaling.scale_to_zero.%", "2"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "autoscaling.scale_to_zero.scale_down_utilization", "75"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "autoscaling.scale_to_zero.scale_up_utilization", "80"),
+				),
+			},
+			{
+				ResourceName: "gamefabric_armadaset.test",
+				ImportState:  true,
+			},
+		},
+	})
+}
+
+func TestResourceArmadaSetConfigAutoscalingScaleDownDefault(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckArmadaSetDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				Config: testResourceArmadaSetConfigBasic(`
+autoscaling = {
+	fixed_interval_seconds = 1
+	scale_to_zero = {
+		scale_up_utilization = 80
+	}
+}`),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "autoscaling.%", "2"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "autoscaling.fixed_interval_seconds", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "autoscaling.scale_to_zero.%", "2"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "autoscaling.scale_to_zero.scale_down_utilization", "75"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "autoscaling.scale_to_zero.scale_up_utilization", "80"),
+				),
+			},
+			{
+				ResourceName: "gamefabric_armadaset.test",
+				ImportState:  true,
+			},
+		},
+	})
+}
+
+func TestResourceArmadaSetConfigArmadaAutoscaling(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckArmadaSetDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				Config: testResourceArmadaSetConfigBasicAutoscaling(80, new(int32(75))),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.#", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.autoscaling.%", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.autoscaling.scale_to_zero.%", "2"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.autoscaling.scale_to_zero.scale_down_utilization", "75"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.autoscaling.scale_to_zero.scale_up_utilization", "80"),
+				),
+			},
+			{
+				ResourceName: "gamefabric_armadaset.test",
+				ImportState:  true,
+			},
+		},
+	})
+}
+
+func TestResourceArmadaSetConfigArmadaAutoscalingScaleDownDefault(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckArmadaSetDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				Config: testResourceArmadaSetConfigBasicAutoscaling(80, nil),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.#", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.autoscaling.%", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.autoscaling.scale_to_zero.%", "2"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.autoscaling.scale_to_zero.scale_down_utilization", "75"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.autoscaling.scale_to_zero.scale_up_utilization", "80"),
 				),
 			},
 			{
@@ -597,6 +697,53 @@ func testResourceArmadaSetConfigBasicDynamicBuffer(extras ...string) string {
     }
   ]
 }`, strings.Join(extras, "\n"))
+}
+
+func testResourceArmadaSetConfigBasicAutoscaling(scaleUp int32, scaleDown *int32) string {
+	var scaleDownLine string
+	if scaleDown != nil {
+		scaleDownLine = fmt.Sprintf("scale_down_utilization = %d", *scaleDown)
+	}
+
+	return fmt.Sprintf(`resource "gamefabric_armadaset" "test" {
+  name        = "my-armadaset"
+  environment = "test"
+  description = "My New ArmadaSet Description"
+  regions = [
+    {
+      name = "eu"
+      autoscaling = {
+        scale_to_zero = {
+          %s
+          scale_up_utilization = %d
+        }
+      }
+      replicas = [
+        {
+          region_type  = "baremetal"
+          min_replicas = 1
+          max_replicas = 2
+          buffer_size  = 1
+        }
+      ]
+    }
+  ]
+  containers = [
+    {
+      name = "example-container"
+      image_ref = {
+        name   = "gameserver-asoda0s"
+        branch = "prod"
+      }
+      resources = {
+        requests = {
+          cpu    = "2000m"
+          memory = "256Mi"
+        }
+      }
+    }
+  ]
+}`, scaleDownLine, scaleUp)
 }
 
 func testResourceArmadaSetConfigBasic(extras ...string) string {

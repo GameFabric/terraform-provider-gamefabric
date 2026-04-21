@@ -4,9 +4,12 @@ go 1.26.2
 
 replace (
 	agones.dev/agones => agones.dev/agones v1.55.0
+	github.com/cilium/cilium => github.com/cilium/cilium v1.19.2
+	github.com/google/gnostic-models => github.com/google/gnostic-models v0.6.9
 	k8s.io/api => k8s.io/api v0.33.9
 	k8s.io/apimachinery => k8s.io/apimachinery v0.33.9
 	k8s.io/client-go => k8s.io/client-go v0.33.9
+	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20250318190949-c8a335a9a2ff
 )
 
 require (
@@ -181,7 +184,6 @@ require (
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.7.0 // indirect
-	sigs.k8s.io/structured-merge-diff/v6 v6.3.0 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
