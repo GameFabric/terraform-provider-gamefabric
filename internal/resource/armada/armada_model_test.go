@@ -72,6 +72,10 @@ var (
 				FixedInterval: &armadav1.ArmadaFixInterval{
 					Seconds: 60,
 				},
+				ScaleToZero: &armadav1.ArmadaScaleToZero{
+					ScaleDownUtilization: intstr.FromInt32(75),
+					ScaleUpUtilization:   intstr.FromInt32(80),
+				},
 			},
 			Template: armadav1.FleetTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
@@ -211,8 +215,12 @@ var (
 				},
 			},
 		},
-		Autoscaling: &autoscalingModel{
+		Autoscaling: &armadaAutoscalingModel{
 			FixedIntervalSeconds: types.Int32Value(60),
+			ScaleToZero: &scaleToZeroModel{
+				ScaleDownUtilization: types.Int32Value(75),
+				ScaleUpUtilization:   types.Int32Value(80),
+			},
 		},
 		GameServerLabels: map[string]types.String{
 			"gs-label-key": types.StringValue("gs-label-value"),

@@ -10,6 +10,7 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 type armadaSetModel struct {
@@ -19,7 +20,7 @@ type armadaSetModel struct {
 	Description           types.String                       `tfsdk:"description"`
 	Labels                map[string]types.String            `tfsdk:"labels"`
 	Annotations           map[string]types.String            `tfsdk:"annotations"`
-	Autoscaling           *autoscalingModel                  `tfsdk:"autoscaling"`
+	Autoscaling           *armadaSetAutoscalingModel         `tfsdk:"autoscaling"`
 	Regions               []regionModel                      `tfsdk:"regions"`
 	GameServerLabels      map[string]types.String            `tfsdk:"gameserver_labels"`
 	GameServerAnnotations map[string]types.String            `tfsdk:"gameserver_annotations"`
@@ -33,7 +34,7 @@ type armadaSetModel struct {
 	ImageUpdaterTarget    *container.ImageUpdaterTargetModel `tfsdk:"image_updater_target"`
 }
 
-func newArmadaSetModel(obj *armadav1.ArmadaSet) armadaSetModel {
+func newArmadaSetModel(obj *armadav1.ArmadaSet, shared *scaleToZeroModel) armadaSetModel {
 	return armadaSetModel{
 		ID:                    types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String()),
 		Name:                  types.StringValue(obj.Name),
@@ -41,8 +42,8 @@ func newArmadaSetModel(obj *armadav1.ArmadaSet) armadaSetModel {
 		Description:           conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
 		Labels:                conv.ForEachMapItem(obj.Labels, types.StringValue),
 		Annotations:           conv.ForEachMapItem(obj.Annotations, types.StringValue),
-		Autoscaling:           newAutoscalingModel(obj.Spec.Autoscaling),
-		Regions:               newRegionModels(obj.Spec),
+		Autoscaling:           newArmadaSetAutoscalingModel(obj.Spec.Autoscaling),
+		Regions:               newRegionModels(obj.Spec, shared),
 		GameServerLabels:      conv.ForEachMapItem(conv.MapWithoutKey(obj.Spec.Template.Labels, profilingKey), types.StringValue),
 		GameServerAnnotations: conv.ForEachMapItem(obj.Spec.Template.Annotations, types.StringValue),
 		Containers:            conv.ForEachSliceItem(obj.Spec.Template.Spec.Containers, mps.NewContainerForArmada),
@@ -66,10 +67,12 @@ func (m armadaSetModel) ToObject() *armadav1.ArmadaSet {
 		},
 		Spec: armadav1.ArmadaSetSpec{
 			Description: m.Description.ValueString(),
-			Armadas:     conv.ForEachSliceItem(m.Regions, toArmadaTemplate),
-			Override:    conv.ForEachSliceItem(m.Regions, toArmadaOverride),
-			Autoscaling: armadav1.ArmadaAutoscaling{
-				FixedInterval: toFixedInterval(m.Autoscaling),
+			Armadas: conv.ForEachSliceItem(m.Regions, func(reg regionModel) armadav1.ArmadaTemplate {
+				return toArmadaTemplate(reg, m.Autoscaling)
+			}),
+			Override: conv.ForEachSliceItem(m.Regions, toArmadaOverride),
+			Autoscaling: armadav1.ArmadaSetAutoscaling{
+				FixedInterval: toArmadaSetFixedInterval(m.Autoscaling),
 			},
 			Template: armadav1.FleetTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
@@ -92,16 +95,42 @@ func (m armadaSetModel) ToObject() *armadav1.ArmadaSet {
 	}
 }
 
-func newRegionModels(spec armadav1.ArmadaSetSpec) []regionModel {
+type armadaSetAutoscalingModel struct {
+	FixedIntervalSeconds types.Int32 `tfsdk:"fixed_interval_seconds"`
+
+	// Computed from the ArmadaSet Regions.
+	ScaleToZero *scaleToZeroModel `tfsdk:"scale_to_zero"`
+}
+
+func toArmadaSetFixedInterval(scaling *armadaSetAutoscalingModel) *armadav1.ArmadaFixInterval {
+	if scaling == nil || !conv.IsKnown(scaling.FixedIntervalSeconds) {
+		return nil
+	}
+	return &armadav1.ArmadaFixInterval{
+		Seconds: scaling.FixedIntervalSeconds.ValueInt32(),
+	}
+}
+
+func newArmadaSetAutoscalingModel(obj armadav1.ArmadaSetAutoscaling) *armadaSetAutoscalingModel {
+	if obj.FixedInterval == nil || obj.FixedInterval.Seconds <= 0 {
+		return nil
+	}
+	return &armadaSetAutoscalingModel{
+		FixedIntervalSeconds: types.Int32Value(obj.FixedInterval.Seconds),
+	}
+}
+
+func newRegionModels(spec armadav1.ArmadaSetSpec, shared *scaleToZeroModel) []regionModel {
 	regs := make([]regionModel, 0, len(spec.Armadas))
 	regIdx := make(map[string]int, len(spec.Armadas))
-	for _, val := range spec.Armadas {
+	for _, arm := range spec.Armadas {
 		reg := regionModel{
-			Name:     types.StringValue(val.Region),
-			Replicas: conv.ForEachSliceItem(val.Distribution, newReplicas),
+			Name:        types.StringValue(arm.Region),
+			Replicas:    conv.ForEachSliceItem(arm.Distribution, newReplicas),
+			Autoscaling: newArmadaTemplateAutoscaling(arm.Autoscaling, shared),
 		}
 		regs = append(regs, reg)
-		regIdx[val.Region] = len(regs) - 1
+		regIdx[arm.Region] = len(regs) - 1
 	}
 
 	for _, val := range spec.Override {
@@ -120,18 +149,44 @@ func newRegionModels(spec armadav1.ArmadaSetSpec) []regionModel {
 	return regs
 }
 
-type regionModel struct {
-	Name             types.String            `tfsdk:"name"`
-	Replicas         []replicaModel          `tfsdk:"replicas"`
-	Envs             []core.EnvVarModel      `tfsdk:"envs"`
-	GameServerLabels map[string]types.String `tfsdk:"gameserver_labels"`
-	ConfigFiles      []mps.ConfigFileModel   `tfsdk:"config_files"`
-	Secrets          []mps.SecretMountModel  `tfsdk:"secrets"`
+func newArmadaTemplateAutoscaling(as armadav1.ArmadaTemplateAutoscaling, shared *scaleToZeroModel) *armadaTemplateAutoscaling {
+	if as.ScaleToZero == nil || (as.ScaleToZero.ScaleDownUtilization.IntValue() == 0 && as.ScaleToZero.ScaleUpUtilization.IntValue() == 0) {
+		return nil
+	}
+
+	if shared != nil &&
+		int(shared.ScaleDownUtilization.ValueInt32()) == as.ScaleToZero.ScaleDownUtilization.IntValue() &&
+		int(shared.ScaleUpUtilization.ValueInt32()) == as.ScaleToZero.ScaleUpUtilization.IntValue() {
+		// Region setting matches shared setting. Leave it out then.
+		return nil
+	}
+
+	return &armadaTemplateAutoscaling{
+		ScaleToZero: &scaleToZeroModel{
+			ScaleDownUtilization: types.Int32Value(int32(as.ScaleToZero.ScaleDownUtilization.IntValue())),
+			ScaleUpUtilization:   types.Int32Value(int32(as.ScaleToZero.ScaleUpUtilization.IntValue())),
+		},
+	}
 }
 
-func toArmadaTemplate(reg regionModel) armadav1.ArmadaTemplate {
+type regionModel struct {
+	Name             types.String               `tfsdk:"name"`
+	Autoscaling      *armadaTemplateAutoscaling `tfsdk:"autoscaling"`
+	Replicas         []replicaModel             `tfsdk:"replicas"`
+	Envs             []core.EnvVarModel         `tfsdk:"envs"`
+	GameServerLabels map[string]types.String    `tfsdk:"gameserver_labels"`
+	ConfigFiles      []mps.ConfigFileModel      `tfsdk:"config_files"`
+	Secrets          []mps.SecretMountModel     `tfsdk:"secrets"`
+}
+
+type armadaTemplateAutoscaling struct {
+	ScaleToZero *scaleToZeroModel `tfsdk:"scale_to_zero"`
+}
+
+func toArmadaTemplate(reg regionModel, as *armadaSetAutoscalingModel) armadav1.ArmadaTemplate {
 	return armadav1.ArmadaTemplate{
-		Region: reg.Name.ValueString(),
+		Region:      reg.Name.ValueString(),
+		Autoscaling: toArmadaTemplateAutoscaling(reg.Autoscaling, as),
 		Distribution: conv.ForEachSliceItem(reg.Replicas, func(r replicaModel) armadav1.ArmadaRegionType {
 			return armadav1.ArmadaRegionType{
 				Name:          r.RegionType.ValueString(),
@@ -141,6 +196,27 @@ func toArmadaTemplate(reg regionModel) armadav1.ArmadaTemplate {
 				DynamicBuffer: toDynamicBuffer(r.DynamicBuffer),
 			}
 		}),
+	}
+}
+
+func toArmadaTemplateAutoscaling(as *armadaTemplateAutoscaling, sharedAs *armadaSetAutoscalingModel) armadav1.ArmadaTemplateAutoscaling {
+	if as == nil || as.ScaleToZero == nil || (as.ScaleToZero.ScaleDownUtilization.ValueInt32() == 0 && as.ScaleToZero.ScaleUpUtilization.ValueInt32() == 0) {
+		// Check shared setting.
+		if sharedAs == nil || sharedAs.ScaleToZero == nil || (sharedAs.ScaleToZero.ScaleDownUtilization.ValueInt32() == 0 && sharedAs.ScaleToZero.ScaleUpUtilization.ValueInt32() == 0) {
+			return armadav1.ArmadaTemplateAutoscaling{}
+		}
+		return armadav1.ArmadaTemplateAutoscaling{
+			ScaleToZero: &armadav1.ArmadaScaleToZero{
+				ScaleDownUtilization: intstr.FromInt32(sharedAs.ScaleToZero.ScaleDownUtilization.ValueInt32()),
+				ScaleUpUtilization:   intstr.FromInt32(sharedAs.ScaleToZero.ScaleUpUtilization.ValueInt32()),
+			},
+		}
+	}
+	return armadav1.ArmadaTemplateAutoscaling{
+		ScaleToZero: &armadav1.ArmadaScaleToZero{
+			ScaleDownUtilization: intstr.FromInt32(as.ScaleToZero.ScaleDownUtilization.ValueInt32()),
+			ScaleUpUtilization:   intstr.FromInt32(as.ScaleToZero.ScaleUpUtilization.ValueInt32()),
+		},
 	}
 }
 
