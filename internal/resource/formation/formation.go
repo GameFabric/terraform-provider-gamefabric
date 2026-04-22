@@ -240,6 +240,58 @@ func (r *formation) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 													Attributes: core.EnvVarAttributes(formationValidator, "spec.vessels[?].override.containers[?].env[?]"),
 												},
 											},
+											"config_files": schema.ListNestedAttribute{
+												Description:         "ConfigFiles is a list of configuration file mounts to override for this container.",
+												MarkdownDescription: "ConfigFiles is a list of configuration file mounts to override for this container.",
+												Optional:            true,
+												NestedObject: schema.NestedAttributeObject{
+													Attributes: map[string]schema.Attribute{
+														"name": schema.StringAttribute{
+															Description:         "Name of the ConfigFile resource to mount.",
+															MarkdownDescription: "Name of the ConfigFile resource to mount.",
+															Required:            true,
+															Validators: []validator.String{
+																validators.NameValidator{},
+																validators.GFFieldString(formationValidator, "spec.vessels[?].override.containers[?].configFiles[?].name"),
+															},
+														},
+														"mount_path": schema.StringAttribute{
+															Description:         "Path where the config file will be mounted in the container.",
+															MarkdownDescription: "Path where the config file will be mounted in the container.",
+															Required:            true,
+															Validators: []validator.String{
+																validators.GFFieldString(formationValidator, "spec.vessels[?].override.containers[?].configFiles[?].mountPath"),
+															},
+														},
+													},
+												},
+											},
+											"secrets": schema.ListNestedAttribute{
+												Description:         "Secrets is a list of secret mounts to override for this container.",
+												MarkdownDescription: "Secrets is a list of secret mounts to override for this container.",
+												Optional:            true,
+												NestedObject: schema.NestedAttributeObject{
+													Attributes: map[string]schema.Attribute{
+														"name": schema.StringAttribute{
+															Description:         "Name of the Secret resource to mount.",
+															MarkdownDescription: "Name of the Secret resource to mount.",
+															Required:            true,
+															Validators: []validator.String{
+																validators.NameValidator{},
+																validators.GFFieldString(formationValidator, "spec.vessels[?].override.containers[?].secrets[?].name"),
+															},
+														},
+														"mount_path": schema.StringAttribute{
+															Description:         "Path where the secret will be mounted in the container.",
+															MarkdownDescription: "Path where the secret will be mounted in the container.",
+															Required:            true,
+															Validators: []validator.String{
+																validators.GFFieldString(formationValidator, "spec.vessels[?].override.containers[?].secrets[?].mountPath"),
+															},
+														},
+													},
+												},
+											},
 										},
 									},
 								},

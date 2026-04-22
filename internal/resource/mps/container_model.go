@@ -58,8 +58,8 @@ func NewContainerForFormation(obj formationv1.Container) ContainerModel {
 		Envs:         conv.ForEachSliceItem(obj.Env, core.NewEnvVarModel),
 		Ports:        conv.ForEachSliceItem(obj.Ports, newPortModelForFormation),
 		VolumeMounts: conv.ForEachSliceItem(obj.VolumeMounts, newVolumeMountModel),
-		ConfigFiles:  conv.ForEachSliceItem(obj.ConfigFiles, newConfigFileModelForFormation),
-		Secrets:      conv.ForEachSliceItem(obj.Secrets, newSecretMountModelForFormation),
+		ConfigFiles:  conv.ForEachSliceItem(obj.ConfigFiles, NewConfigFileModelForFormation),
+		Secrets:      conv.ForEachSliceItem(obj.Secrets, NewSecretMountModelForFormation),
 	}
 }
 
@@ -92,8 +92,8 @@ func ToContainerForFormation(ctr ContainerModel) formationv1.Container {
 		Env:          conv.ForEachSliceItem(ctr.Envs, func(item core.EnvVarModel) corev1.EnvVar { return item.ToObject() }),
 		Ports:        conv.ForEachSliceItem(ctr.Ports, toPortForFormation),
 		VolumeMounts: conv.ForEachSliceItem(ctr.VolumeMounts, toVolumeMount),
-		ConfigFiles:  conv.ForEachSliceItem(ctr.ConfigFiles, toConfigFileForFormation),
-		Secrets:      conv.ForEachSliceItem(ctr.Secrets, toFormationSecretMount),
+		ConfigFiles:  conv.ForEachSliceItem(ctr.ConfigFiles, ToConfigFileForFormation),
+		Secrets:      conv.ForEachSliceItem(ctr.Secrets, ToFormationSecretMount),
 	}
 }
 
@@ -266,7 +266,7 @@ func NewConfigFileModelForArmada(obj armadav1.ConfigFileMount) ConfigFileModel {
 	}
 }
 
-func newConfigFileModelForFormation(obj formationv1.ConfigFileMount) ConfigFileModel {
+func NewConfigFileModelForFormation(obj formationv1.ConfigFileMount) ConfigFileModel {
 	return ConfigFileModel{
 		Name:      types.StringValue(obj.Name),
 		MountPath: types.StringValue(obj.MountPath),
@@ -280,7 +280,7 @@ func ToConfigFileForArmada(file ConfigFileModel) armadav1.ConfigFileMount {
 	}
 }
 
-func toConfigFileForFormation(file ConfigFileModel) formationv1.ConfigFileMount {
+func ToConfigFileForFormation(file ConfigFileModel) formationv1.ConfigFileMount {
 	return formationv1.ConfigFileMount{
 		Name:      file.Name.ValueString(),
 		MountPath: file.MountPath.ValueString(),
@@ -300,7 +300,7 @@ func NewSecretMountModelForArmada(obj armadav1.SecretMount) SecretMountModel {
 	}
 }
 
-func newSecretMountModelForFormation(obj formationv1.SecretMount) SecretMountModel {
+func NewSecretMountModelForFormation(obj formationv1.SecretMount) SecretMountModel {
 	return SecretMountModel{
 		Name:      types.StringValue(obj.Name),
 		MountPath: types.StringValue(obj.MountPath),
@@ -314,7 +314,7 @@ func ToArmadaSecretMount(secret SecretMountModel) armadav1.SecretMount {
 	}
 }
 
-func toFormationSecretMount(secret SecretMountModel) formationv1.SecretMount {
+func ToFormationSecretMount(secret SecretMountModel) formationv1.SecretMount {
 	return formationv1.SecretMount{
 		Name:      secret.Name.ValueString(),
 		MountPath: secret.MountPath.ValueString(),
