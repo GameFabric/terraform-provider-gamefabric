@@ -27,7 +27,7 @@ jobs:
         run: git ls-files -z | while read -d '' path; do touch -d "$(git log -1 --format="@%ct" "$path")" "$path"; done
 
       - name: Setup Proxy Credentials
-        uses: extractions/netrc@v2
+        uses: extractions/netrc@v3
         with:
           machine: ${{ secrets.GOPROXY }}
           username: ${{ secrets.GOPROXY_USERNAME }}
@@ -71,7 +71,7 @@ jobs:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
 
       - name: Install Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_wrapper: false
 
