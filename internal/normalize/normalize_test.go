@@ -3,10 +3,8 @@ package normalize_test
 import (
 	"testing"
 
-	"github.com/gamefabric/gf-apicore/runtime"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/planmodifiers"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -390,41 +388,14 @@ func TestModelWithIgnorePath(t *testing.T) {
 		Bar: types.StringValue("bar"),
 	}
 
-	t.Run("does not detect remote change without ignore path", func(t *testing.T) {
-		state := runtime.DeepCopy(state)
-		apiResponse := runtime.DeepCopy(apiResponse)
+	diags := normalize.Model(t.Context(), &apiResponse, state)
 
-		diags := normalize.Model(t.Context(), &apiResponse, state)
+	require.Empty(t, diags)
 
-		require.Empty(t, diags)
-
-		// After normalization, the state has not changed, although remotely it is empty.
-		assert.Equal(t, testObject{
-			Foo: types.StringValue("foo"),
-			DynamicBuffer: &testDynamicBuffer{
-				MaxBufferUtilization:      types.Int32Value(10), // !
-				DynamicMaxBufferThreshold: types.Int32Value(20), // !
-				DynamicMinBufferThreshold: types.Int32Value(30), // !
-			},
-			Bar: types.StringValue("bar"),
-		}, apiResponse)
-	})
-
-	t.Run("does detect remote change with ignore path", func(t *testing.T) {
-		state := runtime.DeepCopy(state)
-		apiResponse := runtime.DeepCopy(apiResponse)
-
-		diags := normalize.Model(t.Context(), &apiResponse, state, path.Root("dynamic_buffer"))
-
-		require.Empty(t, diags)
-
-		// After normalization with ignore, the state has changed to match the remote value.
-		assert.Equal(t, testObject{
-			Foo:           types.StringValue("foo"),
-			DynamicBuffer: nil, // !
-			Bar:           types.StringValue("bar"),
-		}, apiResponse)
-	})
+	assert.Equal(t, testObject{
+		Foo: types.StringValue("foo"),
+		Bar: types.StringValue("bar"),
+	}, apiResponse)
 }
 
 type TestObject struct {

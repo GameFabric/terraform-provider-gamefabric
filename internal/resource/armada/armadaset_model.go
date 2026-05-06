@@ -42,7 +42,7 @@ func newArmadaSetModel(obj *armadav1.ArmadaSet, shared *scaleToZeroModel) armada
 		Description:           conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
 		Labels:                conv.ForEachMapItem(obj.Labels, types.StringValue),
 		Annotations:           conv.ForEachMapItem(obj.Annotations, types.StringValue),
-		Autoscaling:           newArmadaSetAutoscalingModel(obj.Spec.Autoscaling),
+		Autoscaling:           newArmadaSetAutoscalingModel(obj.Spec.Autoscaling, shared),
 		Regions:               newRegionModels(obj.Spec, shared),
 		GameServerLabels:      conv.ForEachMapItem(conv.MapWithoutKey(obj.Spec.Template.Labels, profilingKey), types.StringValue),
 		GameServerAnnotations: conv.ForEachMapItem(obj.Spec.Template.Annotations, types.StringValue),
@@ -111,12 +111,13 @@ func toArmadaSetFixedInterval(scaling *armadaSetAutoscalingModel) *armadav1.Arma
 	}
 }
 
-func newArmadaSetAutoscalingModel(obj armadav1.ArmadaSetAutoscaling) *armadaSetAutoscalingModel {
-	if obj.FixedInterval == nil || obj.FixedInterval.Seconds <= 0 {
+func newArmadaSetAutoscalingModel(obj armadav1.ArmadaSetAutoscaling, model *scaleToZeroModel) *armadaSetAutoscalingModel {
+	if model == nil && (obj.FixedInterval == nil || obj.FixedInterval.Seconds <= 0) {
 		return nil
 	}
 	return &armadaSetAutoscalingModel{
 		FixedIntervalSeconds: types.Int32Value(obj.FixedInterval.Seconds),
+		ScaleToZero:          model,
 	}
 }
 

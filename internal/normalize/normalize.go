@@ -88,7 +88,12 @@ func ptrType(ctx context.Context, v reflect.Value, t reflect.Type, state State, 
 
 	switch {
 	case v.IsNil() && !tfVal.IsNull():
-		// Set the pointer to a new value as Terraform has a non-null value.
+		if !isZeroTFValue(tfVal) {
+			// Nothing to do.
+			return nil
+		}
+
+		// Set the pointer to a new value as Terraform has a zero value.
 		v.Set(reflect.New(t.Elem()))
 		return normTypes(ctx, v.Elem(), t.Elem(), state, p, ignore)
 	case !v.IsNil() && tfVal.IsNull() && isZeroValue(ctx, v):
@@ -100,6 +105,49 @@ func ptrType(ctx context.Context, v reflect.Value, t reflect.Type, state State, 
 		return nil
 	}
 	return normTypes(ctx, v.Elem(), t.Elem(), state, p, ignore)
+}
+
+func isZeroTFValue(val attr.Value) bool { //nolint:cyclop // Belongs together.
+	if val == nil || val.IsNull() {
+		return true
+	}
+	if val.IsUnknown() {
+		return false
+	}
+
+	switch v := val.(type) {
+	case types.String:
+		return v.ValueString() == ""
+	case types.Int64:
+		return v.ValueInt64() == 0
+	case types.Int32:
+		return v.ValueInt32() == 0
+	case types.Float64:
+		return v.ValueFloat64() == 0.0
+	case types.Float32:
+		return v.ValueFloat32() == 0.0
+	case types.Number:
+		return v.ValueBigFloat() == nil || v.ValueBigFloat().Sign() == 0
+	case types.Bool:
+		return !v.ValueBool()
+	case types.List:
+		return len(v.Elements()) == 0
+	case types.Set:
+		return len(v.Elements()) == 0
+	case types.Map:
+		return len(v.Elements()) == 0
+	case types.Tuple:
+		return len(v.Elements()) == 0
+	case types.Object:
+		for _, attrVal := range v.Attributes() {
+			if !isZeroTFValue(attrVal) {
+				return false
+			}
+		}
+		return true
+	default:
+		return false
+	}
 }
 
 func structType(ctx context.Context, v reflect.Value, t reflect.Type, state State, p path.Path, ignore []path.Path) diag.Diagnostics {
