@@ -6,8 +6,6 @@ import (
 	"context"
 	"fmt"
 	"reflect"
-	"regexp"
-	"slices"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -35,7 +33,7 @@ type State interface {
 }
 
 // Model normalizes the given model in the context of the current state.
-func Model(ctx context.Context, model any, state State, ignore ...path.Path) diag.Diagnostics {
+func Model(ctx context.Context, model any, state State) diag.Diagnostics {
 	v := reflect.ValueOf(model)
 	if v.Kind() == reflect.Pointer {
 		v = v.Elem()
@@ -45,16 +43,12 @@ func Model(ctx context.Context, model any, state State, ignore ...path.Path) dia
 		panic(fmt.Errorf("expected T to be a struct or pointer to a struct, got %T", model))
 	}
 
-	return structType(ctx, v, v.Type(), state, path.Empty(), ignore)
+	return structType(ctx, v, v.Type(), state, path.Empty())
 }
 
 var attrValueType = reflect.TypeFor[attr.Value]()
 
-func normTypes(ctx context.Context, v reflect.Value, t reflect.Type, state State, p path.Path, ignore []path.Path) diag.Diagnostics {
-	if slices.ContainsFunc(ignore, func(ip path.Path) bool { return ip.String() == normalizePath(p) }) {
-		return nil
-	}
-
+func normTypes(ctx context.Context, v reflect.Value, t reflect.Type, state State, p path.Path) diag.Diagnostics {
 	if t.Implements(attrValueType) {
 		// This is an attr.Value, treat as primitive.
 		return primitiveType(ctx, v, state, p)
@@ -62,13 +56,13 @@ func normTypes(ctx context.Context, v reflect.Value, t reflect.Type, state State
 
 	switch t.Kind() {
 	case reflect.Pointer:
-		return ptrType(ctx, v, t, state, p, ignore)
+		return ptrType(ctx, v, t, state, p)
 	case reflect.Struct:
-		return structType(ctx, v, t, state, p, ignore)
+		return structType(ctx, v, t, state, p)
 	case reflect.Map:
-		return mapType(ctx, v, t, state, p, ignore)
+		return mapType(ctx, v, t, state, p)
 	case reflect.Slice:
-		return sliceType(ctx, v, t, state, p, ignore)
+		return sliceType(ctx, v, t, state, p)
 	default:
 		return diag.Diagnostics{
 			diag.NewErrorDiagnostic(
@@ -79,7 +73,7 @@ func normTypes(ctx context.Context, v reflect.Value, t reflect.Type, state State
 	}
 }
 
-func ptrType(ctx context.Context, v reflect.Value, t reflect.Type, state State, p path.Path, ignore []path.Path) diag.Diagnostics {
+func ptrType(ctx context.Context, v reflect.Value, t reflect.Type, state State, p path.Path) diag.Diagnostics {
 	var tfVal attr.Value
 	diags := state.GetAttribute(ctx, p, &tfVal)
 	if diags.HasError() {
@@ -95,7 +89,7 @@ func ptrType(ctx context.Context, v reflect.Value, t reflect.Type, state State, 
 
 		// Set the pointer to a new value as Terraform has a zero value.
 		v.Set(reflect.New(t.Elem()))
-		return normTypes(ctx, v.Elem(), t.Elem(), state, p, ignore)
+		return normTypes(ctx, v.Elem(), t.Elem(), state, p)
 	case !v.IsNil() && tfVal.IsNull() && isZeroValue(ctx, v):
 		// Set the pointer to nil as Terraform has a null value.
 		v.Set(reflect.Zero(t))
@@ -104,7 +98,7 @@ func ptrType(ctx context.Context, v reflect.Value, t reflect.Type, state State, 
 		// Both are nil, nothing to do.
 		return nil
 	}
-	return normTypes(ctx, v.Elem(), t.Elem(), state, p, ignore)
+	return normTypes(ctx, v.Elem(), t.Elem(), state, p)
 }
 
 func isZeroTFValue(val attr.Value) bool { //nolint:cyclop // Belongs together.
@@ -150,7 +144,7 @@ func isZeroTFValue(val attr.Value) bool { //nolint:cyclop // Belongs together.
 	}
 }
 
-func structType(ctx context.Context, v reflect.Value, t reflect.Type, state State, p path.Path, ignore []path.Path) diag.Diagnostics {
+func structType(ctx context.Context, v reflect.Value, t reflect.Type, state State, p path.Path) diag.Diagnostics {
 	// A struct type cannot be normalized as there is no other terraform value to set.
 	// Just check the fields.
 	var diags diag.Diagnostics
@@ -163,12 +157,12 @@ func structType(ctx context.Context, v reflect.Value, t reflect.Type, state Stat
 			continue
 		}
 
-		diags.Append(normTypes(ctx, fld, fldType.Type, state, p.AtName(tagName), ignore)...)
+		diags.Append(normTypes(ctx, fld, fldType.Type, state, p.AtName(tagName))...)
 	}
 	return diags
 }
 
-func mapType(ctx context.Context, v reflect.Value, t reflect.Type, state State, p path.Path, ignore []path.Path) diag.Diagnostics {
+func mapType(ctx context.Context, v reflect.Value, t reflect.Type, state State, p path.Path) diag.Diagnostics {
 	if v.IsNil() || v.Len() == 0 {
 		var tfVal attr.Value
 		diags := state.GetAttribute(ctx, p, &tfVal)
@@ -187,12 +181,12 @@ func mapType(ctx context.Context, v reflect.Value, t reflect.Type, state State, 
 
 	var diags diag.Diagnostics
 	for _, key := range v.MapKeys() {
-		diags.Append(normTypes(ctx, v.MapIndex(key), t.Elem(), state, p.AtMapKey(key.String()), ignore)...)
+		diags.Append(normTypes(ctx, v.MapIndex(key), t.Elem(), state, p.AtMapKey(key.String()))...)
 	}
 	return diags
 }
 
-func sliceType(ctx context.Context, v reflect.Value, t reflect.Type, state State, p path.Path, ignore []path.Path) diag.Diagnostics {
+func sliceType(ctx context.Context, v reflect.Value, t reflect.Type, state State, p path.Path) diag.Diagnostics {
 	if v.IsNil() || v.Len() == 0 {
 		var tfVal attr.Value
 		diags := state.GetAttribute(ctx, p, &tfVal)
@@ -211,7 +205,7 @@ func sliceType(ctx context.Context, v reflect.Value, t reflect.Type, state State
 
 	var diags diag.Diagnostics
 	for i := range v.Len() {
-		diags.Append(normTypes(ctx, v.Index(i), t.Elem(), state, p.AtListIndex(i), ignore)...)
+		diags.Append(normTypes(ctx, v.Index(i), t.Elem(), state, p.AtListIndex(i))...)
 	}
 	return diags
 }
@@ -319,9 +313,4 @@ func isZeroAttr(ctx context.Context, v attr.Value) bool {
 	default:
 		return false
 	}
-}
-
-// normalizePath normalizes slice indexes.
-func normalizePath(p path.Path) string {
-	return regexp.MustCompile(`\[\d+\]`).ReplaceAllString(p.String(), "[]")
 }
