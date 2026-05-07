@@ -74,7 +74,7 @@ func (v MinReplicasValidator) ValidateInt32(ctx context.Context, request validat
 			request.Path,
 			"Invalid Attribute Value",
 			fmt.Sprintf("Attribute %s value must be 0 or at least equal to buffer_size (%d), got: %d. "+
-				"A value of 0 instructs the API to use buffer_size as the effective minimum.",
+				"A value of 0 instructs GameFabric to use buffer_size as the effective minimum.",
 				request.Path, bufferSize, minReplicas),
 		)
 		return
@@ -115,4 +115,3 @@ func (v MinReplicasValidator) ValidateInt32(ctx context.Context, request validat
 		)
 	}
 }
-
