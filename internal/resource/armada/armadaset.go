@@ -605,14 +605,7 @@ func (r *armadaSet) Create(ctx context.Context, req resource.CreateRequest, resp
 		return
 	}
 
-	var shared *scaleToZeroModel
-	if plan.Autoscaling != nil {
-		shared = plan.Autoscaling.ScaleToZero
-	}
-	plan = newArmadaSetModel(outObj)
-	if plan.Autoscaling != nil {
-		plan.Autoscaling.ScaleToZero = shared // TODO add comment and nil check
-	}
+	plan = newArmadaSetModel(outObj, plan.Autoscaling)
 
 	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -639,15 +632,7 @@ func (r *armadaSet) Read(ctx context.Context, req resource.ReadRequest, resp *re
 		return
 	}
 
-	var shared *scaleToZeroModel
-	if state.Autoscaling != nil {
-		shared = state.Autoscaling.ScaleToZero
-	}
-	state = newArmadaSetModel(outObj)
-	if state.Autoscaling != nil {
-		// This must be kept as it can not be re-constructed from API.
-		state.Autoscaling.ScaleToZero = shared
-	}
+	state = newArmadaSetModel(outObj, state.Autoscaling)
 
 	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)

@@ -34,7 +34,7 @@ type armadaSetModel struct {
 	ImageUpdaterTarget    *container.ImageUpdaterTargetModel `tfsdk:"image_updater_target"`
 }
 
-func newArmadaSetModel(obj *armadav1.ArmadaSet) armadaSetModel {
+func newArmadaSetModel(obj *armadav1.ArmadaSet, as *armadaSetAutoscalingModel) armadaSetModel {
 	return armadaSetModel{
 		ID:                    types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String()),
 		Name:                  types.StringValue(obj.Name),
@@ -42,7 +42,7 @@ func newArmadaSetModel(obj *armadav1.ArmadaSet) armadaSetModel {
 		Description:           conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
 		Labels:                conv.ForEachMapItem(obj.Labels, types.StringValue),
 		Annotations:           conv.ForEachMapItem(obj.Annotations, types.StringValue),
-		Autoscaling:           newArmadaSetAutoscalingModel(obj.Spec.Autoscaling),
+		Autoscaling:           newArmadaSetAutoscalingModel(obj.Spec.Autoscaling, as),
 		Regions:               newRegionModels(obj.Spec),
 		GameServerLabels:      conv.ForEachMapItem(conv.MapWithoutKey(obj.Spec.Template.Labels, profilingKey), types.StringValue),
 		GameServerAnnotations: conv.ForEachMapItem(obj.Spec.Template.Annotations, types.StringValue),
@@ -111,13 +111,19 @@ func toArmadaSetFixedInterval(scaling *armadaSetAutoscalingModel) *armadav1.Arma
 	}
 }
 
-func newArmadaSetAutoscalingModel(obj armadav1.ArmadaSetAutoscaling) *armadaSetAutoscalingModel {
-	if obj.FixedInterval == nil || obj.FixedInterval.Seconds <= 0 {
+func newArmadaSetAutoscalingModel(obj armadav1.ArmadaSetAutoscaling, global *armadaSetAutoscalingModel) *armadaSetAutoscalingModel {
+	if (global == nil || global.ScaleToZero == nil) && (obj.FixedInterval == nil || obj.FixedInterval.Seconds <= 0) {
 		return nil
 	}
-	return &armadaSetAutoscalingModel{
+	as := &armadaSetAutoscalingModel{
 		FixedIntervalSeconds: types.Int32Value(obj.FixedInterval.Seconds),
 	}
+	if global != nil && global.ScaleToZero != nil && conv.IsKnown(global.ScaleToZero.ScaleUpUtilization) {
+		// Keep the global scale to zero settings from the original state.
+		// It has no relation to the object and would be lost otherwise.
+		as.ScaleToZero = global.ScaleToZero
+	}
+	return as
 }
 
 func newRegionModels(spec armadav1.ArmadaSetSpec) []regionModel {
