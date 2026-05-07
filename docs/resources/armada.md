@@ -299,7 +299,7 @@ Required:
 
 - `buffer_size` (Number) BufferSize is the number of replicas to have ready all the time.
 - `max_replicas` (Number) MaxReplicas is the maximum number of replicas in the region type.
-- `min_replicas` (Number) MinReplicas is the minimum number of replicas in the region type.
+- `min_replicas` (Number) MinReplicas is the minimum number of replicas in the region type. Set to `0` to use `buffer_size` as the effective minimum (recommended when `dynamic_buffer` is enabled). When non-zero, it must be greater than or equal to `buffer_size`.
 - `region_type` (String) RegionType is the name of the region type.
 
 Optional:

@@ -194,12 +194,12 @@ func (r *armada) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 							},
 						},
 						"min_replicas": schema.Int32Attribute{
-							Description:         "MinReplicas is the minimum number of replicas in the region type.",
-							MarkdownDescription: "MinReplicas is the minimum number of replicas in the region type.",
+							Description:         "MinReplicas is the minimum number of replicas in the region type. Set to 0 to use buffer_size as the effective minimum (recommended when dynamic_buffer is enabled). When non-zero, it must be greater than or equal to buffer_size.",
+							MarkdownDescription: "MinReplicas is the minimum number of replicas in the region type. Set to `0` to use `buffer_size` as the effective minimum (recommended when `dynamic_buffer` is enabled). When non-zero, it must be greater than or equal to `buffer_size`.",
 							Required:            true,
 							Validators: []validator.Int32{
 								int32validator.AtLeast(0),
-								int32validator.AtLeastSumOf(path.MatchRelative().AtParent().AtName("buffer_size")),
+								validators.MinReplicasValidator{},
 								validators.GFFieldInt32(armadaValidator, "spec.distribution[?].minReplicas"),
 							},
 						},
