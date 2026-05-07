@@ -37,6 +37,8 @@ func (v MinReplicasValidator) MarkdownDescription(ctx context.Context) string {
 }
 
 // ValidateInt32 performs the validation.
+//
+//nolint:cyclop // Belongs together.
 func (v MinReplicasValidator) ValidateInt32(ctx context.Context, request validator.Int32Request, response *validator.Int32Response) {
 	if request.ConfigValue.IsNull() || request.ConfigValue.IsUnknown() {
 		return
