@@ -222,6 +222,11 @@ autoscaling = {
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "autoscaling.scale_to_zero.%", "2"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "autoscaling.scale_to_zero.scale_down_utilization", "75"),
 					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "autoscaling.scale_to_zero.scale_up_utilization", "80"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.#", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.autoscaling.%", "1"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.autoscaling.scale_to_zero.%", "2"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.autoscaling.scale_to_zero.scale_down_utilization", "75"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "regions.0.autoscaling.scale_to_zero.scale_up_utilization", "80"),
 				),
 			},
 			{

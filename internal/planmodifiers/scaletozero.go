@@ -2,6 +2,7 @@ package planmodifiers
 
 import (
 	"context"
+	"maps"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -158,10 +159,8 @@ func fillDerivedScaleDown(ctx context.Context, obj types.Object, add int32, diag
 		val = 99
 	}
 
-	newAttrs := make(map[string]attr.Value, len(attrs))
-	for k, v := range attrs {
-		newAttrs[k] = v
-	}
+	newAttrs := make(map[string]attr.Value, len(attrs)+1)
+	maps.Copy(newAttrs, attrs)
 	newAttrs["scale_down_utilization"] = types.Int32Value(val)
 
 	updated, d := types.ObjectValue(obj.AttributeTypes(ctx), newAttrs)
