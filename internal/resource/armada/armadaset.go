@@ -138,8 +138,8 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 						Description:         "Scale to zero configuration for all Armadas.",
 						MarkdownDescription: "Scale to zero configuration for all Armadas.",
 						Optional:            true,
-						PlanModifiers: []planmodifier.Object{
-							objectplanmodifier.UseStateForUnknown(),
+						PlanModifiers:       []planmodifier.Object{
+							// objectplanmodifier.UseStateForUnknown(),
 						},
 						Attributes: map[string]schema.Attribute{
 							"scale_down_utilization": schema.Int32Attribute{
@@ -191,13 +191,18 @@ func (r *armadaSet) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 							Description:         "Autoscaling configuration.",
 							MarkdownDescription: "Autoscaling configuration.",
 							Optional:            true,
+							Computed:            true,
+							PlanModifiers: []planmodifier.Object{
+								planmodifiers.SharedScaleToZeroDefault(true, -5),
+							},
 							Attributes: map[string]schema.Attribute{
 								"scale_to_zero": schema.SingleNestedAttribute{
 									Description:         "Scale to zero configuration.",
 									MarkdownDescription: "Scale to zero configuration.",
 									Optional:            true,
+									Computed:            true,
 									PlanModifiers: []planmodifier.Object{
-										objectplanmodifier.UseStateForUnknown(),
+										planmodifiers.SharedScaleToZeroDefault(false, -5),
 									},
 									Attributes: map[string]schema.Attribute{
 										"scale_down_utilization": schema.Int32Attribute{
@@ -600,12 +605,8 @@ func (r *armadaSet) Create(ctx context.Context, req resource.CreateRequest, resp
 		return
 	}
 
-	var shared *scaleToZeroModel
-	if plan.Autoscaling != nil {
-		shared = plan.Autoscaling.ScaleToZero
-	}
+	plan = newArmadaSetModel(outObj, plan.Autoscaling)
 
-	plan = newArmadaSetModel(outObj, shared)
 	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -631,17 +632,9 @@ func (r *armadaSet) Read(ctx context.Context, req resource.ReadRequest, resp *re
 		return
 	}
 
-	var shared *scaleToZeroModel
-	if state.Autoscaling != nil {
-		shared = state.Autoscaling.ScaleToZero
-	}
+	state = newArmadaSetModel(outObj, state.Autoscaling)
 
-	state = newArmadaSetModel(outObj, shared)
-	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State,
-		// Dynamic buffer is an edge-case where changing values remotely via UI is not detected without this.
-		path.Root("regions[].replicas[].dynamic_buffer"),
-	)...)
-
+	resp.Diagnostics.Append(normalize.Model(ctx, &state, req.State)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
@@ -657,7 +650,15 @@ func (r *armadaSet) Update(ctx context.Context, req resource.UpdateRequest, resp
 		return
 	}
 
+	if state.Autoscaling != nil {
+		// Populating global scale to zero setting here is not fine.
+		// The state already reflects reality: Global setting is set, (but) region setting is not.
+		// This is true for when a global setting is defined, but UI/API disabled it for the region.
+		state.Autoscaling.ScaleToZero = nil
+	}
 	oldObj := state.ToObject()
+
+	// Populating global scale to zero setting is fine here, as it is the desired state.
 	newObj := plan.ToObject()
 
 	pb, err := patch.Create(oldObj, newObj)

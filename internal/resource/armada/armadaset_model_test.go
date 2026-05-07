@@ -26,6 +26,34 @@ func TestNewArmadaSetModel(t *testing.T) {
 	assert.Equal(t, testArmadaSetModel, model)
 }
 
+func TestNewArmadaSetModel_HandlesEmptyGlobalAutoscaling(t *testing.T) {
+	model := newArmadaSetModel(testArmadaSetObject, &armadaSetAutoscalingModel{})
+	assert.Equal(t, testArmadaSetModel, model)
+}
+
+func TestNewArmadaSetModel_HandlesEmptyGlobalScaleToZero(t *testing.T) {
+	model := newArmadaSetModel(testArmadaSetObject, &armadaSetAutoscalingModel{
+		ScaleToZero: &scaleToZeroModel{},
+	})
+	assert.Equal(t, testArmadaSetModel, model)
+}
+
+func TestNewArmadaSetModel_HandlesNonEmptyGlobalScaleToZero(t *testing.T) {
+	model := newArmadaSetModel(testArmadaSetObject, &armadaSetAutoscalingModel{
+		ScaleToZero: &scaleToZeroModel{
+			ScaleDownUtilization: types.Int32Value(45),
+			ScaleUpUtilization:   types.Int32Value(50),
+		},
+	})
+
+	require.NotEmpty(t, model.Autoscaling)
+	require.NotEmpty(t, model.Autoscaling.ScaleToZero)
+	assert.Equal(t, &scaleToZeroModel{
+		ScaleDownUtilization: types.Int32Value(45),
+		ScaleUpUtilization:   types.Int32Value(50),
+	}, model.Autoscaling.ScaleToZero)
+}
+
 func TestArmadaSetModel_ToObject(t *testing.T) {
 	obj := testArmadaSetModel.ToObject()
 	assert.Equal(t, testArmadaSetObject, obj)
