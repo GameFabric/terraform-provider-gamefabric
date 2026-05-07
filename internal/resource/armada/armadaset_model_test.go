@@ -22,7 +22,7 @@ import (
 )
 
 func TestNewArmadaSetModel(t *testing.T) {
-	model := newArmadaSetModel(testArmadaSetObject, nil)
+	model := newArmadaSetModel(testArmadaSetObject)
 	assert.Equal(t, testArmadaSetModel, model)
 }
 
