@@ -3,7 +3,9 @@ package validators
 import (
 	"context"
 	"fmt"
+	"strconv"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -72,13 +74,13 @@ func (v MinReplicasValidator) ValidateInt32(ctx context.Context, request validat
 
 	// Hard validation: when min_replicas is non-zero it must be >= buffer_size.
 	if minReplicas != 0 && minReplicas < bufferSize {
-		response.Diagnostics.AddAttributeError(
+		response.Diagnostics.Append(validatordiag.InvalidAttributeValueDiagnostic(
 			request.Path,
-			"Invalid Attribute Value",
-			fmt.Sprintf("Attribute %s value must be 0 or at least equal to buffer_size (%d), got: %d. "+
-				"A value of 0 instructs GameFabric to use buffer_size as the effective minimum.",
-				request.Path, bufferSize, minReplicas),
-		)
+			fmt.Sprintf("value must be 0 or at least equal to buffer_size (%d). "+
+				"A value of 0 instructs GameFabric to use buffer_size as the effective minimum",
+				bufferSize),
+			strconv.Itoa(int(minReplicas)),
+		))
 		return
 	}
 
