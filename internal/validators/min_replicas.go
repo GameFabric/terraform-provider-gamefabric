@@ -47,6 +47,9 @@ func (v MinReplicasValidator) ValidateInt32(ctx context.Context, request validat
 	}
 
 	minReplicas := request.ConfigValue.ValueInt32()
+	if minReplicas == 0 {
+		return
+	}
 
 	parent := request.Path.ParentPath()
 
@@ -73,7 +76,7 @@ func (v MinReplicasValidator) ValidateInt32(ctx context.Context, request validat
 	}
 
 	// Hard validation: when min_replicas is non-zero it must be >= buffer_size.
-	if minReplicas != 0 && minReplicas < bufferSize {
+	if minReplicas < bufferSize {
 		response.Diagnostics.Append(validatordiag.InvalidAttributeValueDiagnostic(
 			request.Path,
 			fmt.Sprintf("value must be 0 or at least equal to buffer_size (%d). "+
@@ -97,8 +100,6 @@ func (v MinReplicasValidator) ValidateInt32(ctx context.Context, request validat
 
 	// Dynamic buffer is set: emit warnings to help the user.
 	switch {
-	case minReplicas == 0:
-		// No warning: this gives full control to dynamic buffer.
 	case minReplicas == bufferSize:
 		response.Diagnostics.AddAttributeWarning(
 			request.Path,
