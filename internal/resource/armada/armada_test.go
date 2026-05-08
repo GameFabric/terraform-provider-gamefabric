@@ -337,6 +337,42 @@ replicas = [
 	})
 }
 
+func TestResourceArmadaConfigMinReplicasZero(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckArmadaDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				// min_replicas = 0 is allowed and instructs the API to use buffer_size as the
+				// effective minimum. No warning is emitted even when dynamic_buffer is configured.
+				Config: testResourceArmadaConfigBasic(
+					`
+replicas = [
+	{
+	  region_type  = "baremetal"
+	  min_replicas = 0
+	  max_replicas = 5
+	  buffer_size  = 2
+	  dynamic_buffer = {
+		max_buffer_utilization = 80
+	  }
+	}
+]`,
+				),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "replicas.0.min_replicas", "0"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "replicas.0.buffer_size", "2"),
+				),
+			},
+		},
+	})
+}
+
 func TestResourceArmadaConfigValidates(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -441,6 +477,19 @@ func TestResourceArmadaConfigValidates(t *testing.T) {
 			name:        "validates replicas[].buffer_size",
 			config:      testResourceArmadaConfigFullInvalid(),
 			expectError: regexp.MustCompile(regexp.QuoteMeta(`-12`)),
+		},
+		{
+			name: "validates replicas[].min_replicas must be 0 or >= buffer_size",
+			config: testResourceArmadaConfigBasic(`
+replicas = [
+  {
+    region_type  = "baremetal"
+    min_replicas = 2
+    max_replicas = 5
+    buffer_size  = 3
+  }
+]`),
+			expectError: regexp.MustCompile(`(?s)at\s+least\s+equal\s+to\s+buffer_size`),
 		},
 		// Container resources.
 		{

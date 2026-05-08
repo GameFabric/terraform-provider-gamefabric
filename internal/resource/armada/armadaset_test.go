@@ -502,6 +502,42 @@ func TestResourceArmadaSetConfigValidates(t *testing.T) {
 			config:      testResourceArmadaSetConfigFullInvalid(),
 			expectError: regexp.MustCompile(regexp.QuoteMeta(`-12`)),
 		},
+		{
+			name: "validates regions[].replicas[].min_replicas must be 0 or >= buffer_size",
+			config: `resource "gamefabric_armadaset" "test" {
+  name        = "my-armadaset"
+  environment = "test"
+  regions = [
+    {
+      name = "eu"
+      replicas = [
+        {
+          region_type  = "baremetal"
+          min_replicas = 2
+          max_replicas = 5
+          buffer_size  = 3
+        }
+      ]
+    }
+  ]
+  containers = [
+    {
+      name = "example-container"
+      image_ref = {
+        name   = "gameserver-asoda0s"
+        branch = "prod"
+      }
+      resources = {
+        requests = {
+          cpu    = "250m"
+          memory = "256Mi"
+        }
+      }
+    }
+  ]
+}`,
+			expectError: regexp.MustCompile(`(?s)at\s+least\s+equal\s+to\s+buffer_size`),
+		},
 		// Container resources.
 		{
 			name:        "validates containers[].resources CPU",
