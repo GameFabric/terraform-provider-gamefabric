@@ -1,6 +1,6 @@
 module github.com/gamefabric/terraform-provider-gamefabric
 
-go 1.26.2
+go 1.26.3
 
 replace (
 	agones.dev/agones => agones.dev/agones v1.55.0
