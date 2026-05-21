@@ -20,6 +20,13 @@ This example sets up a minimal armada in a single region for europe which uses b
 
 {{ tffile "examples/resources/gamefabric_armada/simple_armada.tf" }}
 
+## Example Usage - Replicas and Buffer Size
+
+This example shows both `min_replicas` modes side by side: `0` to let the buffer drive capacity (recommended default), and a positive value to enforce a static floor.
+See [Replicas and Buffer Size](https://docs.gamefabric.com/multiplayer-servers/multiplayer-services/armada-replicas-and-buffer) for details.
+
+{{ tffile "examples/resources/gamefabric_armada/replicas_and_buffer.tf" }}
+
 ## Advanced Usage
 
 For more complex scenarios such as creating armadas across all regions with dynamic replica sizing based on available resources, see the [Dynamic Armada Scaling Across All Regions](../guides/armada-dynamic-scaling.md) guide.
