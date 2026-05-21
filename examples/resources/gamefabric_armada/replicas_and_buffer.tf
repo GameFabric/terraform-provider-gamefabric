@@ -8,7 +8,8 @@ resource "gamefabric_armada" "this" {
       region_type = "baremetal"
       # min_replicas = 0: buffer_size is the effective minimum.
       # The autoscaler targets buffer_size Ready servers and
-      # scales down freely when demand drops (recommended default).
+      # scales down freely when demand drops. Recommended when
+      # dynamic_buffer is enabled.
       min_replicas = 0
       max_replicas = 200
       buffer_size  = 10

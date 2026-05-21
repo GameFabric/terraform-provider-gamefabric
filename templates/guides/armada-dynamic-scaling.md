@@ -267,7 +267,7 @@ locals {
 
 Each `replicas` block controls scaling for one region type through three fields:
 
-- `min_replicas`: Minimum number of game servers to keep running at all times, in any state. Set to `0` to defer to `buffer_size` instead of enforcing a static floor (recommended default).
+- `min_replicas`: Minimum number of game servers to keep running at all times, in any state. Set to `0` to defer to `buffer_size` instead of enforcing a static floor (recommended when `dynamic_buffer` is enabled).
 - `max_replicas`: Hard ceiling on total game servers for the region type.
 - `buffer_size`: Target number of `Ready` game servers the autoscaler maintains to ensure players can connect without waiting for a cold start.
 

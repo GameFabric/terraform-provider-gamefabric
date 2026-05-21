@@ -192,7 +192,7 @@ resource "gamefabric_armadaset" "this" {
 
 ## Example Usage - ArmadaSet with Replicas and Buffer Size
 
-This example shows both `min_replicas` modes side by side: `0` to let the buffer drive capacity (recommended default), and a positive value to enforce a static floor.
+This example shows both `min_replicas` modes side by side: `0` to let the buffer drive capacity, and a positive value to enforce a static floor.
 See [Replicas and Buffer Size](https://docs.gamefabric.com/multiplayer-servers/multiplayer-services/armada-replicas-and-buffer) for details.
 
 ```terraform
@@ -208,7 +208,8 @@ resource "gamefabric_armadaset" "this" {
           region_type = "baremetal"
           # min_replicas = 0: buffer_size is the effective minimum.
           # Autoscaler targets buffer_size Ready servers and scales
-          # down freely when demand drops (recommended default).
+          # down freely when demand drops. Recommended when
+          # dynamic_buffer is enabled.
           min_replicas = 0
           max_replicas = 200
           buffer_size  = 10
