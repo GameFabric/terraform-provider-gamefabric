@@ -263,8 +263,19 @@ locals {
 4. **Version Control**: Keep this configuration in version control to track changes to scaling parameters
 5. **Environment Separation**: Use different configurations for dev/staging/production environments
 
+## Replicas and Buffer Size
+
+Each `replicas` block controls scaling for one region type through three fields:
+
+- `min_replicas`: Minimum number of game servers to keep running at all times, in any state. Set to `0` to defer to `buffer_size` instead of enforcing a static floor (recommended when `dynamic_buffer` is enabled).
+- `max_replicas`: Hard ceiling on total game servers for the region type.
+- `buffer_size`: Target number of `Ready` game servers the autoscaler maintains to ensure players can connect without waiting for a cold start.
+
+For full details — including guidance on choosing between the two `min_replicas` modes, input validation rules, and scaling down — see the [Armada Replicas and Buffer](https://docs.gamefabric.com/multiplayer-servers/multiplayer-services/armada-replicas-and-buffer) documentation. The same settings and validation rules apply to both `gamefabric_armada` and `gamefabric_armadaset`.
+
 ## Related Resources
 
 - [gamefabric_armada](../resources/armada.md) - Armada resource documentation
+- [gamefabric_armadaset](../resources/armadaset.md) - ArmadaSet resource documentation
 - [gamefabric_regions](../data-sources/regions.md) - Regions data source documentation
 - [gamefabric_image](../data-sources/image.md) - Image data source documentation

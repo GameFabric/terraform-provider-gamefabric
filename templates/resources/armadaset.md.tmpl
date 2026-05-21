@@ -22,6 +22,13 @@ This example sets up a minimal armadaset for two regions europe and us which eac
 
 {{ tffile "examples/resources/gamefabric_armadaset/simple_armadaset.tf" }}
 
+## Example Usage - ArmadaSet with Replicas and Buffer Size
+
+This example shows both `min_replicas` modes side by side: `0` to let the buffer drive capacity, and a positive value to enforce a static floor.
+See [Replicas and Buffer Size](https://docs.gamefabric.com/multiplayer-servers/multiplayer-services/armada-replicas-and-buffer) for details.
+
+{{ tffile "examples/resources/gamefabric_armadaset/replicas_and_buffer.tf" }}
+
 {{ .SchemaMarkdown | trimspace }}
 {{- if or .HasImport .HasImportIDConfig .HasImportIdentityConfig }}
 
