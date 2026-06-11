@@ -53,7 +53,7 @@ func NewReceiverResource() resource.Resource {
 
 // Metadata defines the resource type name.
 func (r *receiver) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_receiver"
+	resp.TypeName = req.ProviderTypeName + "_notification_receiver"
 }
 
 // Schema defines the schema for this resource.

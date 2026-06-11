@@ -23,24 +23,24 @@ func TestReceiverResource_CRUD(t *testing.T) {
 		ProtoV6ProviderFactories: pf,
 		Steps: []resource.TestStep{
 			{
-				Config: `resource "gamefabric_receiver" "test" {
+				Config: `resource "gamefabric_notification_receiver" "test" {
   name     = "test-receiver"
   email_to = ["ops@example.com"]
 }`,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("gamefabric_receiver.test", "name", "test-receiver"),
-					resource.TestCheckResourceAttr("gamefabric_receiver.test", "email_to.#", "1"),
-					resource.TestCheckResourceAttr("gamefabric_receiver.test", "email_to.0", "ops@example.com"),
+					resource.TestCheckResourceAttr("gamefabric_notification_receiver.test", "name", "test-receiver"),
+					resource.TestCheckResourceAttr("gamefabric_notification_receiver.test", "email_to.#", "1"),
+					resource.TestCheckResourceAttr("gamefabric_notification_receiver.test", "email_to.0", "ops@example.com"),
 				),
 			},
 			{
 				// Update email list.
-				Config: `resource "gamefabric_receiver" "test" {
+				Config: `resource "gamefabric_notification_receiver" "test" {
   name     = "test-receiver"
   email_to = ["ops@example.com", "alerts@example.com"]
 }`,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("gamefabric_receiver.test", "email_to.#", "2"),
+					resource.TestCheckResourceAttr("gamefabric_notification_receiver.test", "email_to.#", "2"),
 				),
 			},
 			// The final step destroys the resource; no error expected because
@@ -81,11 +81,11 @@ func TestReceiverResource_DestroyBlockedByCloudBudget(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Step 1: Create the receiver via Terraform.
 			{
-				Config: `resource "gamefabric_receiver" "test" {
+				Config: `resource "gamefabric_notification_receiver" "test" {
   name     = "blocked-receiver"
   email_to = ["blocked@example.com"]
 }`,
-				Check: resource.TestCheckResourceAttr("gamefabric_receiver.test", "name", "blocked-receiver"),
+				Check: resource.TestCheckResourceAttr("gamefabric_notification_receiver.test", "name", "blocked-receiver"),
 			},
 			// Step 2: Remove the resource from config entirely; this triggers a
 			// destroy plan. ModifyPlan should detect the CloudBudget reference and

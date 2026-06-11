@@ -115,8 +115,8 @@ func (r *cloudBudget) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 			},
 			"max_budget": schema.Float64Attribute{
-				Description:         "The maximum cloud spend budget in USD.",
-				MarkdownDescription: "The maximum cloud spend budget in USD.",
+				Description:         "The maximum cloud spend budget in USD. Exceeding the budget triggers an alert, it does not prevent further costs.",
+				MarkdownDescription: "The maximum cloud spend budget in USD. Exceeding the budget triggers an alert, it does not prevent further costs.",
 				Required:            true,
 				Validators: []validator.Float64{
 					validators.GFFieldFloat64(cloudBudgetValidator, "spec.maxBudget"),

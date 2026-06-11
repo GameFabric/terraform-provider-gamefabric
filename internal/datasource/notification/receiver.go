@@ -30,7 +30,7 @@ func NewReceiverDataSource() datasource.DataSource {
 
 // Metadata defines the data source type name.
 func (r *receiver) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_receiver"
+	resp.TypeName = req.ProviderTypeName + "_notification_receiver"
 }
 
 // Schema defines the schema for this data source.
