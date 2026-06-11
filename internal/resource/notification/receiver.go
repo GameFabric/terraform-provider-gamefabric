@@ -3,6 +3,7 @@ package notification
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/gamefabric/gf-apiclient/rest"
 	"github.com/gamefabric/gf-apiclient/tools/patch"
@@ -31,6 +32,7 @@ var (
 	_ resource.Resource                = &receiver{}
 	_ resource.ResourceWithConfigure   = &receiver{}
 	_ resource.ResourceWithImportState = &receiver{}
+	_ resource.ResourceWithModifyPlan  = &receiver{}
 )
 
 var receiverValidator = validators.NewGameFabricValidator[*notificationv1alpha1.Receiver, receiverModel](func() validators.StoreValidator {
@@ -231,6 +233,66 @@ func (r *receiver) Delete(ctx context.Context, req resource.DeleteRequest, resp 
 			fmt.Sprintf("Timed out waiting for deletion of Receiver: %v", err),
 		)
 		return
+	}
+}
+
+// ModifyPlan validates that a receiver is not still referenced by any CloudBudget before it is
+// deleted. Because the receivers list in gamefabric_cloudbudget holds plain name strings, Terraform
+// loses the dependency edge when the reference is removed from config together with the resource.
+// Without the edge, Terraform may delete the receiver before (or in parallel with) updating the
+// CloudBudget, which the API rejects. Failing the plan early with a clear message lets the user
+// apply the two-step fix: first remove the receiver from the CloudBudget's receivers list, then
+// delete the receiver resource.
+func (r *receiver) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Only run on destroy (plan is null, state has a value).
+	if !req.Plan.Raw.IsNull() || req.State.Raw.IsNull() {
+		return
+	}
+
+	// clientSet may be nil during unit tests that do not configure the provider.
+	if r.clientSet == nil {
+		return
+	}
+
+	var state receiverModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	receiverName := state.Name.ValueString()
+
+	budgets, err := r.clientSet.BillingV2Alpha1().CloudBudgets().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		// Non-fatal: surface a warning so the user is aware; the API will still
+		// reject the deletion if the receiver is in use.
+		resp.Diagnostics.AddWarning(
+			"Could Not Verify Receiver References",
+			fmt.Sprintf("Could not list CloudBudgets to check whether Receiver %q is still in use: %v. "+
+				"The apply may fail if the Receiver is still referenced by a CloudBudget.", receiverName, err),
+		)
+		return
+	}
+
+	var budgetNames []string
+	for _, budget := range budgets.Items {
+		for _, ref := range budget.Spec.Receivers {
+			if ref == receiverName {
+				budgetNames = append(budgetNames, budget.Name)
+				break
+			}
+		}
+	}
+
+	if len(budgetNames) > 0 {
+		resp.Diagnostics.AddError(
+			"Receiver Still In Use",
+			fmt.Sprintf(
+				"Cannot delete Receiver %q because it is still referenced by CloudBudget(s): %s.\n\n"+
+					"Remove the receiver from the CloudBudget(s) and run "+
+					"'terraform apply' first, then delete the Receiver resource in a second apply.",
+				receiverName, strings.Join(budgetNames, ", "),
+			),
+		)
 	}
 }
 
