@@ -3,6 +3,7 @@ package notification
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/gamefabric/gf-apiclient/rest"
@@ -275,11 +276,9 @@ func (r *receiver) ModifyPlan(ctx context.Context, req resource.ModifyPlanReques
 
 	var budgetNames []string
 	for _, budget := range budgets.Items {
-		for _, ref := range budget.Spec.Receivers {
-			if ref == receiverName {
-				budgetNames = append(budgetNames, budget.Name)
-				break
-			}
+		if slices.Contains(budget.Spec.Receivers, receiverName) {
+			budgetNames = append(budgetNames, budget.Name)
+			break
 		}
 	}
 
