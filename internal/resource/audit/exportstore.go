@@ -263,9 +263,10 @@ func (r *exportStore) Update(ctx context.Context, req resource.UpdateRequest, re
 	}
 
 	newObj := plan.ToObject()
-	if config.S3 != nil && !config.S3.Auth.SecretAccessKey.IsNull() {
+	switch {
+	case config.S3 != nil && !config.S3.Auth.SecretAccessKey.IsNull():
 		newObj.Spec.S3.Auth.SecretAccessKey = config.S3.Auth.SecretAccessKey.ValueString()
-	} else if newObj.Spec.S3 != nil {
+	case newObj.Spec.S3 != nil:
 		// No new key provided: send masked value so server transparently restores the stored credential.
 		newObj.Spec.S3.Auth.SecretAccessKey = auditv1alpha1.MaskedValue
 	}
