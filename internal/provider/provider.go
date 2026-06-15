@@ -9,6 +9,7 @@ import (
 
 	"github.com/gamefabric/gf-apiclient/rest"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
+	dsaudit "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/audit"
 	dsauthentication "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/authentication"
 	dscontainer "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/container"
 	dscore "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/core"
@@ -18,6 +19,7 @@ import (
 	dsstorage "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/storage"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/armada"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/audit"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/authentication"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/billing"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
@@ -171,6 +173,8 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 // DataSources defines the data sources implemented in the provider.
 func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		dsaudit.NewExportStore,
+		dsaudit.NewExportStores,
 		dscore.NewConfigFile,
 		dscore.NewConfigFiles,
 		dscore.NewEnvironment,
@@ -205,6 +209,7 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		armada.NewArmada,
 		armada.NewArmadaSet,
+		audit.NewExportStore,
 		authentication.NewProvider,
 		authentication.NewServiceAccountResource,
 		authentication.NewServiceAccountPasswordResource,
