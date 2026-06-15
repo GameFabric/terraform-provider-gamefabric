@@ -12,15 +12,18 @@ import (
 	dsauthentication "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/authentication"
 	dscontainer "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/container"
 	dscore "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/core"
+	dsnotification "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/notification"
 	dsprotection "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/protection"
 	dsrbac "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/rbac"
 	dsstorage "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/storage"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/armada"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/authentication"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/billing"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/formation"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/notification"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/protection"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/rbac"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/storage"
@@ -193,6 +196,7 @@ func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource
 		dsstorage.NewVolumeStores,
 		dsauthentication.NewServiceAccount,
 		dsauthentication.NewServiceAccounts,
+		dsnotification.NewReceiverDataSource,
 	}
 }
 
@@ -204,6 +208,7 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		authentication.NewProvider,
 		authentication.NewServiceAccountResource,
 		authentication.NewServiceAccountPasswordResource,
+		billing.NewCloudBudgetResource,
 		container.NewBranch,
 		container.NewImageUpdater,
 		core.NewConfigFile,
@@ -212,6 +217,7 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		core.NewSecret,
 		formation.NewFormation,
 		formation.NewVessel,
+		notification.NewReceiverResource,
 		protection.NewGatewayPolicy,
 		rbac.NewGroup,
 		rbac.NewRole,
