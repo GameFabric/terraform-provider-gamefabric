@@ -25,18 +25,18 @@ func TestExportStoreResource(t *testing.T) {
 			{
 				Config: testResourceExportStoreConfigBasic(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("gamefabric_exportstore.test", "name", name),
-					resource.TestCheckResourceAttr("gamefabric_exportstore.test", "suspended", "false"),
-					resource.TestCheckResourceAttr("gamefabric_exportstore.test", "s3.bucket", "my-audit-bucket"),
-					resource.TestCheckResourceAttr("gamefabric_exportstore.test", "s3.region", "eu-west-1"),
-					resource.TestCheckResourceAttr("gamefabric_exportstore.test", "s3.auth.access_key_id", "AKIAIOSFODNN7EXAMPLE"),
+					resource.TestCheckResourceAttr("gamefabric_audit_exportstore.test", "name", name),
+					resource.TestCheckResourceAttr("gamefabric_audit_exportstore.test", "suspended", "false"),
+					resource.TestCheckResourceAttr("gamefabric_audit_exportstore.test", "s3.bucket", "my-audit-bucket"),
+					resource.TestCheckResourceAttr("gamefabric_audit_exportstore.test", "s3.region", "eu-west-1"),
+					resource.TestCheckResourceAttr("gamefabric_audit_exportstore.test", "s3.auth.access_key_id", "AKIAIOSFODNN7EXAMPLE"),
 					// secret_access_key is write-only and must never appear in state.
-					resource.TestCheckNoResourceAttr("gamefabric_exportstore.test", "s3.auth.secret_access_key"),
-					resource.TestCheckResourceAttr("gamefabric_exportstore.test", "s3.auth.secret_access_key_version", "1"),
+					resource.TestCheckNoResourceAttr("gamefabric_audit_exportstore.test", "s3.auth.secret_access_key"),
+					resource.TestCheckResourceAttr("gamefabric_audit_exportstore.test", "s3.auth.secret_access_key_version", "1"),
 				),
 			},
 			{
-				ResourceName:      "gamefabric_exportstore.test",
+				ResourceName:      "gamefabric_audit_exportstore.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 				// Write-only fields and optional-computed s3 fields cannot be verified
@@ -52,13 +52,13 @@ func TestExportStoreResource(t *testing.T) {
 			{
 				Config: testResourceExportStoreConfigUpdated(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("gamefabric_exportstore.test", "name", name),
-					resource.TestCheckResourceAttr("gamefabric_exportstore.test", "suspended", "false"),
-					resource.TestCheckResourceAttr("gamefabric_exportstore.test", "s3.bucket", "my-audit-bucket"),
-					resource.TestCheckResourceAttr("gamefabric_exportstore.test", "s3.region", "eu-west-1"),
-					resource.TestCheckResourceAttr("gamefabric_exportstore.test", "s3.prefix", "audit/"),
-					resource.TestCheckResourceAttr("gamefabric_exportstore.test", "s3.auth.access_key_id", "AKIAIOSFODNN7EXAMPLE"),
-					resource.TestCheckResourceAttr("gamefabric_exportstore.test", "s3.auth.secret_access_key_version", "1"),
+					resource.TestCheckResourceAttr("gamefabric_audit_exportstore.test", "name", name),
+					resource.TestCheckResourceAttr("gamefabric_audit_exportstore.test", "suspended", "false"),
+					resource.TestCheckResourceAttr("gamefabric_audit_exportstore.test", "s3.bucket", "my-audit-bucket"),
+					resource.TestCheckResourceAttr("gamefabric_audit_exportstore.test", "s3.region", "eu-west-1"),
+					resource.TestCheckResourceAttr("gamefabric_audit_exportstore.test", "s3.prefix", "audit/"),
+					resource.TestCheckResourceAttr("gamefabric_audit_exportstore.test", "s3.auth.access_key_id", "AKIAIOSFODNN7EXAMPLE"),
+					resource.TestCheckResourceAttr("gamefabric_audit_exportstore.test", "s3.auth.secret_access_key_version", "1"),
 				),
 			},
 		},
@@ -79,15 +79,15 @@ func TestExportStoreResource_Suspended(t *testing.T) {
 			{
 				Config: testResourceExportStoreConfigBasic(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("gamefabric_exportstore.test", "name", name),
-					resource.TestCheckResourceAttr("gamefabric_exportstore.test", "suspended", "false"),
+					resource.TestCheckResourceAttr("gamefabric_audit_exportstore.test", "name", name),
+					resource.TestCheckResourceAttr("gamefabric_audit_exportstore.test", "suspended", "false"),
 				),
 			},
 			{
 				Config: testResourceExportStoreConfigSuspended(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("gamefabric_exportstore.test", "name", name),
-					resource.TestCheckResourceAttr("gamefabric_exportstore.test", "suspended", "true"),
+					resource.TestCheckResourceAttr("gamefabric_audit_exportstore.test", "name", name),
+					resource.TestCheckResourceAttr("gamefabric_audit_exportstore.test", "suspended", "true"),
 				),
 			},
 		},
@@ -108,14 +108,14 @@ func TestExportStoreResource_KeyRotation(t *testing.T) {
 			{
 				Config: testResourceExportStoreConfigBasic(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("gamefabric_exportstore.test", "s3.auth.secret_access_key_version", "1"),
+					resource.TestCheckResourceAttr("gamefabric_audit_exportstore.test", "s3.auth.secret_access_key_version", "1"),
 				),
 			},
 			{
 				Config: testResourceExportStoreConfigRotatedKey(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("gamefabric_exportstore.test", "s3.auth.access_key_id", "AKIAIOSFODNN7EXAMPLE"),
-					resource.TestCheckResourceAttr("gamefabric_exportstore.test", "s3.auth.secret_access_key_version", "2"),
+					resource.TestCheckResourceAttr("gamefabric_audit_exportstore.test", "s3.auth.access_key_id", "AKIAIOSFODNN7EXAMPLE"),
+					resource.TestCheckResourceAttr("gamefabric_audit_exportstore.test", "s3.auth.secret_access_key_version", "2"),
 				),
 			},
 		},
@@ -123,7 +123,7 @@ func TestExportStoreResource_KeyRotation(t *testing.T) {
 }
 
 func testResourceExportStoreConfigBasic(name string) string {
-	return fmt.Sprintf(`resource "gamefabric_exportstore" "test" {
+	return fmt.Sprintf(`resource "gamefabric_audit_exportstore" "test" {
   name = "%s"
 
   s3 = {
@@ -140,7 +140,7 @@ func testResourceExportStoreConfigBasic(name string) string {
 }
 
 func testResourceExportStoreConfigUpdated(name string) string {
-	return fmt.Sprintf(`resource "gamefabric_exportstore" "test" {
+	return fmt.Sprintf(`resource "gamefabric_audit_exportstore" "test" {
   name = "%s"
 
   s3 = {
@@ -158,7 +158,7 @@ func testResourceExportStoreConfigUpdated(name string) string {
 }
 
 func testResourceExportStoreConfigSuspended(name string) string {
-	return fmt.Sprintf(`resource "gamefabric_exportstore" "test" {
+	return fmt.Sprintf(`resource "gamefabric_audit_exportstore" "test" {
   name      = "%s"
   suspended = true
 
@@ -176,7 +176,7 @@ func testResourceExportStoreConfigSuspended(name string) string {
 }
 
 func testResourceExportStoreConfigRotatedKey(name string) string {
-	return fmt.Sprintf(`resource "gamefabric_exportstore" "test" {
+	return fmt.Sprintf(`resource "gamefabric_audit_exportstore" "test" {
   name = "%s"
 
   s3 = {
@@ -195,7 +195,7 @@ func testResourceExportStoreConfigRotatedKey(name string) string {
 func testResourceExportStoreDestroy(t *testing.T, cs clientset.Interface) func(s *terraform.State) error {
 	return func(s *terraform.State) error {
 		for _, rs := range s.RootModule().Resources {
-			if rs.Type != "gamefabric_exportstore" {
+			if rs.Type != "gamefabric_audit_exportstore" {
 				continue
 			}
 
