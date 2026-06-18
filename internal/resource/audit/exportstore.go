@@ -43,7 +43,7 @@ func NewExportStore() resource.Resource {
 
 // Metadata defines the resource type name.
 func (r *exportStore) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_exportstore"
+	resp.TypeName = req.ProviderTypeName + "_audit_exportstore"
 }
 
 // Schema defines the schema for this resource.
