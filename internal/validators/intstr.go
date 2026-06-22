@@ -38,9 +38,7 @@ func (v ThresholdsFormatValidator) ValidateList(ctx context.Context, req validat
 		return
 	}
 
-	// percent is nil until the first known element establishes the expected format.
-	var percent *bool
-	// prevVal tracks the previous known numeric value for ascending-order checks.
+	var globalPercent *bool
 	prevVal := -1
 	prevIdx := -1
 	for i, t := range thresholds {
@@ -48,12 +46,14 @@ func (v ThresholdsFormatValidator) ValidateList(ctx context.Context, req validat
 			continue
 		}
 
-		isPercent := strings.HasSuffix(t.ValueString(), "%")
-		if percent == nil {
-			percent = &isPercent
-		} else if isPercent != *percent {
+		percent := strings.HasSuffix(t.ValueString(), "%")
+		if globalPercent == nil {
+			globalPercent = &percent
+		}
+
+		if percent != *globalPercent {
 			want := "absolute amount (e.g. \"50000\")"
-			if *percent {
+			if *globalPercent {
 				want = "percentage (e.g. \"50%\")"
 			}
 			resp.Diagnostics.AddAttributeError(
@@ -66,15 +66,11 @@ func (v ThresholdsFormatValidator) ValidateList(ctx context.Context, req validat
 		}
 
 		raw := t.ValueString()
-		var errs diag.Diagnostics
-		if isPercent {
-			errs = validatePercent(req.Path.AtListIndex(i), raw)
-		} else {
-			errs = validateAmount(req.Path.AtListIndex(i), raw)
-		}
-		resp.Diagnostics.Append(errs...)
-		if errs.HasError() {
-			continue
+		switch {
+		case percent:
+			resp.Diagnostics.Append(validatePercent(req.Path.AtListIndex(i), raw)...)
+		default:
+			resp.Diagnostics.Append(validateAmount(req.Path.AtListIndex(i), raw)...)
 		}
 
 		// Parse the numeric value for ascending-order validation.
