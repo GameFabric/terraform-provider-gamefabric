@@ -17,7 +17,6 @@ import (
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -110,8 +109,6 @@ func (r *cloudBudget) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Required:            true,
 				ElementType:         types.StringType,
 				Validators: []validator.List{
-					listvalidator.SizeAtLeast(1),
-					validators.ReceiversValidator{},
 					validators.GFFieldList(cloudBudgetValidator, "spec.receivers"),
 				},
 			},
@@ -129,7 +126,6 @@ func (r *cloudBudget) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Optional:            true,
 				ElementType:         types.StringType,
 				Validators: []validator.List{
-					validators.ThresholdsFormatValidator{},
 					validators.GFFieldList(cloudBudgetValidator, "spec.thresholds"),
 				},
 			},
@@ -138,7 +134,6 @@ func (r *cloudBudget) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				MarkdownDescription: "Defines a start point and repetition step that are expanded into notification thresholds up to `max_budget`. Both `start` and `step` must use the same format: either both as percentages (e.g. `\"50%\"`) or both as absolute USD amounts (e.g. `\"50000\"`).",
 				Optional:            true,
 				Validators: []validator.Object{
-					validators.IntervalValidator{},
 					validators.GFFieldObject(cloudBudgetValidator, "spec.interval"),
 				},
 				Attributes: map[string]schema.Attribute{

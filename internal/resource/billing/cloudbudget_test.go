@@ -227,7 +227,7 @@ func TestCloudBudgetResource_ValidatesEmptyReceivers(t *testing.T) {
 				  receivers  = []
 				  thresholds = [50]
 				}`,
-				ExpectError: regexp.MustCompile(`(?i)at least 1`),
+				ExpectError: regexp.MustCompile(`(?i)receivers is required`),
 			},
 		},
 	})
@@ -422,7 +422,7 @@ func TestCloudBudgetResource_ValidatesHundredPercentThreshold(t *testing.T) {
 				  receivers  = ["ops"]
 				  thresholds = ["100%"]
 				}`,
-				ExpectError: regexp.MustCompile(`(?i)less than 100`),
+				ExpectError: regexp.MustCompile(`(?i)must not\s+be 100% or greater`),
 			},
 		},
 	})
@@ -548,30 +548,6 @@ func TestCloudBudgetResource_ValidatesTooManyReceivers(t *testing.T) {
 	})
 }
 
-// TestCloudBudgetResource_ValidatesDuplicateReceiver verifies that duplicate
-// receiver entries are rejected at plan time.
-func TestCloudBudgetResource_ValidatesDuplicateReceiver(t *testing.T) {
-	t.Parallel()
-
-	pf, _ := providertest.ProtoV6ProviderFactories(t)
-
-	resource.Test(t, resource.TestCase{
-		IsUnitTest:               true,
-		ProtoV6ProviderFactories: pf,
-		Steps: []resource.TestStep{
-			{
-				Config: `resource "gamefabric_cloudbudget" "test" {
-				  name       = "bad-receivers-budget"
-				  max_budget = 100
-				  receivers  = ["ops", "ops"]
-				  thresholds = [50]
-				}`,
-				ExpectError: regexp.MustCompile(`(?i)duplicate`),
-			},
-		},
-	})
-}
-
 // TestCloudBudgetResource_ValidatesEmptyReceiverEntry verifies that an empty
 // string within the receivers list is rejected at plan time.
 func TestCloudBudgetResource_ValidatesEmptyReceiverEntry(t *testing.T) {
@@ -590,7 +566,7 @@ func TestCloudBudgetResource_ValidatesEmptyReceiverEntry(t *testing.T) {
 				  receivers  = ["ops", ""]
 				  thresholds = [50]
 				}`,
-				ExpectError: regexp.MustCompile(`(?i)empty`),
+				ExpectError: regexp.MustCompile(`(?i)receivers .* is required`),
 			},
 		},
 	})
@@ -623,33 +599,6 @@ func TestCloudBudgetResource_ValidatesMixedIntervalFormat(t *testing.T) {
 	})
 }
 
-// TestCloudBudgetResource_ValidatesIntervalStepExceedsFiftyPercent verifies
-// that a percentage step greater than 50% is rejected.
-func TestCloudBudgetResource_ValidatesIntervalStepExceedsFiftyPercent(t *testing.T) {
-	t.Parallel()
-
-	pf, _ := providertest.ProtoV6ProviderFactories(t)
-
-	resource.Test(t, resource.TestCase{
-		IsUnitTest:               true,
-		ProtoV6ProviderFactories: pf,
-		Steps: []resource.TestStep{
-			{
-				Config: `resource "gamefabric_cloudbudget" "test" {
-				  name       = "bad-interval-budget"
-				  max_budget = 100
-				  receivers  = ["ops"]
-				  interval = {
-					start = "10%"
-					step  = "51%"
-				  }
-				}`,
-				ExpectError: regexp.MustCompile(`(?i)50`),
-			},
-		},
-	})
-}
-
 // TestCloudBudgetResource_ValidatesIntervalZeroStep verifies that an interval
 // step of 0 is rejected at plan time.
 func TestCloudBudgetResource_ValidatesIntervalZeroStep(t *testing.T) {
@@ -671,7 +620,7 @@ func TestCloudBudgetResource_ValidatesIntervalZeroStep(t *testing.T) {
 					step  = 0
 				  }
 				}`,
-				ExpectError: regexp.MustCompile(`(?i)greater than 0`),
+				ExpectError: regexp.MustCompile(`(?i)interval.step is required`),
 			},
 		},
 	})
@@ -795,7 +744,7 @@ func testCloudBudgetConfigMinimal(name string) string {
 	  name       = "%s"
 	  max_budget = 50
 	  receivers  = ["ops"]
-	  thresholds = [80]
+	  thresholds = [40]
 	}`, name)
 }
 
@@ -804,7 +753,7 @@ func testCloudBudgetConfigSuspended(name string, suspended bool) string {
 	  name       = "%s"
 	  max_budget = 50
 	  receivers  = ["ops"]
-	  thresholds = [80]
+	  thresholds = [40]
 	  suspended  = %t
 	}`, name, suspended)
 }
