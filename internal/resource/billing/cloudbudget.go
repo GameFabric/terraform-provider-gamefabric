@@ -17,7 +17,6 @@ import (
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -110,7 +109,6 @@ func (r *cloudBudget) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Required:            true,
 				ElementType:         types.StringType,
 				Validators: []validator.List{
-					listvalidator.SizeAtLeast(1),
 					validators.GFFieldList(cloudBudgetValidator, "spec.receivers"),
 				},
 			},

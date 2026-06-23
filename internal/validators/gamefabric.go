@@ -3,6 +3,7 @@ package validators
 import (
 	"bytes"
 	"context"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -90,6 +91,7 @@ func (v *gamefabricStoreValidator[T, M]) Validate(ctx context.Context, req GameF
 	}
 
 	p := completePathExpr(req.PathExpr, req.Path.Steps())
+	sliceBrackets := regexp.MustCompile(` ` + regexp.QuoteMeta(p) + `\[\d+\] `)
 	for _, err := range v.val.Validate(model.ToObject()) {
 		errMsg := err.Error()
 		idx := strings.Index(errMsg, p)
@@ -100,12 +102,12 @@ func (v *gamefabricStoreValidator[T, M]) Validate(ctx context.Context, req GameF
 			continue
 		}
 
-		if !strings.HasPrefix(errMsg, p+" ") && !strings.Contains(errMsg, " "+p+" ") {
+		if !strings.HasPrefix(errMsg, p+" ") && !strings.Contains(errMsg, " "+p+" ") && !sliceBrackets.MatchString(errMsg) {
 			// Avoid matching substrings.
 			continue
 		}
 
-		errMsg = errMsg[idx+len(p)+1:]
+		errMsg = strings.TrimSpace(errMsg[idx+len(p):])
 
 		// Replace path expressions with actual paths including variable values for better diagnostics.
 		// This checks all related path expressions to reduce the number of substitutions attempted.

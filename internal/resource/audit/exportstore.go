@@ -328,10 +328,12 @@ func preserveWriteOnly(m *exportStoreModel, config exportStoreModel, version typ
 	if m.S3 == nil {
 		return
 	}
+
 	m.S3.Auth.SecretAccessKey = types.StringNull()
-	if config.S3 != nil {
+	switch {
+	case config.S3 != nil:
 		m.S3.Auth.SecretAccessKeyVersion = config.S3.Auth.SecretAccessKeyVersion
-	} else {
+	default:
 		m.S3.Auth.SecretAccessKeyVersion = version
 	}
 }
