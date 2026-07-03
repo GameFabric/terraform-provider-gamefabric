@@ -12,7 +12,7 @@ replace (
 
 require (
 	agones.dev/agones v1.58.0
-	github.com/cenkalti/backoff/v4 v4.3.0
+	github.com/cenkalti/backoff/v5 v5.0.3
 	github.com/gamefabric/gf-apiclient v0.5.2
 	github.com/gamefabric/gf-apicore v1.11.4
 	github.com/gamefabric/gf-apiserver v1.17.0
@@ -44,7 +44,6 @@ require (
 	github.com/bgentry/speakeasy v0.2.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
 	github.com/cactus/go-statsd-client/v5 v5.1.0 // indirect
-	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/cloudflare/circl v1.6.4 // indirect
