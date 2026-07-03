@@ -10,7 +10,6 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
-	"github.com/hamba/pkg/v2/ptr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 	kcorev1 "k8s.io/api/core/v1"
@@ -115,7 +114,7 @@ var (
 							},
 						},
 					},
-					TerminationGracePeriodSeconds: ptr.Of[int64](30),
+					TerminationGracePeriodSeconds: new(int64(30)),
 					Volumes: []formationv1.Volume{
 						{
 							Name: "data-volume",
@@ -135,9 +134,9 @@ var (
 				},
 			},
 			TerminationGracePeriods: &formationv1.VesselTerminationGracePeriods{
-				Maintenance:   ptr.Of[int64](60),
-				SpecChange:    ptr.Of[int64](45),
-				UserInitiated: ptr.Of[int64](90),
+				Maintenance:   new(int64(60)),
+				SpecChange:    new(int64(45)),
+				UserInitiated: new(int64(90)),
 			},
 		},
 	}
@@ -225,10 +224,10 @@ var (
 			},
 		},
 		TerminationConfig: &terminationConfigModel{
-			GracePeriod:   types.Int64PointerValue(ptr.Of[int64](30)),
-			Maintenance:   types.Int64PointerValue(ptr.Of[int64](60)),
-			SpecChange:    types.Int64PointerValue(ptr.Of[int64](45)),
-			UserInitiated: types.Int64PointerValue(ptr.Of[int64](90)),
+			GracePeriod:   types.Int64PointerValue(new(int64(30))),
+			Maintenance:   types.Int64PointerValue(new(int64(60))),
+			SpecChange:    types.Int64PointerValue(new(int64(45))),
+			UserInitiated: types.Int64PointerValue(new(int64(90))),
 		},
 		Volumes: []volumeModel{
 			{

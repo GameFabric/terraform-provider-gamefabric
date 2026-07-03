@@ -12,7 +12,6 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
-	"github.com/hamba/pkg/v2/ptr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 	kcorev1 "k8s.io/api/core/v1"
@@ -148,7 +147,7 @@ var (
 						FailureThreshold:    20,
 						InitialDelaySeconds: 30,
 					},
-					TerminationGracePeriodSeconds: ptr.Of[int64](100),
+					TerminationGracePeriodSeconds: new(int64(100)),
 					Volumes: []formationv1.Volume{
 						{
 							Name: "test-volume",
@@ -162,9 +161,9 @@ var (
 				},
 			},
 			TerminationGracePeriods: &formationv1.VesselTerminationGracePeriods{
-				Maintenance:   ptr.Of[int64](120),
-				SpecChange:    ptr.Of[int64](240),
-				UserInitiated: ptr.Of[int64](360),
+				Maintenance:   new(int64(120)),
+				SpecChange:    new(int64(240)),
+				UserInitiated: new(int64(360)),
 			},
 		},
 	}

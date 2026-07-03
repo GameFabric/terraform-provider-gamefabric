@@ -1,4 +1,4 @@
-name: Run tests
+name: Test
 
 permissions:
   contents: read
@@ -16,19 +16,19 @@ jobs:
     env:
       GOPROXY: https://${{ secrets.GOPROXY }},direct
       GONOSUMDB: ${{ secrets.GONOSUMDB }}
-      GOLANGCI_LINT_VERSION: v2.11.3
+      GOLANGCI_LINT_VERSION: v2.12.2
       GOTESTSUM_VERSION: v1.13.0
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # Go Test looks at `mtime` for caching. `git clone` messes with this. Set it consistently to last commit time.
       - name: Restore file modification time
         run: git ls-files -z | while read -d '' path; do touch -d "$(git log -1 --format="@%ct" "$path")" "$path"; done
 
       - name: Setup Proxy Credentials
-        uses: extractions/netrc@v2
+        uses: extractions/netrc@v3
         with:
           machine: ${{ secrets.GOPROXY }}
           username: ${{ secrets.GOPROXY_USERNAME }}
@@ -43,7 +43,7 @@ jobs:
 
       - name: Cache Go mod
         id: gomod
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/go/pkg/mod
@@ -52,7 +52,7 @@ jobs:
             ${{ runner.os }}-go-mod-
 
       - name: Cache Go test
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cache/go-build
@@ -72,7 +72,7 @@ jobs:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
 
       - name: Install Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_wrapper: false
 

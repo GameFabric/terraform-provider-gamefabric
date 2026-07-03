@@ -2,6 +2,7 @@ name: Build
 
 permissions:
   contents: read
+  id-token: write
 
 on:
   push:
@@ -18,12 +19,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Setup Proxy Credentials
-        uses: extractions/netrc@v2
+        uses: extractions/netrc@v3
         with:
           machine: ${{ secrets.GOPROXY }}
           username: ${{ secrets.GOPROXY_USERNAME }}
@@ -38,7 +39,7 @@ jobs:
 
       - name: Cache Go mod
         id: gomod
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/go/pkg/mod
@@ -47,7 +48,7 @@ jobs:
             ${{ runner.os }}-go-mod-
 
       - name: Cache Go build
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/go-build
           key: ${{ runner.os }}-go-build-${{ github.ref_name }}
@@ -59,7 +60,7 @@ jobs:
         if: steps.gomod.outputs.cache-hit != 'true'
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@v7
         with:
           version: "~> v2"
           args: release --clean --snapshot --skip=sign
