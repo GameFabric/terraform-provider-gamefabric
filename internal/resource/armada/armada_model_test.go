@@ -10,7 +10,6 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
-	"github.com/hamba/pkg/v2/ptr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
@@ -167,7 +166,7 @@ var (
 							},
 						},
 					},
-					TerminationGracePeriodSeconds: ptr.Of[int64](31),
+					TerminationGracePeriodSeconds: new(int64(31)),
 					Volumes: []armadav1.Volume{
 						{
 							Name:      "volume-name",

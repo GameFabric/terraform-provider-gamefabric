@@ -18,12 +18,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Setup Proxy Credentials
-        uses: extractions/netrc@v2
+        uses: extractions/netrc@v3
         with:
           machine: ${{ secrets.GOPROXY }}
           username: ${{ secrets.GOPROXY_USERNAME }}
@@ -38,7 +38,7 @@ jobs:
 
       - name: Cache Go mod
         id: gomod
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
@@ -46,7 +46,7 @@ jobs:
             ${{ runner.os }}-go-mod-
 
       - name: Cache Go build
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/go-build
           key: ${{ runner.os }}-go-build-${{ github.ref_name }}
@@ -59,13 +59,13 @@ jobs:
 
       - name: Import GPG key
         id: import_gpg
-        uses: crazy-max/ghaction-import-gpg@v6
+        uses: crazy-max/ghaction-import-gpg@2dc316deee8e90f13e1a351ab510b4d5bc0c82cd # v7.0
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSWORD }}
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@v7
         env:
           GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

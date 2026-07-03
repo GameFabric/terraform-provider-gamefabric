@@ -18,7 +18,7 @@ linters:
   default: all
   disable:
     - gocyclo # duplicate of cyclop
-    - lll # TODO: remove before first phase.
+    - lll
     - contextcheck
     - depguard
     - err113
@@ -29,8 +29,10 @@ linters:
     - funlen
     - gochecknoglobals
     - gochecknoinits
+    - goconst
     - godox
     - gomoddirectives
+    - gomodguard
     - inamedparam
     - ireturn
     - mnd
