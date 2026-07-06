@@ -34,6 +34,6 @@ data "gamefabric_allocator" "this" {
 - `rate_limit_burst` (Number) The maximum number of queries that can be served at once before the rate limit kicks in. Excess capacity builds up during idle periods, up to this limit.
 - `rate_limit_qps` (Number) The maximum number of queries per second.
 - `region` (String) The deployment region of the allocator. This acts as a geographical indicator but might differ from custom GameFabric regions.
-- `registry_active_token` (String, Sensitive) The active access token for the registration service endpoint.
-- `registry_tokens` (List of String, Sensitive) The ordered list of access tokens for the registration service endpoint. Deprecated tokens are phased out. The last token in the list is the most recent and exposed as active token.
-- `registry_url` (String) The base URL of the registration service endpoint.
+- `registry_active_token` (String, Sensitive) The active access token for the registry service endpoint.
+- `registry_tokens` (List of String, Sensitive) The ordered list of access tokens for the registry service endpoint. Deprecated tokens are phased out. The last token in the list is the most recent and exposed as active token.
+- `registry_url` (String) The base URL of the registry service endpoint.
