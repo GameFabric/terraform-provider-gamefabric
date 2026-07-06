@@ -3,6 +3,13 @@ data "gamefabric_ping_discovery" "this" {
   name = "my-ping-discovery"
 }
 
-# Access the datasource values for further usage in other resources:
-# - data.gamefabric_ping_discovery.this.url
-# - data.gamefabric_ping_discovery.this.active_token
+# Access the endpoint to retrieve ping targets:
+
+output "ping_discovery_url" {
+  value = data.gamefabric_ping_discovery.this.url
+}
+
+output "ping_discovery_active_token" {
+  value     = data.gamefabric_ping_discovery.this.active_token
+  sensitive = true
+}

@@ -53,8 +53,8 @@ func (r *pingDiscovery) Schema(_ context.Context, _ datasource.SchemaRequest, re
 				Sensitive:           true,
 			},
 			"tokens": schema.ListAttribute{
-				Description:         "The ordered list of access tokens for the ping discovery endpoint.",
-				MarkdownDescription: "The ordered list of access tokens for the ping discovery endpoint.",
+				Description:         "The ordered list of access tokens for the ping discovery endpoint. Deprecated tokens are phased out. The last token in the list is the most recent and exposed as active token.",
+				MarkdownDescription: "The ordered list of access tokens for the ping discovery endpoint. Deprecated tokens are phased out. The last token in the list is the most recent and exposed as active token.",
 				Computed:            true,
 				Sensitive:           true,
 				ElementType:         types.StringType,
