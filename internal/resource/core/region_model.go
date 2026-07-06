@@ -19,6 +19,7 @@ type regionModel struct {
 	Annotations map[string]types.String `tfsdk:"annotations"`
 	DisplayName types.String            `tfsdk:"display_name"`
 	Description types.String            `tfsdk:"description"`
+	Allocator   types.String            `tfsdk:"allocator"`
 	Types       []regionTypeModel       `tfsdk:"types"`
 }
 
@@ -31,6 +32,7 @@ func newRegionModel(obj *corev1.Region) regionModel {
 		Annotations: conv.ForEachMapItem(obj.Annotations, func(item string) types.String { return types.StringValue(item) }),
 		DisplayName: types.StringValue(obj.Spec.DisplayName),
 		Description: conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
+		Allocator:   conv.OptionalFunc(obj.Spec.Allocator, types.StringValue, types.StringNull),
 		Types:       conv.ForEachSliceItem(obj.Spec.Types, newRegionTypeModel),
 	}
 	return model
@@ -47,6 +49,7 @@ func (m regionModel) ToObject() *corev1.Region {
 		Spec: corev1.RegionSpec{
 			DisplayName: m.DisplayName.ValueString(),
 			Description: m.Description.ValueString(),
+			Allocator:   m.Allocator.ValueString(),
 		},
 	}
 	for _, typ := range m.Types {
