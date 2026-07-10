@@ -20,6 +20,22 @@ func TestRegionModel_ToObject(t *testing.T) {
 	assert.Equal(t, testRegionObject, obj)
 }
 
+func TestNewRegionModel_WithAllocator(t *testing.T) {
+	obj := *testRegionObject
+	obj.Spec.Allocator = "my-allocator"
+
+	model := newRegionModel(&obj)
+	assert.Equal(t, types.StringValue("my-allocator"), model.Allocator)
+}
+
+func TestRegionModel_ToObjectWithAllocator(t *testing.T) {
+	m := testRegionModel
+	m.Allocator = types.StringValue("my-allocator")
+
+	result := m.ToObject()
+	assert.Equal(t, "my-allocator", result.Spec.Allocator)
+}
+
 var (
 	testRegionObject = &corev1.Region{
 		ObjectMeta: metav1.ObjectMeta{
@@ -94,6 +110,7 @@ var (
 		},
 		DisplayName: types.StringValue("Test Region"),
 		Description: types.StringValue("Test Region Description"),
+		Allocator:   types.StringNull(),
 		Types: []regionTypeModel{
 			{
 				Name: types.StringValue("baremetal"),

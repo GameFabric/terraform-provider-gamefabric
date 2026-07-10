@@ -14,6 +14,7 @@ import (
 	dscore "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/core"
 	dsnotification "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/notification"
 	dsprotection "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/protection"
+	dsprovisioning "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/provisioning"
 	dsrbac "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/rbac"
 	dsstorage "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/storage"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
@@ -172,6 +173,11 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 // DataSources defines the data sources implemented in the provider.
 func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		dsauthentication.NewServiceAccount,
+		dsauthentication.NewServiceAccounts,
+		dscontainer.NewBranch,
+		dscontainer.NewBranches,
+		dscontainer.NewImage,
 		dscore.NewConfigFile,
 		dscore.NewConfigFiles,
 		dscore.NewEnvironment,
@@ -182,22 +188,19 @@ func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource
 		dscore.NewRegions,
 		dscore.NewSecret,
 		dscore.NewSecrets,
-		dscontainer.NewBranch,
-		dscontainer.NewBranches,
-		dscontainer.NewImage,
-		dsprotection.NewGatewayPolicy,
+		dsnotification.NewReceiverDataSource,
 		dsprotection.NewGatewayPolicies,
+		dsprotection.NewGatewayPolicy,
 		dsprotection.NewProtocol,
 		dsprotection.NewProtocols,
+		dsprovisioning.NewAllocator,
+		dsprovisioning.NewPingDiscovery,
 		dsrbac.NewGroup,
 		dsrbac.NewGroups,
 		dsstorage.NewVolume,
-		dsstorage.NewVolumes,
 		dsstorage.NewVolumeStore,
 		dsstorage.NewVolumeStores,
-		dsauthentication.NewServiceAccount,
-		dsauthentication.NewServiceAccounts,
-		dsnotification.NewReceiverDataSource,
+		dsstorage.NewVolumes,
 	}
 }
 

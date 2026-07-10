@@ -116,6 +116,14 @@ func (r *region) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				MarkdownDescription: "Description is the optional description of the region.",
 				Optional:            true,
 			},
+			"allocator": schema.StringAttribute{
+				Description:         "The name of the managed allocator responsible for game server allocation in this region.",
+				MarkdownDescription: "The name of the managed allocator responsible for game server allocation in this region.",
+				Optional:            true,
+				Validators: []validator.String{
+					validators.GFFieldString(regionValidator, "spec.allocator"),
+				},
+			},
 			"types": schema.ListNestedAttribute{
 				Description:         "Types defines the types on infrastructure available in the region.",
 				MarkdownDescription: "Types defines the types on infrastructure available in the region.",

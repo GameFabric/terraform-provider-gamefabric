@@ -24,6 +24,14 @@ It also specifies environment variables based on fields which can be used to dif
 {{ tffile "examples/resources/gamefabric_region/single.tf" }}
 
 
+## Example Usage - Region with Allocator
+
+This example sets up a region and assigns a managed allocator to it.
+The allocator is responsible for game server allocation within the region.
+
+{{ tffile "examples/resources/gamefabric_region/with_allocator.tf" }}
+
+
 {{ .SchemaMarkdown | trimspace }}
 {{- if or .HasImport .HasImportIDConfig .HasImportIdentityConfig }}
 
