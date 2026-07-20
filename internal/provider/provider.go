@@ -427,7 +427,7 @@ func callbackHandler(expectedState string, codeCh chan<- string, errCh chan<- er
 			if e := q.Get("error"); e != "" {
 				w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 				w.WriteHeader(http.StatusBadRequest)
-				_, _ = fmt.Fprintf(w, "authentication error: %s", e) //nolint:gosec // plain-text response, not HTML
+				_, _ = fmt.Fprint(w, "Authentication failed. Check Terraform output for details.")
 				errCh <- fmt.Errorf("auth error %q: %s", e, q.Get("error_description"))
 				return
 			}
