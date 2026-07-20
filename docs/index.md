@@ -40,7 +40,7 @@ The following environment variables can be used to configure the provider:
 
 - `customer_id` (String) The customer ID (first segment of your installation URL). If your installation URL is `customerID.gamefabric.dev`, set this to `customerID`.
 - `host` (String) The GameFabric API host for example: `example.gamefabric.dev`.
- - `password` (String, Sensitive) The service account password. When both `service_account` and `password` are omitted, the provider automatically opens your browser for interactive SSO login (OAuth2 Authorization Code Flow).
+- `password` (String, Sensitive) The service account password. When both `service_account` and `password` are omitted, the provider automatically opens your browser for interactive SSO login (OAuth2 Authorization Code Flow).
 - `service_account` (String) The service account username. When both `service_account` and `password` are omitted, the provider automatically opens your browser for interactive SSO login (OAuth2 Authorization Code Flow).
 
 
