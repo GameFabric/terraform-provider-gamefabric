@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/gamefabric/gf-apiclient/rest"
@@ -18,6 +20,7 @@ import (
 	dsrbac "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/rbac"
 	dsstorage "github.com/gamefabric/terraform-provider-gamefabric/internal/datasource/storage"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/deviceauth"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/armada"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/audit"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/authentication"
@@ -45,6 +48,12 @@ const (
 	envCustomerID     = "GAMEFABRIC_CUSTOMER_ID"
 	envServiceAccount = "GAMEFABRIC_SERVICE_ACCOUNT"
 	envPassword       = "GAMEFABRIC_PASSWORD"
+
+	// deviceFlowClientID is the OAuth2 client ID for the device authorization
+	// flow. This must be registered as a public client in Dex.
+	deviceFlowClientID = "terraform"
+
+	deviceFlowTimeout = 1 * time.Minute
 )
 
 // providerModel is the provider configuration model.
@@ -103,15 +112,19 @@ func (p *Provider) Schema(_ context.Context, _ provider.SchemaRequest, resp *pro
 				Optional:            true,
 			},
 			"service_account": schema.StringAttribute{
-				Description:         "The service account username.",
-				MarkdownDescription: "The service account username.",
-				Optional:            true,
+				Description: "The service account username. When both service_account and password are omitted, " +
+					"the provider automatically uses the OAuth2 Device Authorization Flow (RFC 8628) for interactive login.",
+				MarkdownDescription: "The service account username. When both `service_account` and `password` are omitted, " +
+					"the provider automatically uses the OAuth2 Device Authorization Flow (RFC 8628) for interactive login.",
+				Optional: true,
 			},
 			"password": schema.StringAttribute{
-				Description:         "The service account password.",
-				MarkdownDescription: "The service account password.",
-				Optional:            true,
-				Sensitive:           true,
+				Description: "The service account password. When both service_account and password are omitted, " +
+					"the provider automatically uses the OAuth2 Device Authorization Flow (RFC 8628) for interactive login.",
+				MarkdownDescription: "The service account password. When both `service_account` and `password` are omitted, " +
+					"the provider automatically uses the OAuth2 Device Authorization Flow (RFC 8628) for interactive login.",
+				Optional:  true,
+				Sensitive: true,
 			},
 		},
 	}
@@ -155,8 +168,15 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 		return
 	}
 
+	// Auto-detect auth method: if neither credential is set, use the Device
+	// Authorization Flow (RFC 8628) for interactive login. Both credentials
+	// must be present or absent — a partial set is always an error.
 	var err error
-	p.clientSet, err = newClientSet(ctx, cfg.Host.ValueString(), cfg.ServiceAccount.ValueString(), cfg.Password.ValueString())
+	if cfg.ServiceAccount.ValueString() == "" && cfg.Password.ValueString() == "" {
+		p.clientSet, err = newClientSetDeviceFlow(ctx, cfg.Host.ValueString())
+	} else {
+		p.clientSet, err = newClientSet(ctx, cfg.Host.ValueString(), cfg.ServiceAccount.ValueString(), cfg.Password.ValueString())
+	}
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to create GameFabric client",
@@ -265,6 +285,112 @@ func newClientSet(ctx context.Context, host, user, pass string) (clientset.Inter
 	return cs, nil
 }
 
+// newClientSetDeviceFlow authenticates via the OAuth2 Device Authorization
+// Flow (RFC 8628). It first checks the local token cache; if a valid (or
+// refreshable) token is found it is reused without prompting the user.
+// Otherwise it initiates a new device flow by printing a verification URI and
+// user code to stderr, then polls until the user completes the browser login.
+func newClientSetDeviceFlow(ctx context.Context, host string) (clientset.Interface, error) {
+	apiURL, err := url.Parse("https://" + host)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse API URL %q: %w", host, err)
+	}
+
+	cfg := oauth2.Config{
+		ClientID: deviceFlowClientID,
+		Scopes:   []string{"openid", "email", "profile", "offline_access"},
+		Endpoint: oauth2.Endpoint{
+			AuthStyle:     oauth2.AuthStyleInParams,
+			TokenURL:      apiURL.JoinPath("/auth/token").String(),
+			DeviceAuthURL: apiURL.JoinPath("/auth/device/code").String(),
+		},
+	}
+
+	// Attempt to reuse a cached token (including silent refresh via refresh_token).
+	if cached, err := deviceauth.Load(host); err == nil {
+		ts := cfg.TokenSource(ctx, cached)
+		if tok, err := ts.Token(); err == nil {
+			// Cache the potentially-refreshed token.
+			_ = deviceauth.Save(host, tok)
+			restCfg := rest.Config{
+				BaseURL:           apiURL.String(),
+				Timeout:           10 * time.Second,
+				BearerTokenSource: ts,
+			}
+			cs, err := clientset.New(restCfg)
+			if err != nil {
+				return nil, fmt.Errorf("could not create the gamefabric client: %w", err)
+			}
+			return cs, nil
+		}
+		// Cached token is unusable — fall through to a new device flow.
+	}
+
+	// Initiate a new device authorization request.
+	da, err := cfg.DeviceAuth(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("could not initiate device authorization with %q: %w", host, err)
+	}
+
+	printDeviceAuthPrompt(da.VerificationURI, da.UserCode)
+
+	// Poll until the user completes the browser login or the code expires.
+	// Also cancel immediately on SIGINT/SIGTERM so Ctrl-C doesn't leave
+	// Terraform hanging for the full deviceFlowTimeout duration.
+	pollCtx, cancel := context.WithTimeout(ctx, deviceFlowTimeout)
+	defer cancel()
+
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		select {
+		case <-sigCh:
+			cancel()
+		case <-pollCtx.Done():
+		}
+	}()
+	defer signal.Stop(sigCh)
+
+	tok, err := cfg.DeviceAccessToken(pollCtx, da)
+	if err != nil {
+		return nil, fmt.Errorf("device authorization did not complete: %w", err)
+	}
+
+	// Persist the token so the next run can skip the browser step.
+	_ = deviceauth.Save(host, tok)
+
+	restCfg := rest.Config{
+		BaseURL:           apiURL.String(),
+		Timeout:           10 * time.Second,
+		BearerTokenSource: cfg.TokenSource(ctx, tok),
+	}
+
+	cs, err := clientset.New(restCfg)
+	if err != nil {
+		return nil, fmt.Errorf("could not create the gamefabric client: %w", err)
+	}
+
+	return cs, nil
+}
+
+// printDeviceAuthPrompt writes the device authorization instructions to the
+// user's terminal. It opens /dev/tty directly so the message is always visible
+// regardless of how Terraform captures the provider's stdout/stderr. Falls back
+// to os.Stderr (visible in TF_LOG=DEBUG) if no terminal is available (CI).
+func printDeviceAuthPrompt(verificationURI, userCode string) {
+	msg := fmt.Sprintf(
+		"\nTo authenticate with GameFabric, open the following URL in your browser:\n\n  %s\n\nAnd enter the code: %s\n\nWaiting for authorization...\n\n",
+		verificationURI, userCode,
+	)
+	tty, err := os.OpenFile("/dev/tty", os.O_WRONLY, 0)
+	if err == nil {
+		_, _ = fmt.Fprint(tty, msg)
+		_ = tty.Close()
+		return
+	}
+	_, _ = fmt.Fprint(os.Stderr, msg)
+}
+
 func validate(cfg *providerModel) []diag.Diagnostic {
 	diags := make(diag.Diagnostics, 0, 4)
 	if cfg.Host.ValueString() == "" {
@@ -282,18 +408,24 @@ func validate(cfg *providerModel) []diag.Diagnostic {
 				"but the host is not derived from the customer ID. ",
 		))
 	}
-	if cfg.ServiceAccount.ValueString() == "" {
-		diags.Append(diag.NewErrorDiagnostic(
-			"Missing Service Account",
-			"The provider cannot create the GameFabric client as there is no service account configured. "+
-				"Please set the service_account value in the provider configuration or use the "+envServiceAccount+" environment variable.",
-		))
-	}
-	if cfg.Password.ValueString() == "" {
+	// Credentials must be fully present or fully absent.
+	// - Both set → password grant.
+	// - Both absent → Device Authorization Flow (auto-detected, no config needed).
+	// - Only one set → ambiguous intent, surface a clear error.
+	hasServiceAccount := cfg.ServiceAccount.ValueString() != ""
+	hasPassword := cfg.Password.ValueString() != ""
+	if hasServiceAccount && !hasPassword {
 		diags.Append(diag.NewErrorDiagnostic(
 			"Missing Password",
-			"The provider cannot create the GameFabric client as there is no password configured. "+
-				"Please set the password value in the provider configuration or use the "+envPassword+" environment variable.",
+			"service_account is set but password is not. Provide both to use password-based authentication, "+
+				"or omit both to authenticate interactively via the Device Authorization Flow.",
+		))
+	}
+	if hasPassword && !hasServiceAccount {
+		diags.Append(diag.NewErrorDiagnostic(
+			"Missing Service Account",
+			"password is set but service_account is not. Provide both to use password-based authentication, "+
+				"or omit both to authenticate interactively via the Device Authorization Flow.",
 		))
 	}
 	return diags
