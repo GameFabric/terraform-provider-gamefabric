@@ -147,36 +147,15 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 		return
 	}
 
-	if env := os.Getenv(envHost); cfg.Host.ValueString() == "" && env != "" {
-		cfg.Host = types.StringValue(env)
-	}
-	if env := os.Getenv(envCustomerID); cfg.CustomerID.ValueString() == "" && env != "" {
-		cfg.CustomerID = types.StringValue(env)
-	}
-	if env := os.Getenv(envServiceAccount); cfg.ServiceAccount.ValueString() == "" && env != "" {
-		cfg.ServiceAccount = types.StringValue(env)
-	}
-	if env := os.Getenv(envPassword); cfg.Password.ValueString() == "" && env != "" {
-		cfg.Password = types.StringValue(env)
-	}
-	if cfg.CustomerID.ValueString() != "" && cfg.Host.ValueString() == "" {
-		cfg.Host = types.StringValue(cfg.CustomerID.ValueString() + ".gamefabric.dev")
-	}
+	applyEnvVars(cfg)
 
 	resp.Diagnostics.Append(validate(cfg)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Auto-detect auth method: if neither credential is set, use the Device
-	// Authorization Flow (RFC 8628) for interactive login. Both credentials
-	// must be present or absent — a partial set is always an error.
 	var err error
-	if cfg.ServiceAccount.ValueString() == "" && cfg.Password.ValueString() == "" {
-		p.clientSet, err = newClientSetDeviceFlow(ctx, cfg.Host.ValueString())
-	} else {
-		p.clientSet, err = newClientSet(ctx, cfg.Host.ValueString(), cfg.ServiceAccount.ValueString(), cfg.Password.ValueString())
-	}
+	p.clientSet, err = buildClientSetFromConfig(ctx, cfg)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to create GameFabric client",
@@ -188,6 +167,18 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 	provCtx := provcontext.NewContext(p.clientSet)
 	resp.DataSourceData = provCtx
 	resp.ResourceData = provCtx
+}
+
+// buildClientSetFromConfig auto-detects the authentication method from the
+// provider configuration and creates a client set accordingly.
+func buildClientSetFromConfig(ctx context.Context, cfg *providerModel) (clientset.Interface, error) {
+	// If neither credential is set, use interactive Device Authorization Flow.
+	if cfg.ServiceAccount.ValueString() == "" && cfg.Password.ValueString() == "" {
+		return newClientSetDeviceFlow(ctx, cfg.Host.ValueString())
+	}
+
+	// Otherwise both are set (validated earlier), so use password grant.
+	return newClientSet(ctx, cfg.Host.ValueString(), cfg.ServiceAccount.ValueString(), cfg.Password.ValueString())
 }
 
 // DataSources defines the data sources implemented in the provider.
@@ -389,6 +380,26 @@ func printDeviceAuthPrompt(verificationURI, userCode string) {
 		return
 	}
 	_, _ = fmt.Fprint(os.Stderr, msg)
+}
+
+// applyEnvVars fills any unset model fields from environment variables and
+// derives the host from the customer ID when only the latter is provided.
+func applyEnvVars(cfg *providerModel) {
+	if env := os.Getenv(envHost); cfg.Host.ValueString() == "" && env != "" {
+		cfg.Host = types.StringValue(env)
+	}
+	if env := os.Getenv(envCustomerID); cfg.CustomerID.ValueString() == "" && env != "" {
+		cfg.CustomerID = types.StringValue(env)
+	}
+	if env := os.Getenv(envServiceAccount); cfg.ServiceAccount.ValueString() == "" && env != "" {
+		cfg.ServiceAccount = types.StringValue(env)
+	}
+	if env := os.Getenv(envPassword); cfg.Password.ValueString() == "" && env != "" {
+		cfg.Password = types.StringValue(env)
+	}
+	if cfg.CustomerID.ValueString() != "" && cfg.Host.ValueString() == "" {
+		cfg.Host = types.StringValue(cfg.CustomerID.ValueString() + ".gamefabric.dev")
+	}
 }
 
 func validate(cfg *providerModel) []diag.Diagnostic {
