@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -45,6 +46,10 @@ const (
 	envCustomerID     = "GAMEFABRIC_CUSTOMER_ID"
 	envServiceAccount = "GAMEFABRIC_SERVICE_ACCOUNT"
 	envPassword       = "GAMEFABRIC_PASSWORD"
+	envAuthMethod     = "GAMEFABRIC_ENFORCE_AUTH_METHOD"
+
+	authMethodBrowser        = "browser"
+	authMethodServiceAccount = "serviceaccount"
 )
 
 // providerModel is the provider configuration model.
@@ -103,21 +108,27 @@ func (p *Provider) Schema(_ context.Context, _ provider.SchemaRequest, resp *pro
 				Optional:            true,
 			},
 			"service_account": schema.StringAttribute{
-				Description:         "The service account username.",
-				MarkdownDescription: "The service account username.",
-				Optional:            true,
+				Description: "The service account username. When both service_account and password are omitted, " +
+					"the provider automatically opens your browser for interactive SSO login (OAuth2 Authorization Code Flow).",
+				MarkdownDescription: "The service account username. When both `service_account` and `password` are omitted, " +
+					"the provider automatically opens your browser for interactive SSO login (OAuth2 Authorization Code Flow).",
+				Optional: true,
 			},
 			"password": schema.StringAttribute{
-				Description:         "The service account password.",
-				MarkdownDescription: "The service account password.",
-				Optional:            true,
-				Sensitive:           true,
+				Description: "The service account password. When both service_account and password are omitted, " +
+					"the provider automatically opens your browser for interactive SSO login (OAuth2 Authorization Code Flow).",
+				MarkdownDescription: "The service account password. When both `service_account` and `password` are omitted, " +
+					"the provider automatically opens your browser for interactive SSO login (OAuth2 Authorization Code Flow).",
+				Optional:  true,
+				Sensitive: true,
 			},
 		},
 	}
 }
 
 // Configure prepares the provider for data sources and resources.
+//
+//nolint:cyclop // Splitting this function would not improve readability significantly.
 func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	if p.clientSet != nil {
 		// Use the pre-configured client set (for testing).
@@ -149,6 +160,10 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 	if cfg.CustomerID.ValueString() != "" && cfg.Host.ValueString() == "" {
 		cfg.Host = types.StringValue(cfg.CustomerID.ValueString() + ".gamefabric.dev")
 	}
+	if os.Getenv(envAuthMethod) == authMethodBrowser {
+		cfg.ServiceAccount = types.StringValue("")
+		cfg.Password = types.StringValue("")
+	}
 
 	resp.Diagnostics.Append(validate(cfg)...)
 	if resp.Diagnostics.HasError() {
@@ -156,7 +171,7 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 	}
 
 	var err error
-	p.clientSet, err = newClientSet(ctx, cfg.Host.ValueString(), cfg.ServiceAccount.ValueString(), cfg.Password.ValueString())
+	p.clientSet, err = buildClientSetFromConfig(ctx, cfg)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to create GameFabric client",
@@ -170,7 +185,6 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 	resp.ResourceData = provCtx
 }
 
-// DataSources defines the data sources implemented in the provider.
 func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		dsauthentication.NewServiceAccount,
@@ -232,69 +246,93 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 	}
 }
 
-func newClientSet(ctx context.Context, host, user, pass string) (clientset.Interface, error) {
-	apiURL, err := url.Parse("https://" + host)
-	if err != nil {
-		return nil, fmt.Errorf("could not parse API URL %q: %w", host, err)
-	}
-
-	oauth := oauth2.Config{
-		ClientID: "api",
-		Scopes:   []string{"openid", "email", "profile", "offline_access"},
-		Endpoint: oauth2.Endpoint{
-			AuthStyle: oauth2.AuthStyleInHeader,
-			TokenURL:  apiURL.JoinPath("/auth/token").String(),
-		},
-	}
-	tok, err := oauth.PasswordCredentialsToken(ctx, user, pass)
-	if err != nil {
-		return nil, fmt.Errorf("could not request oauth token from %q: %w", host, err)
-	}
-
-	restCfg := rest.Config{
-		BaseURL:           apiURL.String(),
-		Timeout:           10 * time.Second,
-		BearerTokenSource: oauth.TokenSource(ctx, tok),
-	}
-
-	cs, err := clientset.New(restCfg)
-	if err != nil {
-		return nil, fmt.Errorf("could not create the gamefabric client: %w", err)
-	}
-
-	return cs, nil
-}
-
 func validate(cfg *providerModel) []diag.Diagnostic {
 	diags := make(diag.Diagnostics, 0, 4)
-	if cfg.Host.ValueString() == "" {
+
+	switch {
+	case cfg.Host.ValueString() == "":
 		diags.Append(diag.NewErrorDiagnostic(
 			"Missing Host",
 			"The provider cannot create the GameFabric client as there is no host configured. "+
 				"Please set the host value in the provider configuration or use the "+envHost+" environment variable. "+
 				"If you have a customer ID, the host will be derived from it.",
 		))
-	}
-	if cfg.CustomerID.ValueString() != "" && cfg.Host.ValueString() != cfg.CustomerID.ValueString()+".gamefabric.dev" {
+	case cfg.CustomerID.ValueString() != "" && cfg.Host.ValueString() != cfg.CustomerID.ValueString()+".gamefabric.dev":
 		diags.Append(diag.NewErrorDiagnostic(
 			"Conflicting Host and Customer ID",
 			"The provider cannot create the GameFabric client as both the host and customer ID are configured, "+
-				"but the host is not derived from the customer ID. ",
+				"but the host is not derived from the customer ID.",
 		))
 	}
-	if cfg.ServiceAccount.ValueString() == "" {
-		diags.Append(diag.NewErrorDiagnostic(
-			"Missing Service Account",
-			"The provider cannot create the GameFabric client as there is no service account configured. "+
-				"Please set the service_account value in the provider configuration or use the "+envServiceAccount+" environment variable.",
-		))
-	}
-	if cfg.Password.ValueString() == "" {
+
+	hasServiceAccount := cfg.ServiceAccount.ValueString() != ""
+	hasPassword := cfg.Password.ValueString() != ""
+	switch {
+	case hasServiceAccount && !hasPassword:
 		diags.Append(diag.NewErrorDiagnostic(
 			"Missing Password",
-			"The provider cannot create the GameFabric client as there is no password configured. "+
-				"Please set the password value in the provider configuration or use the "+envPassword+" environment variable.",
+			"service_account is set but password is not. Provide both to use password-based authentication, "+
+				"or omit both to authenticate interactively via the browser.",
+		))
+	case hasPassword && !hasServiceAccount:
+		diags.Append(diag.NewErrorDiagnostic(
+			"Missing Service Account",
+			"password is set but service_account is not. Provide both to use password-based authentication, "+
+				"or omit both to authenticate interactively via the browser.",
 		))
 	}
+
+	switch enforceAuthMethod := os.Getenv(envAuthMethod); enforceAuthMethod {
+	case "", authMethodBrowser:
+		// valid — no action needed
+	case authMethodServiceAccount:
+		if !hasServiceAccount && !hasPassword {
+			diags.Append(diag.NewErrorDiagnostic(
+				"Missing Credentials",
+				fmt.Sprintf("%s=%s requires service_account and password to be configured.", envAuthMethod, authMethodServiceAccount),
+			))
+		}
+	default:
+		diags.Append(diag.NewErrorDiagnostic(
+			"Invalid Auth Method",
+			fmt.Sprintf("%s must be %q or %q, got %q.", envAuthMethod, authMethodBrowser, authMethodServiceAccount, enforceAuthMethod),
+		))
+	}
+
 	return diags
+}
+
+func buildClientSetFromConfig(ctx context.Context, cfg *providerModel) (clientset.Interface, error) {
+	host := cfg.Host.ValueString()
+	if host == "" {
+		return nil, errors.New("host is required to create the GameFabric client")
+	}
+	apiURL, err := url.Parse("https://" + host)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse API URL %q: %w", host, err)
+	}
+
+	var ts oauth2.TokenSource
+	switch {
+	case cfg.ServiceAccount.ValueString() != "" && cfg.Password.ValueString() != "":
+		ts, err = authWithPasswordGrant(ctx, apiURL, cfg.ServiceAccount.ValueString(), cfg.Password.ValueString())
+		if err != nil {
+			return nil, fmt.Errorf("could not authenticate with service account and  password: %w", err)
+		}
+	default:
+		ts, err = authWithBrowserFlow(ctx, apiURL)
+		if err != nil {
+			return nil, fmt.Errorf("could not authenticate via browser flow: %w", err)
+		}
+	}
+
+	cs, err := clientset.New(rest.Config{
+		BaseURL:           apiURL.String(),
+		Timeout:           10 * time.Second,
+		BearerTokenSource: ts,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("could not create the gamefabric client: %w", err)
+	}
+	return cs, nil
 }
