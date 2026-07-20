@@ -276,19 +276,22 @@ func TestProvider_ConfigureValidatesPartialCredentials(t *testing.T) {
 	}
 }
 
-// TestProvider_DeviceFlow verifies the full Device Authorization Flow path.
+// TestProvider_BrowserFlow verifies the full Authorization Code Flow path.
 // Credentials are intentionally omitted — the provider auto-detects this and
-// falls back to RFC 8628 device authorization. The mock server returns
-// authorization_pending twice before issuing a token.
-func TestProvider_DeviceFlow(t *testing.T) {
+// opens a browser for interactive SSO login. The mock server immediately
+// redirects /auth/authorize to the local callback server, simulating a
+// browser that completes the login instantly.
+func TestProvider_BrowserFlow(t *testing.T) {
 	var tokenCalls atomic.Int64
-	srv := testDeviceAuthServer(t, &tokenCalls)
+	srv := testBrowserAuthServer(t, &tokenCalls)
 
 	// Use a temp dir for the token cache so tests are hermetic.
 	testEnv(t, "GAMEFABRIC_CACHE_DIR", t.TempDir())
 
-	// Inject the test server's TLS client so golang.org/x/oauth2 reaches it.
+	// Inject the test server's TLS client so golang.org/x/oauth2 reaches it,
+	// and a custom browser opener that simulates the browser redirect.
 	ctx := context.WithValue(t.Context(), oauth2.HTTPClient, srv.Client())
+	ctx = context.WithValue(ctx, provider.BrowserOpenerKey{}, simulateBrowser(srv))
 
 	schemaResp := &tfprovider.SchemaResponse{}
 	resp := &tfprovider.ConfigureResponse{}
@@ -300,8 +303,8 @@ func TestProvider_DeviceFlow(t *testing.T) {
 			Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
 				"host":            tftypes.NewValue(tftypes.String, strings.TrimPrefix(srv.URL, "https://")),
 				"customer_id":     tftypes.NewValue(tftypes.String, nil),
-				"service_account": tftypes.NewValue(tftypes.String, nil), // omitted → device flow
-				"password":        tftypes.NewValue(tftypes.String, nil), // omitted → device flow
+				"service_account": tftypes.NewValue(tftypes.String, nil), // omitted → browser flow
+				"password":        tftypes.NewValue(tftypes.String, nil), // omitted → browser flow
 			}),
 			Schema: schemaResp.Schema,
 		},
@@ -310,7 +313,7 @@ func TestProvider_DeviceFlow(t *testing.T) {
 
 	require.Len(t, resp.Diagnostics, 0, "unexpected diagnostics: %v", resp.Diagnostics)
 
-	// The mock token endpoint must have been polled at least once.
+	// The mock token endpoint must have been called for the code exchange.
 	assert.True(t, tokenCalls.Load() > 0, "token endpoint was never called")
 
 	assert.NotPanics(t, func() {
@@ -319,16 +322,17 @@ func TestProvider_DeviceFlow(t *testing.T) {
 	})
 }
 
-// TestProvider_DeviceFlowViaCacheOnSecondRun verifies that a second Configure
-// call reuses the cached token and does NOT go through the device flow again.
-func TestProvider_DeviceFlowViaCacheOnSecondRun(t *testing.T) {
+// TestProvider_BrowserFlowViaCacheOnSecondRun verifies that a second Configure
+// call reuses the cached token and does NOT open the browser again.
+func TestProvider_BrowserFlowViaCacheOnSecondRun(t *testing.T) {
 	var tokenCalls atomic.Int64
-	srv := testDeviceAuthServer(t, &tokenCalls)
+	srv := testBrowserAuthServer(t, &tokenCalls)
 
 	cacheDir := t.TempDir()
 	testEnv(t, "GAMEFABRIC_CACHE_DIR", cacheDir)
 
 	ctx := context.WithValue(t.Context(), oauth2.HTTPClient, srv.Client())
+	ctx = context.WithValue(ctx, provider.BrowserOpenerKey{}, simulateBrowser(srv))
 	host := strings.TrimPrefix(srv.URL, "https://")
 
 	schemaResp := &tfprovider.SchemaResponse{}
@@ -352,7 +356,7 @@ func TestProvider_DeviceFlowViaCacheOnSecondRun(t *testing.T) {
 		return resp
 	}
 
-	// First run: goes through full device flow.
+	// First run: goes through full browser flow.
 	resp1 := configureProv()
 	require.Len(t, resp1.Diagnostics, 0)
 	callsAfterFirst := tokenCalls.Load()
@@ -364,48 +368,37 @@ func TestProvider_DeviceFlowViaCacheOnSecondRun(t *testing.T) {
 	assert.Equal(t, callsAfterFirst, tokenCalls.Load(), "token endpoint should NOT be called again on cache hit")
 }
 
-// testDeviceAuthServer returns a TLS test server that simulates Dex's device
-// authorization flow:
-//   - POST /auth/device/code → device code response
-//   - POST /auth/token → returns authorization_pending twice, then a token
-func testDeviceAuthServer(t *testing.T, tokenCalls *atomic.Int64) *httptest.Server {
+// testBrowserAuthServer returns a TLS test server that simulates Dex's
+// authorization code flow:
+//   - GET /auth/authorize → 302 redirect to redirect_uri with code and state
+//   - POST /auth/token → validates code, returns access + refresh token
+func testBrowserAuthServer(t *testing.T, tokenCalls *atomic.Int64) *httptest.Server {
 	t.Helper()
-
-	var pendingCalls atomic.Int64
 
 	return httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
 		switch r.URL.Path {
-		case "/auth/device/code":
-			// RFC 8628 §3.2 — device authorization response.
-			// Use interval=1 so the test polls every second instead of the
-			// default 5-second interval, keeping test runtime short.
-			w.WriteHeader(http.StatusOK)
-			_ = json.NewEncoder(w).Encode(map[string]any{
-				"device_code":      "test-device-code-abc123",
-				"user_code":        "WXYZ-1234",
-				"verification_uri": r.Host + "/auth/device",
-				"interval":         1,
-				"expires_in":       300,
-			})
+		case "/auth/auth":
+			// Immediately redirect to the redirect_uri with an authorization code,
+			// simulating a user who logged in instantly.
+			q := r.URL.Query()
+			callbackURL := q.Get("redirect_uri") + "?code=test-auth-code&state=" + q.Get("state")
+			http.Redirect(w, r, callbackURL, http.StatusFound)
 
 		case "/auth/token":
 			tokenCalls.Add(1)
-			if pendingCalls.Add(1) <= 2 {
-				// Simulate authorization_pending for the first two polls.
+			_ = r.ParseForm()
+			if r.FormValue("grant_type") != "authorization_code" || r.FormValue("code") != "test-auth-code" {
 				w.WriteHeader(http.StatusBadRequest)
-				_ = json.NewEncoder(w).Encode(map[string]string{
-					"error": "authorization_pending",
-				})
+				_ = json.NewEncoder(w).Encode(map[string]string{"error": "invalid_grant"})
 				return
 			}
-			// Authorization complete — return a token.
 			w.WriteHeader(http.StatusOK)
 			_ = json.NewEncoder(w).Encode(map[string]any{
-				"access_token":  "short-lived-access-token",
+				"access_token":  "test-access-token",
 				"token_type":    "bearer",
-				"refresh_token": "refresh-token-xyz",
+				"refresh_token": "test-refresh-token",
 				"expires_in":    3600,
 			})
 
@@ -413,6 +406,20 @@ func testDeviceAuthServer(t *testing.T, tokenCalls *atomic.Int64) *httptest.Serv
 			http.NotFound(w, r)
 		}
 	}))
+}
+
+// simulateBrowser returns a BrowserOpenerKey value that simulates the browser
+// by following the authorization URL (including the redirect to the local
+// callback server) using the mock TLS server's HTTP client.
+func simulateBrowser(srv *httptest.Server) func(string) {
+	return func(authURL string) {
+		go func() {
+			resp, err := srv.Client().Get(authURL) //nolint:noctx // test helper, context not needed
+			if err == nil {
+				_ = resp.Body.Close()
+			}
+		}()
+	}
 }
 
 func testOAuthServer(t *testing.T, called *atomic.Int64, user, pass string) *httptest.Server {

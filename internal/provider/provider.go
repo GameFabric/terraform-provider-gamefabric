@@ -2,10 +2,16 @@ package provider
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
+	"errors"
 	"fmt"
+	"net"
+	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -38,10 +44,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/pkg/browser"
 	"golang.org/x/oauth2"
 )
 
 var _ provider.Provider = &Provider{}
+
+// BrowserOpenerKey is a context key for injecting a custom browser opener.
+// Used in tests to simulate browser interaction without actually opening a browser.
+type BrowserOpenerKey struct{}
 
 const (
 	envHost           = "GAMEFABRIC_HOST"
@@ -49,12 +60,18 @@ const (
 	envServiceAccount = "GAMEFABRIC_SERVICE_ACCOUNT"
 	envPassword       = "GAMEFABRIC_PASSWORD"
 
-	// deviceFlowClientID is the OAuth2 client ID for the device authorization
-	// flow. This must be registered as a public client in Dex.
-	deviceFlowClientID = "terraform"
+	// browserFlowClientID is the OAuth2 client ID for the browser-based
+	// authorization code flow. This must be registered as a public client in Dex.
+	browserFlowClientID = "terraform"
 
-	deviceFlowTimeout = 1 * time.Minute
+	browserFlowTimeout = 5 * time.Minute
 )
+
+// successHTML is served to the browser after a successful authorization callback.
+const successHTML = `<!DOCTYPE html><html><body>
+<h1>Authentication successful</h1>
+<p>You are now authenticated with GameFabric. You can close this window and return to Terraform.</p>
+</body></html>`
 
 // providerModel is the provider configuration model.
 type providerModel struct {
@@ -113,16 +130,16 @@ func (p *Provider) Schema(_ context.Context, _ provider.SchemaRequest, resp *pro
 			},
 			"service_account": schema.StringAttribute{
 				Description: "The service account username. When both service_account and password are omitted, " +
-					"the provider automatically uses the OAuth2 Device Authorization Flow (RFC 8628) for interactive login.",
+					"the provider automatically opens your browser for interactive SSO login (OAuth2 Authorization Code Flow).",
 				MarkdownDescription: "The service account username. When both `service_account` and `password` are omitted, " +
-					"the provider automatically uses the OAuth2 Device Authorization Flow (RFC 8628) for interactive login.",
+					"the provider automatically opens your browser for interactive SSO login (OAuth2 Authorization Code Flow).",
 				Optional: true,
 			},
 			"password": schema.StringAttribute{
 				Description: "The service account password. When both service_account and password are omitted, " +
-					"the provider automatically uses the OAuth2 Device Authorization Flow (RFC 8628) for interactive login.",
+					"the provider automatically opens your browser for interactive SSO login (OAuth2 Authorization Code Flow).",
 				MarkdownDescription: "The service account password. When both `service_account` and `password` are omitted, " +
-					"the provider automatically uses the OAuth2 Device Authorization Flow (RFC 8628) for interactive login.",
+					"the provider automatically opens your browser for interactive SSO login (OAuth2 Authorization Code Flow).",
 				Optional:  true,
 				Sensitive: true,
 			},
@@ -172,9 +189,9 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 // buildClientSetFromConfig auto-detects the authentication method from the
 // provider configuration and creates a client set accordingly.
 func buildClientSetFromConfig(ctx context.Context, cfg *providerModel) (clientset.Interface, error) {
-	// If neither credential is set, use interactive Device Authorization Flow.
+	// If neither credential is set, use interactive browser-based authorization.
 	if cfg.ServiceAccount.ValueString() == "" && cfg.Password.ValueString() == "" {
-		return newClientSetDeviceFlow(ctx, cfg.Host.ValueString())
+		return newClientSetBrowserFlow(ctx, cfg.Host.ValueString())
 	}
 
 	// Otherwise both are set (validated earlier), so use password grant.
@@ -276,30 +293,31 @@ func newClientSet(ctx context.Context, host, user, pass string) (clientset.Inter
 	return cs, nil
 }
 
-// newClientSetDeviceFlow authenticates via the OAuth2 Device Authorization
-// Flow (RFC 8628). It first checks the local token cache; if a valid (or
-// refreshable) token is found it is reused without prompting the user.
-// Otherwise it initiates a new device flow by printing a verification URI and
-// user code to stderr, then polls until the user completes the browser login.
-func newClientSetDeviceFlow(ctx context.Context, host string) (clientset.Interface, error) {
+// newClientSetBrowserFlow authenticates via the OAuth2 Authorization Code Flow
+// with PKCE and a local loopback redirect (RFC 8252). It first checks the local
+// token cache; if a valid (or refreshable) token is found it is reused without
+// opening a browser. Otherwise it starts a local HTTP server, opens the browser
+// to the authorization URL, and waits for the redirect callback to deliver the
+// authorization code.
+func newClientSetBrowserFlow(ctx context.Context, host string) (clientset.Interface, error) {
 	apiURL, err := url.Parse("https://" + host)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse API URL %q: %w", host, err)
 	}
 
-	cfg := oauth2.Config{
-		ClientID: deviceFlowClientID,
+	oauthCfg := oauth2.Config{
+		ClientID: browserFlowClientID,
 		Scopes:   []string{"openid", "email", "profile", "offline_access"},
 		Endpoint: oauth2.Endpoint{
-			AuthStyle:     oauth2.AuthStyleInParams,
-			TokenURL:      apiURL.JoinPath("/auth/token").String(),
-			DeviceAuthURL: apiURL.JoinPath("/auth/device/code").String(),
+			AuthStyle: oauth2.AuthStyleInParams,
+			AuthURL:   apiURL.JoinPath("/auth/auth").String(),
+			TokenURL:  apiURL.JoinPath("/auth/token").String(),
 		},
 	}
 
 	// Attempt to reuse a cached token (including silent refresh via refresh_token).
 	if cached, err := deviceauth.Load(host); err == nil {
-		ts := cfg.TokenSource(ctx, cached)
+		ts := oauthCfg.TokenSource(ctx, cached)
 		if tok, err := ts.Token(); err == nil {
 			// Cache the potentially-refreshed token.
 			_ = deviceauth.Save(host, tok)
@@ -314,37 +332,63 @@ func newClientSetDeviceFlow(ctx context.Context, host string) (clientset.Interfa
 			}
 			return cs, nil
 		}
-		// Cached token is unusable — fall through to a new device flow.
+		// Cached token is unusable — fall through to a new browser flow.
 	}
 
-	// Initiate a new device authorization request.
-	da, err := cfg.DeviceAuth(ctx)
+	// Start a local callback server. Port 0 lets the OS pick a free port.
+	listener, err := (&net.ListenConfig{}).Listen(ctx, "tcp", "127.0.0.1:0")
 	if err != nil {
-		return nil, fmt.Errorf("could not initiate device authorization with %q: %w", host, err)
+		return nil, fmt.Errorf("could not start local callback server: %w", err)
+	}
+	redirectURI := fmt.Sprintf("http://127.0.0.1:%d/", listener.Addr().(*net.TCPAddr).Port)
+	oauthCfg.RedirectURL = redirectURI
+
+	// Generate PKCE verifier and random state.
+	verifier := oauth2.GenerateVerifier()
+	state, err := generateState()
+	if err != nil {
+		_ = listener.Close()
+		return nil, fmt.Errorf("could not generate PKCE state: %w", err)
 	}
 
-	printDeviceAuthPrompt(da.VerificationURI, da.UserCode)
+	// Build authorization URL, print it, and open the browser.
+	authURL := oauthCfg.AuthCodeURL(state, oauth2.S256ChallengeOption(verifier))
+	printBrowserAuthPrompt(authURL)
+	openInBrowser(ctx, authURL)
 
-	// Poll until the user completes the browser login or the code expires.
-	// Also cancel immediately on SIGINT/SIGTERM so Ctrl-C doesn't leave
-	// Terraform hanging for the full deviceFlowTimeout duration.
-	pollCtx, cancel := context.WithTimeout(ctx, deviceFlowTimeout)
+	// Serve the callback. Buffered channels so the handler never blocks even
+	// if we have already timed out or been interrupted.
+	codeCh := make(chan string, 1)
+	errCh := make(chan error, 1)
+	cbSrv := &http.Server{Handler: callbackHandler(state, codeCh, errCh)} //nolint:gosec // local server, no TLS needed on loopback
+	go func() { _ = cbSrv.Serve(listener) }()
+	defer func() { _ = cbSrv.Close() }()
+
+	// Wait for the authorization code, a timeout, or a signal. Cancel on
+	// SIGINT/SIGTERM so Ctrl-C doesn't leave Terraform hanging.
+	waitCtx, cancel := context.WithTimeout(ctx, browserFlowTimeout)
 	defer cancel()
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		select {
-		case <-sigCh:
-			cancel()
-		case <-pollCtx.Done():
-		}
-	}()
 	defer signal.Stop(sigCh)
 
-	tok, err := cfg.DeviceAccessToken(pollCtx, da)
+	var code string
+	select {
+	case code = <-codeCh:
+	case err = <-errCh:
+		return nil, fmt.Errorf("browser authentication failed: %w", err)
+	case <-sigCh:
+		cancel()
+		return nil, errors.New("browser authentication cancelled by user")
+	case <-waitCtx.Done():
+		return nil, fmt.Errorf("browser authentication timed out after %v", browserFlowTimeout)
+	}
+
+	// Exchange the authorization code for tokens.
+	tok, err := oauthCfg.Exchange(ctx, code, oauth2.VerifierOption(verifier))
 	if err != nil {
-		return nil, fmt.Errorf("device authorization did not complete: %w", err)
+		return nil, fmt.Errorf("could not exchange authorization code: %w", err)
 	}
 
 	// Persist the token so the next run can skip the browser step.
@@ -353,7 +397,7 @@ func newClientSetDeviceFlow(ctx context.Context, host string) (clientset.Interfa
 	restCfg := rest.Config{
 		BaseURL:           apiURL.String(),
 		Timeout:           10 * time.Second,
-		BearerTokenSource: cfg.TokenSource(ctx, tok),
+		BearerTokenSource: oauthCfg.TokenSource(ctx, tok),
 	}
 
 	cs, err := clientset.New(restCfg)
@@ -364,14 +408,64 @@ func newClientSetDeviceFlow(ctx context.Context, host string) (clientset.Interfa
 	return cs, nil
 }
 
-// printDeviceAuthPrompt writes the device authorization instructions to the
-// user's terminal. It opens /dev/tty directly so the message is always visible
-// regardless of how Terraform captures the provider's stdout/stderr. Falls back
-// to os.Stderr (visible in TF_LOG=DEBUG) if no terminal is available (CI).
-func printDeviceAuthPrompt(verificationURI, userCode string) {
+// callbackHandler returns an HTTP handler that captures the authorization code
+// from Dex's redirect. It writes a success page to the browser and sends the
+// code (or an error) to the provided channels. sync.Once ensures that only the
+// first request is processed even if the browser sends multiple requests.
+func callbackHandler(expectedState string, codeCh chan<- string, errCh chan<- error) http.Handler {
+	var once sync.Once
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		once.Do(func() {
+			q := r.URL.Query()
+			if q.Get("state") != expectedState {
+				w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+				w.WriteHeader(http.StatusBadRequest)
+				_, _ = fmt.Fprint(w, "invalid state parameter")
+				errCh <- errors.New("state mismatch — possible CSRF")
+				return
+			}
+			if e := q.Get("error"); e != "" {
+				w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+				w.WriteHeader(http.StatusBadRequest)
+				_, _ = fmt.Fprintf(w, "authentication error: %s", e) //nolint:gosec // plain-text response, not HTML
+				errCh <- fmt.Errorf("auth error %q: %s", e, q.Get("error_description"))
+				return
+			}
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			_, _ = fmt.Fprint(w, successHTML)
+			codeCh <- q.Get("code")
+		})
+	})
+}
+
+// generateState returns a cryptographically random base64url-encoded string
+// used as the OAuth2 state parameter to prevent CSRF.
+func generateState() (string, error) {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(b), nil
+}
+
+// openInBrowser opens the given URL in the user's default browser. Tests can
+// override this by injecting a BrowserOpenerKey value into the context.
+func openInBrowser(ctx context.Context, authURL string) {
+	if opener, ok := ctx.Value(BrowserOpenerKey{}).(func(string)); ok {
+		opener(authURL)
+		return
+	}
+	_ = browser.OpenURL(authURL)
+}
+
+// printBrowserAuthPrompt writes the authorization URL to the user's terminal.
+// It opens /dev/tty directly so the message is always visible regardless of
+// how Terraform captures the provider's stdout/stderr. Falls back to os.Stderr
+// (visible in TF_LOG=DEBUG) if no terminal is available (CI/headless).
+func printBrowserAuthPrompt(authURL string) {
 	msg := fmt.Sprintf(
-		"\nTo authenticate with GameFabric, open the following URL in your browser:\n\n  %s\n\nAnd enter the code: %s\n\nWaiting for authorization...\n\n",
-		verificationURI, userCode,
+		"\nOpening your browser for GameFabric authentication:\n\n  %s\n\nWaiting for authorization...\n\n",
+		authURL,
 	)
 	tty, err := os.OpenFile("/dev/tty", os.O_WRONLY, 0)
 	if err == nil {
@@ -421,7 +515,7 @@ func validate(cfg *providerModel) []diag.Diagnostic {
 	}
 	// Credentials must be fully present or fully absent.
 	// - Both set → password grant.
-	// - Both absent → Device Authorization Flow (auto-detected, no config needed).
+	// - Both absent → browser-based authorization code flow (auto-detected).
 	// - Only one set → ambiguous intent, surface a clear error.
 	hasServiceAccount := cfg.ServiceAccount.ValueString() != ""
 	hasPassword := cfg.Password.ValueString() != ""
@@ -429,14 +523,14 @@ func validate(cfg *providerModel) []diag.Diagnostic {
 		diags.Append(diag.NewErrorDiagnostic(
 			"Missing Password",
 			"service_account is set but password is not. Provide both to use password-based authentication, "+
-				"or omit both to authenticate interactively via the Device Authorization Flow.",
+				"or omit both to authenticate interactively via the browser.",
 		))
 	}
 	if hasPassword && !hasServiceAccount {
 		diags.Append(diag.NewErrorDiagnostic(
 			"Missing Service Account",
 			"password is set but service_account is not. Provide both to use password-based authentication, "+
-				"or omit both to authenticate interactively via the Device Authorization Flow.",
+				"or omit both to authenticate interactively via the browser.",
 		))
 	}
 	return diags
