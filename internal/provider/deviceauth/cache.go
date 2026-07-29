@@ -1,7 +1,7 @@
 // Package deviceauth provides helpers for caching OAuth2 tokens obtained via
-// the Device Authorization Flow (RFC 8628). Tokens are stored on disk so that
-// subsequent Terraform runs can reuse a valid access/refresh token without
-// prompting the user again.
+// the browser-based Authorization Code Flow (RFC 8252). Tokens are stored on
+// disk so that subsequent Terraform runs can reuse a valid access/refresh token
+// without prompting the user again.
 package deviceauth
 
 import (

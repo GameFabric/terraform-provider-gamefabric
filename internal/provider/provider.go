@@ -54,11 +54,17 @@ var _ provider.Provider = &Provider{}
 // Used in tests to simulate browser interaction without actually opening a browser.
 type BrowserOpenerKey struct{}
 
+var oauthScopes = []string{"openid", "email", "profile", "offline_access"}
+
 const (
 	envHost           = "GAMEFABRIC_HOST"
 	envCustomerID     = "GAMEFABRIC_CUSTOMER_ID"
 	envServiceAccount = "GAMEFABRIC_SERVICE_ACCOUNT"
 	envPassword       = "GAMEFABRIC_PASSWORD"
+	envAuthMethod     = "GAMEFABRIC_ENFORCE_AUTH_METHOD"
+
+	authMethodBrowser        = "browser"
+	authMethodServiceAccount = "serviceaccount"
 
 	// browserFlowClientID is the OAuth2 client ID for the browser-based
 	// authorization code flow. This must be registered as a public client in Dex.
@@ -67,13 +73,11 @@ const (
 	browserFlowTimeout = 5 * time.Minute
 )
 
-// successHTML is served to the browser after a successful authorization callback.
 const successHTML = `<!DOCTYPE html><html><body>
 <h1>Authentication successful</h1>
 <p>You are now authenticated with GameFabric. You can close this window and return to Terraform.</p>
 </body></html>`
 
-// providerModel is the provider configuration model.
 type providerModel struct {
 	Host           types.String `tfsdk:"host"`
 	CustomerID     types.String `tfsdk:"customer_id"`
@@ -186,19 +190,13 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 	resp.ResourceData = provCtx
 }
 
-// buildClientSetFromConfig auto-detects the authentication method from the
-// provider configuration and creates a client set accordingly.
 func buildClientSetFromConfig(ctx context.Context, cfg *providerModel) (clientset.Interface, error) {
-	// If neither credential is set, use interactive browser-based authorization.
 	if cfg.ServiceAccount.ValueString() == "" && cfg.Password.ValueString() == "" {
 		return newClientSetBrowserFlow(ctx, cfg.Host.ValueString())
 	}
-
-	// Otherwise both are set (validated earlier), so use password grant.
-	return newClientSet(ctx, cfg.Host.ValueString(), cfg.ServiceAccount.ValueString(), cfg.Password.ValueString())
+	return newClientSetPasswordGrant(ctx, cfg.Host.ValueString(), cfg.ServiceAccount.ValueString(), cfg.Password.ValueString())
 }
 
-// DataSources defines the data sources implemented in the provider.
 func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		dsauthentication.NewServiceAccount,
@@ -260,7 +258,7 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 	}
 }
 
-func newClientSet(ctx context.Context, host, user, pass string) (clientset.Interface, error) {
+func newClientSetPasswordGrant(ctx context.Context, host, user, pass string) (clientset.Interface, error) {
 	apiURL, err := url.Parse("https://" + host)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse API URL %q: %w", host, err)
@@ -268,7 +266,7 @@ func newClientSet(ctx context.Context, host, user, pass string) (clientset.Inter
 
 	oauth := oauth2.Config{
 		ClientID: "api",
-		Scopes:   []string{"openid", "email", "profile", "offline_access"},
+		Scopes:   oauthScopes,
 		Endpoint: oauth2.Endpoint{
 			AuthStyle: oauth2.AuthStyleInHeader,
 			TokenURL:  apiURL.JoinPath("/auth/token").String(),
@@ -279,18 +277,7 @@ func newClientSet(ctx context.Context, host, user, pass string) (clientset.Inter
 		return nil, fmt.Errorf("could not request oauth token from %q: %w", host, err)
 	}
 
-	restCfg := rest.Config{
-		BaseURL:           apiURL.String(),
-		Timeout:           10 * time.Second,
-		BearerTokenSource: oauth.TokenSource(ctx, tok),
-	}
-
-	cs, err := clientset.New(restCfg)
-	if err != nil {
-		return nil, fmt.Errorf("could not create the gamefabric client: %w", err)
-	}
-
-	return cs, nil
+	return buildClientSet(apiURL, oauth.TokenSource(ctx, tok))
 }
 
 // newClientSetBrowserFlow authenticates via the OAuth2 Authorization Code Flow
@@ -307,7 +294,7 @@ func newClientSetBrowserFlow(ctx context.Context, host string) (clientset.Interf
 
 	oauthCfg := oauth2.Config{
 		ClientID: browserFlowClientID,
-		Scopes:   []string{"openid", "email", "profile", "offline_access"},
+		Scopes:   oauthScopes,
 		Endpoint: oauth2.Endpoint{
 			AuthStyle: oauth2.AuthStyleInParams,
 			AuthURL:   apiURL.JoinPath("/auth/auth").String(),
@@ -320,17 +307,10 @@ func newClientSetBrowserFlow(ctx context.Context, host string) (clientset.Interf
 		ts := oauthCfg.TokenSource(ctx, cached)
 		if tok, err := ts.Token(); err == nil {
 			// Cache the potentially-refreshed token.
-			_ = deviceauth.Save(host, tok)
-			restCfg := rest.Config{
-				BaseURL:           apiURL.String(),
-				Timeout:           10 * time.Second,
-				BearerTokenSource: ts,
+			if err := deviceauth.Save(host, tok); err != nil {
+				printToTerminal(fmt.Sprintf("\nWarning: could not update token cache: %v\n", err))
 			}
-			cs, err := clientset.New(restCfg)
-			if err != nil {
-				return nil, fmt.Errorf("could not create the gamefabric client: %w", err)
-			}
-			return cs, nil
+			return buildClientSet(apiURL, ts)
 		}
 		// Cached token is unusable — fall through to a new browser flow.
 	}
@@ -343,7 +323,6 @@ func newClientSetBrowserFlow(ctx context.Context, host string) (clientset.Interf
 	redirectURI := fmt.Sprintf("http://127.0.0.1:%d/", listener.Addr().(*net.TCPAddr).Port)
 	oauthCfg.RedirectURL = redirectURI
 
-	// Generate PKCE verifier and random state.
 	verifier := oauth2.GenerateVerifier()
 	state, err := generateState()
 	if err != nil {
@@ -351,7 +330,6 @@ func newClientSetBrowserFlow(ctx context.Context, host string) (clientset.Interf
 		return nil, fmt.Errorf("could not generate PKCE state: %w", err)
 	}
 
-	// Build authorization URL, print it, and open the browser.
 	authURL := oauthCfg.AuthCodeURL(state, oauth2.S256ChallengeOption(verifier))
 	printBrowserAuthPrompt(authURL)
 	openInBrowser(ctx, authURL)
@@ -360,9 +338,13 @@ func newClientSetBrowserFlow(ctx context.Context, host string) (clientset.Interf
 	// if we have already timed out or been interrupted.
 	codeCh := make(chan string, 1)
 	errCh := make(chan error, 1)
-	cbSrv := &http.Server{Handler: callbackHandler(state, codeCh, errCh)} //nolint:gosec // local server, no TLS needed on loopback
+	cbSrv := &http.Server{
+		Handler:           callbackHandler(state, codeCh, errCh),
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      30 * time.Second,
+	}
 	go func() { _ = cbSrv.Serve(listener) }()
-	defer func() { _ = cbSrv.Close() }()
 
 	// Wait for the authorization code, a timeout, or a signal. Cancel on
 	// SIGINT/SIGTERM so Ctrl-C doesn't leave Terraform hanging.
@@ -376,35 +358,45 @@ func newClientSetBrowserFlow(ctx context.Context, host string) (clientset.Interf
 	var code string
 	select {
 	case code = <-codeCh:
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer shutdownCancel()
+		if err := cbSrv.Shutdown(shutdownCtx); err != nil {
+			printToTerminal(fmt.Sprintf("\nWarning: could not shut down callback server: %v\n", err))
+		}
 	case err = <-errCh:
 		return nil, fmt.Errorf("browser authentication failed: %w", err)
 	case <-sigCh:
 		cancel()
 		return nil, errors.New("browser authentication cancelled by user")
 	case <-waitCtx.Done():
+		if ctx.Err() != nil {
+			return nil, fmt.Errorf("browser authentication cancelled: %w", ctx.Err())
+		}
 		return nil, fmt.Errorf("browser authentication timed out after %v", browserFlowTimeout)
 	}
 
-	// Exchange the authorization code for tokens.
 	tok, err := oauthCfg.Exchange(ctx, code, oauth2.VerifierOption(verifier))
 	if err != nil {
 		return nil, fmt.Errorf("could not exchange authorization code: %w", err)
 	}
 
 	// Persist the token so the next run can skip the browser step.
-	_ = deviceauth.Save(host, tok)
-
-	restCfg := rest.Config{
-		BaseURL:           apiURL.String(),
-		Timeout:           10 * time.Second,
-		BearerTokenSource: oauthCfg.TokenSource(ctx, tok),
+	if err := deviceauth.Save(host, tok); err != nil {
+		printToTerminal(fmt.Sprintf("\nWarning: could not cache token: %v\n", err))
 	}
 
-	cs, err := clientset.New(restCfg)
+	return buildClientSet(apiURL, oauthCfg.TokenSource(ctx, tok))
+}
+
+func buildClientSet(apiURL *url.URL, ts oauth2.TokenSource) (clientset.Interface, error) {
+	cs, err := clientset.New(rest.Config{
+		BaseURL:           apiURL.String(),
+		Timeout:           10 * time.Second,
+		BearerTokenSource: ts,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("could not create the gamefabric client: %w", err)
 	}
-
 	return cs, nil
 }
 
@@ -450,12 +442,16 @@ func generateState() (string, error) {
 
 // openInBrowser opens the given URL in the user's default browser. Tests can
 // override this by injecting a BrowserOpenerKey value into the context.
+// If the browser cannot be opened (e.g. SSH/headless environments), a message
+// is printed so the user can open the URL manually.
 func openInBrowser(ctx context.Context, authURL string) {
 	if opener, ok := ctx.Value(BrowserOpenerKey{}).(func(string)); ok {
 		opener(authURL)
 		return
 	}
-	_ = browser.OpenURL(authURL)
+	if err := browser.OpenURL(authURL); err != nil {
+		printToTerminal("\nCould not open browser automatically. Please open the URL above manually.\n")
+	}
 }
 
 // printBrowserAuthPrompt writes the authorization URL to the user's terminal.
@@ -463,10 +459,13 @@ func openInBrowser(ctx context.Context, authURL string) {
 // how Terraform captures the provider's stdout/stderr. Falls back to os.Stderr
 // (visible in TF_LOG=DEBUG) if no terminal is available (CI/headless).
 func printBrowserAuthPrompt(authURL string) {
-	msg := fmt.Sprintf(
+	printToTerminal(fmt.Sprintf(
 		"\nOpening your browser for GameFabric authentication:\n\n  %s\n\nWaiting for authorization...\n\n",
 		authURL,
-	)
+	))
+}
+
+func printToTerminal(msg string) {
 	tty, err := os.OpenFile("/dev/tty", os.O_WRONLY, 0)
 	if err == nil {
 		_, _ = fmt.Fprint(tty, msg)
@@ -494,44 +493,67 @@ func applyEnvVars(cfg *providerModel) {
 	if cfg.CustomerID.ValueString() != "" && cfg.Host.ValueString() == "" {
 		cfg.Host = types.StringValue(cfg.CustomerID.ValueString() + ".gamefabric.dev")
 	}
+	// When browser auth is enforced, clear any credentials already loaded so
+	// that downstream validation and client-set selection see the browser-flow
+	// state (both credentials absent) regardless of what env vars were set.
+	if os.Getenv(envAuthMethod) == authMethodBrowser {
+		cfg.ServiceAccount = types.StringValue("")
+		cfg.Password = types.StringValue("")
+	}
 }
 
 func validate(cfg *providerModel) []diag.Diagnostic {
 	diags := make(diag.Diagnostics, 0, 4)
-	if cfg.Host.ValueString() == "" {
+
+	switch {
+	case cfg.Host.ValueString() == "":
 		diags.Append(diag.NewErrorDiagnostic(
 			"Missing Host",
 			"The provider cannot create the GameFabric client as there is no host configured. "+
 				"Please set the host value in the provider configuration or use the "+envHost+" environment variable. "+
 				"If you have a customer ID, the host will be derived from it.",
 		))
-	}
-	if cfg.CustomerID.ValueString() != "" && cfg.Host.ValueString() != cfg.CustomerID.ValueString()+".gamefabric.dev" {
+	case cfg.CustomerID.ValueString() != "" && cfg.Host.ValueString() != cfg.CustomerID.ValueString()+".gamefabric.dev":
 		diags.Append(diag.NewErrorDiagnostic(
 			"Conflicting Host and Customer ID",
 			"The provider cannot create the GameFabric client as both the host and customer ID are configured, "+
-				"but the host is not derived from the customer ID. ",
+				"but the host is not derived from the customer ID.",
 		))
 	}
-	// Credentials must be fully present or fully absent.
-	// - Both set → password grant.
-	// - Both absent → browser-based authorization code flow (auto-detected).
-	// - Only one set → ambiguous intent, surface a clear error.
+
 	hasServiceAccount := cfg.ServiceAccount.ValueString() != ""
 	hasPassword := cfg.Password.ValueString() != ""
-	if hasServiceAccount && !hasPassword {
+	switch {
+	case hasServiceAccount && !hasPassword:
 		diags.Append(diag.NewErrorDiagnostic(
 			"Missing Password",
 			"service_account is set but password is not. Provide both to use password-based authentication, "+
 				"or omit both to authenticate interactively via the browser.",
 		))
-	}
-	if hasPassword && !hasServiceAccount {
+	case hasPassword && !hasServiceAccount:
 		diags.Append(diag.NewErrorDiagnostic(
 			"Missing Service Account",
 			"password is set but service_account is not. Provide both to use password-based authentication, "+
 				"or omit both to authenticate interactively via the browser.",
 		))
 	}
+
+	switch enforceAuthMethod := os.Getenv(envAuthMethod); enforceAuthMethod {
+	case "", authMethodBrowser:
+		// valid — no action needed
+	case authMethodServiceAccount:
+		if !hasServiceAccount && !hasPassword {
+			diags.Append(diag.NewErrorDiagnostic(
+				"Missing Credentials",
+				fmt.Sprintf("%s=%s requires service_account and password to be configured.", envAuthMethod, authMethodServiceAccount),
+			))
+		}
+	default:
+		diags.Append(diag.NewErrorDiagnostic(
+			"Invalid Auth Method",
+			fmt.Sprintf("%s must be %q or %q, got %q.", envAuthMethod, authMethodBrowser, authMethodServiceAccount, enforceAuthMethod),
+		))
+	}
+
 	return diags
 }

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/gamefabric/gf-core/pkg/apiclient/fake"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider"
@@ -366,6 +367,258 @@ func TestProvider_BrowserFlowViaCacheOnSecondRun(t *testing.T) {
 	resp2 := configureProv()
 	require.Len(t, resp2.Diagnostics, 0)
 	assert.Equal(t, callsAfterFirst, tokenCalls.Load(), "token endpoint should NOT be called again on cache hit")
+}
+
+// TestProvider_BrowserFlow_StateMismatch verifies that a callback with the wrong
+// state parameter is rejected with a CSRF diagnostic.
+func TestProvider_BrowserFlow_StateMismatch(t *testing.T) {
+	srv := testBrowserAuthServerWithCallbackOverride(t, func(w http.ResponseWriter, r *http.Request) {
+		// Redirect to the callback with the correct code but the WRONG state.
+		q := r.URL.Query()
+		callbackURL := q.Get("redirect_uri") + "?code=test-auth-code&state=WRONG_STATE"
+		http.Redirect(w, r, callbackURL, http.StatusFound)
+	})
+
+	testEnv(t, "GAMEFABRIC_CACHE_DIR", t.TempDir())
+
+	ctx := context.WithValue(t.Context(), oauth2.HTTPClient, srv.Client())
+	ctx = context.WithValue(ctx, provider.BrowserOpenerKey{}, simulateBrowser(srv))
+
+	schemaResp := &tfprovider.SchemaResponse{}
+	resp := &tfprovider.ConfigureResponse{}
+
+	prov := provider.New("1.0.0")()
+	prov.Schema(t.Context(), tfprovider.SchemaRequest{}, schemaResp)
+	prov.Configure(ctx, tfprovider.ConfigureRequest{
+		Config: tfsdk.Config{
+			Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
+				"host":            tftypes.NewValue(tftypes.String, strings.TrimPrefix(srv.URL, "https://")),
+				"customer_id":     tftypes.NewValue(tftypes.String, nil),
+				"service_account": tftypes.NewValue(tftypes.String, nil),
+				"password":        tftypes.NewValue(tftypes.String, nil),
+			}),
+			Schema: schemaResp.Schema,
+		},
+		ClientCapabilities: tfprovider.ConfigureProviderClientCapabilities{},
+	}, resp)
+
+	require.Len(t, resp.Diagnostics, 1)
+	assert.Contains(t, resp.Diagnostics[0].Detail(), "state mismatch")
+}
+
+// TestProvider_BrowserFlow_AuthError verifies that an OAuth2 error response
+// (e.g. access_denied) from Dex surfaces as a diagnostic.
+func TestProvider_BrowserFlow_AuthError(t *testing.T) {
+	srv := testBrowserAuthServerWithCallbackOverride(t, func(w http.ResponseWriter, r *http.Request) {
+		// Redirect to the callback with an error instead of a code.
+		q := r.URL.Query()
+		callbackURL := q.Get("redirect_uri") + "?error=access_denied&error_description=User+denied+access&state=" + q.Get("state")
+		http.Redirect(w, r, callbackURL, http.StatusFound)
+	})
+
+	testEnv(t, "GAMEFABRIC_CACHE_DIR", t.TempDir())
+
+	ctx := context.WithValue(t.Context(), oauth2.HTTPClient, srv.Client())
+	ctx = context.WithValue(ctx, provider.BrowserOpenerKey{}, simulateBrowser(srv))
+
+	schemaResp := &tfprovider.SchemaResponse{}
+	resp := &tfprovider.ConfigureResponse{}
+
+	prov := provider.New("1.0.0")()
+	prov.Schema(t.Context(), tfprovider.SchemaRequest{}, schemaResp)
+	prov.Configure(ctx, tfprovider.ConfigureRequest{
+		Config: tfsdk.Config{
+			Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
+				"host":            tftypes.NewValue(tftypes.String, strings.TrimPrefix(srv.URL, "https://")),
+				"customer_id":     tftypes.NewValue(tftypes.String, nil),
+				"service_account": tftypes.NewValue(tftypes.String, nil),
+				"password":        tftypes.NewValue(tftypes.String, nil),
+			}),
+			Schema: schemaResp.Schema,
+		},
+		ClientCapabilities: tfprovider.ConfigureProviderClientCapabilities{},
+	}, resp)
+
+	require.Len(t, resp.Diagnostics, 1)
+	assert.Contains(t, resp.Diagnostics[0].Detail(), "access_denied")
+}
+
+// TestProvider_BrowserFlow_Timeout verifies that a browser flow that never
+// completes times out and returns a diagnostic.
+func TestProvider_BrowserFlow_Timeout(t *testing.T) {
+	var tokenCalls atomic.Int64
+	srv := testBrowserAuthServer(t, &tokenCalls)
+
+	testEnv(t, "GAMEFABRIC_CACHE_DIR", t.TempDir())
+
+	// The browser opener does nothing — the callback URL is never visited.
+	noop := func(string) {}
+
+	ctx := context.WithValue(t.Context(), oauth2.HTTPClient, srv.Client())
+	ctx = context.WithValue(ctx, provider.BrowserOpenerKey{}, noop)
+	// Short deadline so the test does not wait 5 minutes.
+	ctx, cancel := context.WithTimeout(ctx, 200*time.Millisecond)
+	defer cancel()
+
+	schemaResp := &tfprovider.SchemaResponse{}
+	resp := &tfprovider.ConfigureResponse{}
+
+	prov := provider.New("1.0.0")()
+	prov.Schema(t.Context(), tfprovider.SchemaRequest{}, schemaResp)
+	prov.Configure(ctx, tfprovider.ConfigureRequest{
+		Config: tfsdk.Config{
+			Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
+				"host":            tftypes.NewValue(tftypes.String, strings.TrimPrefix(srv.URL, "https://")),
+				"customer_id":     tftypes.NewValue(tftypes.String, nil),
+				"service_account": tftypes.NewValue(tftypes.String, nil),
+				"password":        tftypes.NewValue(tftypes.String, nil),
+			}),
+			Schema: schemaResp.Schema,
+		},
+		ClientCapabilities: tfprovider.ConfigureProviderClientCapabilities{},
+	}, resp)
+
+	require.Len(t, resp.Diagnostics, 1)
+	// The test uses a short parent-context deadline, so the flow is cancelled
+	// rather than timing out via browserFlowTimeout. Either message is valid.
+	detail := strings.ToLower(resp.Diagnostics[0].Detail())
+	assert.True(t, strings.Contains(detail, "timed out") || strings.Contains(detail, "cancelled"), "unexpected detail: %s", detail)
+}
+
+// testBrowserAuthServerWithCallbackOverride is like testBrowserAuthServer but
+// lets the caller replace the /auth/auth handler to simulate error scenarios.
+func testBrowserAuthServerWithCallbackOverride(t *testing.T, authHandler http.HandlerFunc) *httptest.Server {
+	t.Helper()
+
+	return httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/auth/auth":
+			authHandler(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+}
+
+// TestProvider_EnforceAuthMethod_Browser verifies that setting
+// GAMEFABRIC_ENFORCE_AUTH_METHOD=browser forces the browser flow even when
+// service account credentials are present.
+func TestProvider_EnforceAuthMethod_Browser(t *testing.T) {
+	var tokenCalls atomic.Int64
+	srv := testBrowserAuthServer(t, &tokenCalls)
+
+	testEnv(t, "GAMEFABRIC_CACHE_DIR", t.TempDir())
+	testEnv(t, "GAMEFABRIC_ENFORCE_AUTH_METHOD", "browser")
+
+	ctx := context.WithValue(t.Context(), oauth2.HTTPClient, srv.Client())
+	ctx = context.WithValue(ctx, provider.BrowserOpenerKey{}, simulateBrowser(srv))
+
+	schemaResp := &tfprovider.SchemaResponse{}
+	resp := &tfprovider.ConfigureResponse{}
+
+	prov := provider.New("1.0.0")()
+	prov.Schema(t.Context(), tfprovider.SchemaRequest{}, schemaResp)
+	prov.Configure(ctx, tfprovider.ConfigureRequest{
+		Config: tfsdk.Config{
+			Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
+				"host":            tftypes.NewValue(tftypes.String, strings.TrimPrefix(srv.URL, "https://")),
+				"customer_id":     tftypes.NewValue(tftypes.String, nil),
+				"service_account": tftypes.NewValue(tftypes.String, "sa"),     // set, but should be ignored
+				"password":        tftypes.NewValue(tftypes.String, "secret"), // set, but should be ignored
+			}),
+			Schema: schemaResp.Schema,
+		},
+		ClientCapabilities: tfprovider.ConfigureProviderClientCapabilities{},
+	}, resp)
+
+	require.Len(t, resp.Diagnostics, 0, "unexpected diagnostics: %v", resp.Diagnostics)
+	assert.True(t, tokenCalls.Load() > 0, "browser flow token endpoint should have been called")
+}
+
+// TestProvider_EnforceAuthMethod_ServiceAccount verifies that setting
+// GAMEFABRIC_ENFORCE_AUTH_METHOD=serviceaccount uses password grant.
+func TestProvider_EnforceAuthMethod_ServiceAccount(t *testing.T) {
+	var called atomic.Int64
+	srv := testOAuthServer(t, &called, "sa", "secret")
+
+	testEnv(t, "GAMEFABRIC_ENFORCE_AUTH_METHOD", "serviceaccount")
+
+	ctx := context.WithValue(t.Context(), oauth2.HTTPClient, srv.Client())
+
+	schemaResp := &tfprovider.SchemaResponse{}
+	resp := &tfprovider.ConfigureResponse{}
+
+	prov := provider.New("1.0.0")()
+	prov.Schema(t.Context(), tfprovider.SchemaRequest{}, schemaResp)
+	prov.Configure(ctx, tfprovider.ConfigureRequest{
+		Config: tfsdk.Config{
+			Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
+				"host":            tftypes.NewValue(tftypes.String, strings.TrimPrefix(srv.URL, "https://")),
+				"customer_id":     tftypes.NewValue(tftypes.String, nil),
+				"service_account": tftypes.NewValue(tftypes.String, "sa"),
+				"password":        tftypes.NewValue(tftypes.String, "secret"),
+			}),
+			Schema: schemaResp.Schema,
+		},
+		ClientCapabilities: tfprovider.ConfigureProviderClientCapabilities{},
+	}, resp)
+
+	require.Len(t, resp.Diagnostics, 0, "unexpected diagnostics: %v", resp.Diagnostics)
+	assert.True(t, called.Load() > 0, "password grant endpoint should have been called")
+}
+
+// TestProvider_EnforceAuthMethod_Invalid verifies that an unrecognised value
+// for GAMEFABRIC_ENFORCE_AUTH_METHOD produces a clear error diagnostic.
+func TestProvider_EnforceAuthMethod_Invalid(t *testing.T) {
+	testEnv(t, "GAMEFABRIC_ENFORCE_AUTH_METHOD", "badvalue")
+
+	schemaResp := &tfprovider.SchemaResponse{}
+	resp := &tfprovider.ConfigureResponse{}
+
+	prov := provider.New("1.0.0")()
+	prov.Schema(t.Context(), tfprovider.SchemaRequest{}, schemaResp)
+	prov.Configure(t.Context(), tfprovider.ConfigureRequest{
+		Config: tfsdk.Config{
+			Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
+				"host":            tftypes.NewValue(tftypes.String, "example.gamefabric.dev"),
+				"customer_id":     tftypes.NewValue(tftypes.String, nil),
+				"service_account": tftypes.NewValue(tftypes.String, nil),
+				"password":        tftypes.NewValue(tftypes.String, nil),
+			}),
+			Schema: schemaResp.Schema,
+		},
+		ClientCapabilities: tfprovider.ConfigureProviderClientCapabilities{},
+	}, resp)
+
+	require.Len(t, resp.Diagnostics, 1)
+	assert.Equal(t, "Invalid Auth Method", resp.Diagnostics[0].Summary())
+}
+
+// TestProvider_EnforceAuthMethod_ServiceAccount_MissingCredentials verifies that
+// GAMEFABRIC_ENFORCE_AUTH_METHOD=serviceaccount without credentials returns an error.
+func TestProvider_EnforceAuthMethod_ServiceAccount_MissingCredentials(t *testing.T) {
+	testEnv(t, "GAMEFABRIC_ENFORCE_AUTH_METHOD", "serviceaccount")
+
+	schemaResp := &tfprovider.SchemaResponse{}
+	resp := &tfprovider.ConfigureResponse{}
+
+	prov := provider.New("1.0.0")()
+	prov.Schema(t.Context(), tfprovider.SchemaRequest{}, schemaResp)
+	prov.Configure(t.Context(), tfprovider.ConfigureRequest{
+		Config: tfsdk.Config{
+			Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
+				"host":            tftypes.NewValue(tftypes.String, "example.gamefabric.dev"),
+				"customer_id":     tftypes.NewValue(tftypes.String, nil),
+				"service_account": tftypes.NewValue(tftypes.String, nil),
+				"password":        tftypes.NewValue(tftypes.String, nil),
+			}),
+			Schema: schemaResp.Schema,
+		},
+		ClientCapabilities: tfprovider.ConfigureProviderClientCapabilities{},
+	}, resp)
+
+	require.Len(t, resp.Diagnostics, 1)
+	assert.Equal(t, "Missing Credentials", resp.Diagnostics[0].Summary())
 }
 
 // testBrowserAuthServer returns a TLS test server that simulates Dex's
