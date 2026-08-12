@@ -27,6 +27,7 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/formation"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/notification"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/protection"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/provisioning"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/rbac"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/storage"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -224,6 +225,7 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		formation.NewVessel,
 		notification.NewReceiverResource,
 		protection.NewGatewayPolicy,
+		provisioning.NewTokenService,
 		rbac.NewGroup,
 		rbac.NewRole,
 		rbac.NewRoleBinding,
