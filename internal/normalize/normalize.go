@@ -220,8 +220,11 @@ func primitiveType(ctx context.Context, v reflect.Value, state State, p path.Pat
 
 	val := v.Interface().(attr.Value)
 
-	// Handle null / zero mismatches and apply tfVal immediately.
-	if (tfVal.IsNull() && !val.IsNull() && isZeroAttr(ctx, val)) || (!tfVal.IsNull() && val.IsNull()) {
+	// Handle null / zero mismatches and apply tfVal immediately. An unknown plan value
+	// (e.g. a Computed-only attribute being planned for the first time) must never be
+	// copied into the model: doing so would return an unknown value from Create/Update,
+	// which the framework rejects as "still unknown after apply".
+	if (tfVal.IsNull() && !val.IsNull() && isZeroAttr(ctx, val)) || (!tfVal.IsNull() && !tfVal.IsUnknown() && val.IsNull()) {
 		v.Set(reflect.ValueOf(tfVal))
 		return nil
 	}
