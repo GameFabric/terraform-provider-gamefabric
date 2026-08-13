@@ -317,7 +317,7 @@ func buildClientSetFromConfig(ctx context.Context, cfg *providerModel) (clientse
 	case cfg.ServiceAccount.ValueString() != "" && cfg.Password.ValueString() != "":
 		ts, err = authWithPasswordGrant(ctx, apiURL, cfg.ServiceAccount.ValueString(), cfg.Password.ValueString())
 		if err != nil {
-			return nil, fmt.Errorf("could not authenticate with service account and  password: %w", err)
+			return nil, fmt.Errorf("could not authenticate with service account and password: %w", err)
 		}
 	default:
 		ts, err = authWithBrowserFlow(ctx, apiURL)

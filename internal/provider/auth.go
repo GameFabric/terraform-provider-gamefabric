@@ -147,17 +147,17 @@ func newTokenHandler(expectedState string, codeCh chan<- string, errCh chan<- er
 		code := q.Get("code")
 
 		switch {
-		case err != "":
-			rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
-			rw.WriteHeader(http.StatusBadRequest)
-			_, _ = fmt.Fprint(rw, "Authentication failed. Check Terraform output for details.")
-			errCh <- fmt.Errorf("auth error %q: %s", err, q.Get("error_description"))
-			return
 		case state != expectedState:
 			rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
 			rw.WriteHeader(http.StatusBadRequest)
 			_, _ = fmt.Fprint(rw, "invalid state parameter")
 			errCh <- errors.New("state mismatch — possible CSRF")
+			return
+		case err != "":
+			rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			rw.WriteHeader(http.StatusBadRequest)
+			_, _ = fmt.Fprint(rw, "Authentication failed. Check Terraform output for details.")
+			errCh <- fmt.Errorf("auth error %q: %s", err, q.Get("error_description"))
 			return
 		case code == "":
 			rw.Header().Set("Content-Type", "text/plain; charset=utf-8")

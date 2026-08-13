@@ -90,8 +90,7 @@ func TestDiskCache_SaveDoesHostSanitization(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, matches, 1)
 
-	dir2 := filepath.Dir(matches[0])
-	name := filepath.Base(dir2)
+	name := filepath.Base(matches[0])
 	assert.NotContains(t, name, ":")
 	assert.NotContains(t, name, "/")
 }
