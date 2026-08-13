@@ -27,7 +27,7 @@ jobs:
           password: ${{ secrets.GOPROXY_TOKEN }}
 
       - name: Install Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version-file: 'go.mod'
           cache: false
@@ -54,7 +54,7 @@ jobs:
 
       # Switch to the latest version of Go to ensure vulnfix can update the version of Go.
       - name: Install Latest Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version: '1'
           check-latest: true
