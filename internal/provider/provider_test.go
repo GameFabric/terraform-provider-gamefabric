@@ -24,6 +24,8 @@ import (
 	"golang.org/x/oauth2"
 )
 
+const validJWT = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDAwLCJmb28iOiJiYXIiLCJudWxsIjpudWxsfQ.ggDTJTTujCclpYVdpUNZsxlLncZ4_bjiUW2nXSaJltk`
+
 func TestProvider_Meta(t *testing.T) {
 	resp := &tfprovider.MetadataResponse{}
 
@@ -601,7 +603,7 @@ func testBrowserAuthServer(t *testing.T, tokenCalls *atomic.Int64) *httptest.Ser
 			}
 			w.WriteHeader(http.StatusOK)
 			_ = json.NewEncoder(w).Encode(map[string]any{
-				"access_token":  "test-access-token",
+				"access_token":  validJWT,
 				"token_type":    "bearer",
 				"refresh_token": "test-refresh-token",
 				"expires_in":    3600,

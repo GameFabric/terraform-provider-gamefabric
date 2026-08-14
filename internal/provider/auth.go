@@ -69,7 +69,6 @@ func authWithBrowserFlow(ctx context.Context, apiURL *url.URL) (oauth2.TokenSour
 		// This worked. Check the cached token and refresh it if necessary. If the refresh fails, we'll fall back to the browser flow.
 		ts := oauthCfg.TokenSource(ctx, cachedTok)
 		if tok, err := ts.Token(); err == nil && tokenIsValid(tok) {
-
 			// Cache the potentially-refreshed token.
 			if err = tokCache.Save(apiURL.Host, tok); err != nil {
 				tflog.Warn(ctx, "Could not update token cache", map[string]any{
@@ -124,7 +123,7 @@ func authWithBrowserFlow(ctx context.Context, apiURL *url.URL) (oauth2.TokenSour
 	case <-ctx.Done():
 		return nil, fmt.Errorf("browser authentication cancelled: %w", ctx.Err())
 	case <-sigCh:
-		return nil, fmt.Errorf("browser authentication interrupted")
+		return nil, errors.New("browser authentication interrupted")
 	case err = <-errCh:
 		return nil, fmt.Errorf("browser authentication failed: %w", err)
 	case <-time.After(browserFlowTimeout):
