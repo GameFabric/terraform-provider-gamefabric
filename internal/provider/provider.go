@@ -196,6 +196,8 @@ func (p *Provider) DataSources(_ context.Context) []func() datasource.DataSource
 		dsprotection.NewProtocols,
 		dsprovisioning.NewAllocator,
 		dsprovisioning.NewPingDiscovery,
+		dsprovisioning.NewTokenService,
+		dsprovisioning.NewTokenServices,
 		dsrbac.NewGroup,
 		dsrbac.NewGroups,
 		dsstorage.NewVolume,
