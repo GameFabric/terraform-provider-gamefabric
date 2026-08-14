@@ -9,9 +9,13 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/cache"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/pkg/browser"
 	"golang.org/x/oauth2"
@@ -61,10 +65,11 @@ func authWithBrowserFlow(ctx context.Context, apiURL *url.URL) (oauth2.TokenSour
 		},
 	}
 
-	if cached, err := tokCache.Load(apiURL.Host); err == nil {
+	if cachedTok, err := tokCache.Load(apiURL.Host); err == nil {
 		// This worked. Check the cached token and refresh it if necessary. If the refresh fails, we'll fall back to the browser flow.
-		ts := oauthCfg.TokenSource(ctx, cached)
-		if tok, err := ts.Token(); err == nil {
+		ts := oauthCfg.TokenSource(ctx, cachedTok)
+		if tok, err := ts.Token(); err == nil && tokenIsValid(tok) {
+
 			// Cache the potentially-refreshed token.
 			if err = tokCache.Save(apiURL.Host, tok); err != nil {
 				tflog.Warn(ctx, "Could not update token cache", map[string]any{
@@ -110,16 +115,19 @@ func authWithBrowserFlow(ctx context.Context, apiURL *url.URL) (oauth2.TokenSour
 		_ = srv.Shutdown(shutdownCtx)
 	}()
 
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+	defer signal.Stop(sigCh)
+
 	var code string
 	select {
 	case <-ctx.Done():
 		return nil, fmt.Errorf("browser authentication cancelled: %w", ctx.Err())
+	case <-sigCh:
+		return nil, fmt.Errorf("browser authentication interrupted")
 	case err = <-errCh:
 		return nil, fmt.Errorf("browser authentication failed: %w", err)
 	case <-time.After(browserFlowTimeout):
-		if ctx.Err() != nil {
-			return nil, fmt.Errorf("browser authentication cancelled: %w", ctx.Err())
-		}
 		return nil, fmt.Errorf("browser authentication timed out after %v", browserFlowTimeout)
 	case code = <-codeCh:
 		// Fall through to exchange the code for a token.
@@ -137,6 +145,19 @@ func authWithBrowserFlow(ctx context.Context, apiURL *url.URL) (oauth2.TokenSour
 	}
 
 	return oauthCfg.TokenSource(ctx, tok), nil
+}
+
+func tokenIsValid(tok *oauth2.Token) bool {
+	if tok == nil {
+		return false
+	}
+	if !tok.Valid() {
+		return false
+	}
+	if _, _, err := jwt.NewParser().ParseUnverified(tok.AccessToken, jwt.MapClaims{}); err != nil {
+		return false
+	}
+	return true
 }
 
 func newTokenHandler(expectedState string, codeCh chan<- string, errCh chan<- error) http.Handler {
