@@ -398,6 +398,43 @@ func TestModelWithIgnorePath(t *testing.T) {
 	}, apiResponse)
 }
 
+func TestModelWithUnknownComputedNull(t *testing.T) {
+	plan := tfsdk.Plan{
+		Schema: schema.Schema{
+			Attributes: map[string]schema.Attribute{
+				"name":     schema.StringAttribute{Required: true},
+				"computed": schema.StringAttribute{Computed: true},
+			},
+		},
+		Raw: tftypes.NewValue(
+			tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"name":     tftypes.String,
+					"computed": tftypes.String,
+				},
+			},
+			map[string]tftypes.Value{
+				"name":     tftypes.NewValue(tftypes.String, "foo"),
+				"computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+			},
+		),
+	}
+
+	apiResponse := testComputedObject{
+		Name:     types.StringValue("foo"),
+		Computed: types.StringNull(),
+	}
+
+	diags := normalize.Model(t.Context(), &apiResponse, plan)
+
+	require.Empty(t, diags)
+
+	assert.Equal(t, testComputedObject{
+		Name:     types.StringValue("foo"),
+		Computed: types.StringNull(),
+	}, apiResponse)
+}
+
 type TestObject struct {
 	Name        types.String            `tfsdk:"name"`
 	SubModel    TestSubModel            `tfsdk:"sub_model"`
@@ -411,4 +448,9 @@ type TestObject struct {
 type TestSubModel struct {
 	Age  types.Int64  `tfsdk:"age"`
 	City types.String `tfsdk:"city"`
+}
+
+type testComputedObject struct {
+	Name     types.String `tfsdk:"name"`
+	Computed types.String `tfsdk:"computed"`
 }
