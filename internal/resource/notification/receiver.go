@@ -219,6 +219,19 @@ func (r *receiver) Delete(ctx context.Context, req resource.DeleteRequest, resp 
 		return
 	}
 
+	// Before deleting the receiver, proactively remove it from any CloudBudgets that
+	// still reference it. Because the receivers field is a plain string list, Terraform
+	// has no dependency edge between gamefabric_cloudbudget and this resource and may
+	// run the CloudBudget update and this delete in parallel. Doing the cleanup here
+	// guarantees the API will accept the deletion regardless of scheduling order.
+	if err := r.removeFromReferencingCloudBudgets(ctx, state.Name.ValueString()); err != nil {
+		resp.Diagnostics.AddError(
+			"Error Removing Receiver Reference from CloudBudgets",
+			fmt.Sprintf("Could not remove Receiver %q from referencing CloudBudgets before deletion: %v", state.Name.ValueString(), err),
+		)
+		return
+	}
+
 	err := r.clientSet.NotificationV1Alpha1().Receivers().Delete(ctx, state.Name.ValueString(), metav1.DeleteOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -237,13 +250,59 @@ func (r *receiver) Delete(ctx context.Context, req resource.DeleteRequest, resp 
 	}
 }
 
-// ModifyPlan validates that a receiver is not still referenced by any CloudBudget before it is
-// deleted. Because the receivers list in gamefabric_cloudbudget holds plain name strings, Terraform
-// loses the dependency edge when the reference is removed from config together with the resource.
-// Without the edge, Terraform may delete the receiver before (or in parallel with) updating the
-// CloudBudget, which the API rejects. Failing the plan early with a clear message lets the user
-// apply the two-step fix: first remove the receiver from the CloudBudget's receivers list, then
-// delete the receiver resource.
+// removeFromReferencingCloudBudgets removes this receiver from every CloudBudget that still lists
+// it in spec.receivers. This is called during Delete so that the API accepts the deletion
+// regardless of whether Terraform's concurrent CloudBudget update has already completed.
+//
+// If removing this receiver would leave a CloudBudget with zero receivers (which the API forbids),
+// the patch is skipped for that budget. The subsequent receiver deletion will then fail at the API
+// level with a clear error, prompting the user to fix the CloudBudget first.
+func (r *receiver) removeFromReferencingCloudBudgets(ctx context.Context, receiverName string) error {
+	budgets, err := r.clientSet.BillingV2Alpha1().CloudBudgets().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return fmt.Errorf("could not list CloudBudgets: %w", err)
+	}
+
+	for i := range budgets.Items {
+		budget := &budgets.Items[i]
+		if !slices.Contains(budget.Spec.Receivers, receiverName) {
+			continue
+		}
+
+		newReceivers := slices.DeleteFunc(slices.Clone(budget.Spec.Receivers), func(r string) bool {
+			return r == receiverName
+		})
+		// The API requires at least one receiver. Skip the patch and let the
+		// delete fail naturally so the user gets a clear API-level error.
+		if len(newReceivers) == 0 {
+			continue
+		}
+
+		updated := *budget
+		updated.Spec.Receivers = newReceivers
+
+		pb, err := patch.Create(budget, &updated)
+		if err != nil {
+			return fmt.Errorf("could not create patch for CloudBudget %q: %w", budget.Name, err)
+		}
+
+		if _, err = r.clientSet.BillingV2Alpha1().CloudBudgets().Patch(
+			ctx, budget.Name, rest.MergePatchType, pb, metav1.UpdateOptions{},
+		); err != nil {
+			return fmt.Errorf("could not patch CloudBudget %q: %w", budget.Name, err)
+		}
+	}
+
+	return nil
+}
+
+// ModifyPlan checks whether deleting this receiver would leave any CloudBudget with an empty
+// receivers list, which the API forbids and which removeFromReferencingCloudBudgets skips.
+// In that case we surface a plan-time warning so the user knows the apply will fail and must
+// update the CloudBudget to use a different receiver first.
+//
+// For CloudBudgets that have additional receivers, no warning is needed: Delete will
+// proactively remove this receiver from those budgets before calling the deletion API.
 func (r *receiver) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	// Only run on destroy (plan is null, state has a value).
 	if !req.Plan.Raw.IsNull() || req.State.Raw.IsNull() {
@@ -264,31 +323,28 @@ func (r *receiver) ModifyPlan(ctx context.Context, req resource.ModifyPlanReques
 
 	budgets, err := r.clientSet.BillingV2Alpha1().CloudBudgets().List(ctx, metav1.ListOptions{})
 	if err != nil {
-		// Non-fatal: surface a warning so the user is aware; the API will still
-		// reject the deletion if the receiver is in use.
+		// Non-fatal: surface a warning so the user is aware.
 		resp.Diagnostics.AddWarning(
 			"Could Not Verify Receiver References",
 			fmt.Sprintf("Could not list CloudBudgets to check whether Receiver %q is still in use: %v. "+
-				"The apply may fail if the Receiver is still referenced by a CloudBudget.", receiverName, err),
+				"The apply may fail if the Receiver is the last one on a CloudBudget.", receiverName, err),
 		)
 		return
 	}
 
 	var budgetNames []string
 	for _, budget := range budgets.Items {
-		if slices.Contains(budget.Spec.Receivers, receiverName) {
+		if slices.Contains(budget.Spec.Receivers, receiverName) && len(budget.Spec.Receivers) == 1 {
 			budgetNames = append(budgetNames, budget.Name)
-			break
 		}
 	}
 
 	if len(budgetNames) > 0 {
-		resp.Diagnostics.AddError(
-			"Receiver Still In Use",
+		resp.Diagnostics.AddWarning(
+			"Receiver Is the Last Reference on a CloudBudget",
 			fmt.Sprintf(
-				"Cannot delete Receiver %q because it is still referenced by CloudBudget(s): %s.\n\n"+
-					"Remove the receiver from the CloudBudget(s) and run "+
-					"'terraform apply' first, then delete the Receiver resource in a second apply.",
+				"Deleting Receiver %q will fail because it is the only receiver on CloudBudget(s): %s.\n\n"+
+					"Update those CloudBudget(s) to reference a different receiver before deleting this one.",
 				receiverName, strings.Join(budgetNames, ", "),
 			),
 		)
