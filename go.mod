@@ -11,12 +11,12 @@ replace (
 )
 
 require (
-	agones.dev/agones v1.58.0
+	agones.dev/agones v1.59.0
 	github.com/cenkalti/backoff/v5 v5.0.3
-	github.com/gamefabric/gf-apiclient v0.5.2
-	github.com/gamefabric/gf-apicore v1.11.4
-	github.com/gamefabric/gf-apiserver v1.17.0
-	github.com/gamefabric/gf-core v0.40.1-0.20260630083841-73a9b7467b95
+	github.com/gamefabric/gf-apiclient v0.5.3
+	github.com/gamefabric/gf-apicore v1.12.0
+	github.com/gamefabric/gf-apiserver v1.18.0
+	github.com/gamefabric/gf-core v0.43.1-0.20260812080209-7166996778ba
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.19.0
@@ -176,7 +176,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/client-go v1.5.2 // indirect
 	k8s.io/klog/v2 v2.140.0 // indirect
-	k8s.io/utils v0.0.0-20260626114624-be93311217bd // indirect
+	k8s.io/utils v0.0.0-20260707023825-cf1189d6abe3 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v6 v6.4.0 // indirect
