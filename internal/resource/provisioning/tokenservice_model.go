@@ -8,7 +8,6 @@ import (
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	provisioningv1beta1 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
-	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -55,7 +54,6 @@ type tokenServiceJWKSModel struct {
 }
 
 func newTokenServiceModel(obj *provisioningv1beta1.TokenService) tokenServiceModel {
-	hasEOS := len(obj.Spec.EOS) > 0
 	return tokenServiceModel{
 		ID:               types.StringValue(obj.Name),
 		Name:             types.StringValue(obj.Name),
@@ -63,7 +61,7 @@ func newTokenServiceModel(obj *provisioningv1beta1.TokenService) tokenServiceMod
 		Labels:           conv.ForEachMapItem(obj.Labels, types.StringValue),
 		Annotations:      conv.ForEachMapItem(obj.Annotations, types.StringValue),
 		GameName:         types.StringValue(obj.Spec.Game.Name),
-		Platforms:        newTokenServicePlatformModels(obj.Spec.Game.Platforms, hasEOS),
+		Platforms:        newTokenServicePlatformModels(obj.Spec.Game.Platforms),
 		EOS:              newTokenServiceEOSModel(obj.Spec.EOS),
 		JWKS:             newTokenServiceJWKSModel(obj.Spec.JWKS),
 		State:            types.StringValue(string(obj.Status.State)),
@@ -86,7 +84,7 @@ func (m tokenServiceModel) ToObject() *provisioningv1beta1.TokenService {
 			EOS:         tokenServiceEOSToObject(m.EOS),
 			Game: provisioningv1beta1.TokenServiceGameSpec{
 				Name:      m.GameName.ValueString(),
-				Platforms: tokenServicePlatformsToObject(m.Platforms, len(m.EOS) > 0),
+				Platforms: tokenServicePlatformsToObject(m.Platforms),
 			},
 			JWKS: tokenServiceJWKSToObject(m.JWKS),
 		},
@@ -102,16 +100,11 @@ func tokenServiceEnvFromDevelopmentMode(developmentMode bool) provisioningv1beta
 	return provisioningv1beta1.TokenServiceEnvProd
 }
 
-// newTokenServicePlatformModels converts the backend's platforms map to the model's
-// platforms map, hiding the "eos" platform entry when hasEOS is true (STS-2888 bridge).
 func newTokenServicePlatformModels(
-	platforms map[string]provisioningv1beta1.TokenServicePlatformSpec, hasEOS bool,
+	platforms map[string]provisioningv1beta1.TokenServicePlatformSpec,
 ) map[string]tokenServicePlatformModel {
 	out := make(map[string]tokenServicePlatformModel, len(platforms))
 	for name, platform := range platforms {
-		if hasEOS && name == validators.TokenServiceEOSPlatformName {
-			continue
-		}
 		out[name] = tokenServicePlatformModel{
 			GameClientTokenKeys: conv.ForEachSliceItem(platform.GameClientTokenKeys, newTokenServiceKeyModel),
 		}
@@ -119,19 +112,14 @@ func newTokenServicePlatformModels(
 	return out
 }
 
-// tokenServicePlatformsToObject converts the model's platforms map to the backend's
-// platforms map, adding the "eos" platform entry when hasEOS is true (STS-2888 bridge).
 func tokenServicePlatformsToObject(
-	platforms map[string]tokenServicePlatformModel, hasEOS bool,
+	platforms map[string]tokenServicePlatformModel,
 ) map[string]provisioningv1beta1.TokenServicePlatformSpec {
 	out := make(map[string]provisioningv1beta1.TokenServicePlatformSpec, len(platforms))
 	for name, platform := range platforms {
 		out[name] = provisioningv1beta1.TokenServicePlatformSpec{
 			GameClientTokenKeys: conv.ForEachSliceItem(platform.GameClientTokenKeys, tokenServiceKeyToObject),
 		}
-	}
-	if hasEOS {
-		out[validators.TokenServiceEOSPlatformName] = provisioningv1beta1.TokenServicePlatformSpec{}
 	}
 	return out
 }

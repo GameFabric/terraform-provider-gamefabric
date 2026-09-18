@@ -77,11 +77,6 @@ var TokenServiceAllowedPlatformNames = []string{
 	"xbox",
 }
 
-// TokenServiceEOSPlatformName is the platform name GCAP reserves for EOS mode. The
-// provider writes it transparently (STS-2888 bridge) and hides it again on read; users
-// never configure it.
-const TokenServiceEOSPlatformName = "eos"
-
 // TokenServiceSigningAlgorithms are the signing algorithms accepted for game client token keys.
 var TokenServiceSigningAlgorithms = []string{
 	"HS256", "HS384", "HS512",

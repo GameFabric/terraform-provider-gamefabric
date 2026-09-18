@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	provisioningv1beta1 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -102,8 +103,64 @@ func TestTokenService_EOS(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_steelshield_tokenservice.test", "eos.0.token_types.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_steelshield_tokenservice.test", "eos.0.token_types.0", "connect"),
 					resource.TestCheckResourceAttr("gamefabric_steelshield_tokenservice.test", "platforms.%", "0"),
-					// STS-2888 bridge: API object still gets an "eos" platform entry.
-					testResourceTokenServiceCheckAPIPlatforms(t, cs, name, "eos"),
+				),
+			},
+		},
+	})
+}
+
+func TestTokenService_EOSLegacyPlatforms(t *testing.T) {
+	name := "eos-legacy-service"
+	ts := &provisioningv1beta1.TokenService{
+		ObjectMeta: metav1.ObjectMeta{Name: name},
+		Spec: provisioningv1beta1.TokenServiceSpec{
+			Environment: provisioningv1beta1.TokenServiceEnvProd,
+			Game: provisioningv1beta1.TokenServiceGameSpec{
+				Name: "my-game",
+				// Pre-existing "eos" entry written by the provider before it stopped injecting it.
+				Platforms: map[string]provisioningv1beta1.TokenServicePlatformSpec{"eos": {}},
+			},
+			EOS: []provisioningv1beta1.TokenServiceEOSSpec{{
+				ClientID:     "1234567890abcdef1234567890abcdef",
+				ProductID:    "abc123",
+				DeploymentID: "def456",
+				SandboxID:    "ghi789",
+				TokenTypes:   []provisioningv1beta1.TokenServiceEOSTokenType{provisioningv1beta1.TokenServiceEOSTokenTypeConnect},
+			}},
+		},
+		Status: provisioningv1beta1.TokenServiceStatus{
+			State:        provisioningv1beta1.TokenServiceStateAvailable,
+			Hostname:     "my-game.tokens.example.com",
+			PlatformKeys: `{"eos":["40d56e6c3b1af9424f4b6c8e4e8f4a2c9d3b7f1e6a5c4d8b2f7e9a0c3d5b1e6f"]}`,
+		},
+	}
+	pf, cs := providertest.ProtoV6ProviderFactories(t, ts)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testResourceTokenServiceDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				// A pre-existing "eos" entry in the API object is surfaced on refresh, so the
+				// plan is non-empty; the following step applies the one-time migration.
+				Config:             testResourceTokenServiceConfigEOS(name),
+				ResourceName:       "gamefabric_steelshield_tokenservice.test",
+				ImportState:        true,
+				ImportStateId:      name,
+				ImportStatePersist: true,
+				ExpectNonEmptyPlan: true,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_steelshield_tokenservice.test", "platforms.%", "1"),
+					resource.TestCheckNoResourceAttr("gamefabric_steelshield_tokenservice.test", "platforms.eos.game_client_token_keys"),
+				),
+			},
+			{
+				// ...then a one-time in-place update removes it; the empty plan after apply
+				// proves it is not a perpetual diff.
+				Config: testResourceTokenServiceConfigEOS(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_steelshield_tokenservice.test", "platforms.%", "0"),
 				),
 			},
 		},
@@ -375,26 +432,6 @@ func testResourceTokenServiceDestroy(t *testing.T, cs clientset.Interface) func(
 			resp, err := cs.ProvisioningV1Beta1().TokenServices().Get(t.Context(), rs.Primary.ID, metav1.GetOptions{})
 			if err == nil && resp.Name == rs.Primary.ID {
 				return fmt.Errorf("token service still exists: %s", rs.Primary.ID)
-			}
-		}
-		return nil
-	}
-}
-
-// testResourceTokenServiceCheckAPIPlatforms asserts the API object's platform keys directly,
-// bypassing Terraform state.
-func testResourceTokenServiceCheckAPIPlatforms(t *testing.T, cs clientset.Interface, name string, wantKeys ...string) resource.TestCheckFunc {
-	return func(*terraform.State) error {
-		obj, err := cs.ProvisioningV1Beta1().TokenServices().Get(t.Context(), name, metav1.GetOptions{})
-		if err != nil {
-			return fmt.Errorf("could not get token service: %w", err)
-		}
-		if len(obj.Spec.Game.Platforms) != len(wantKeys) {
-			return fmt.Errorf("expected platforms %v, got %v", wantKeys, obj.Spec.Game.Platforms)
-		}
-		for _, k := range wantKeys {
-			if _, ok := obj.Spec.Game.Platforms[k]; !ok {
-				return fmt.Errorf("expected platform %q, got %v", k, obj.Spec.Game.Platforms)
 			}
 		}
 		return nil
