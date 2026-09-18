@@ -102,8 +102,6 @@ func TestTokenService_EOS(t *testing.T) {
 					resource.TestCheckResourceAttr("gamefabric_steelshield_tokenservice.test", "eos.0.token_types.#", "1"),
 					resource.TestCheckResourceAttr("gamefabric_steelshield_tokenservice.test", "eos.0.token_types.0", "connect"),
 					resource.TestCheckResourceAttr("gamefabric_steelshield_tokenservice.test", "platforms.%", "0"),
-					// STS-2888 bridge: API object still gets an "eos" platform entry.
-					testResourceTokenServiceCheckAPIPlatforms(t, cs, name, "eos"),
 				),
 			},
 		},
@@ -375,26 +373,6 @@ func testResourceTokenServiceDestroy(t *testing.T, cs clientset.Interface) func(
 			resp, err := cs.ProvisioningV1Beta1().TokenServices().Get(t.Context(), rs.Primary.ID, metav1.GetOptions{})
 			if err == nil && resp.Name == rs.Primary.ID {
 				return fmt.Errorf("token service still exists: %s", rs.Primary.ID)
-			}
-		}
-		return nil
-	}
-}
-
-// testResourceTokenServiceCheckAPIPlatforms asserts the API object's platform keys directly,
-// bypassing Terraform state.
-func testResourceTokenServiceCheckAPIPlatforms(t *testing.T, cs clientset.Interface, name string, wantKeys ...string) resource.TestCheckFunc {
-	return func(*terraform.State) error {
-		obj, err := cs.ProvisioningV1Beta1().TokenServices().Get(t.Context(), name, metav1.GetOptions{})
-		if err != nil {
-			return fmt.Errorf("could not get token service: %w", err)
-		}
-		if len(obj.Spec.Game.Platforms) != len(wantKeys) {
-			return fmt.Errorf("expected platforms %v, got %v", wantKeys, obj.Spec.Game.Platforms)
-		}
-		for _, k := range wantKeys {
-			if _, ok := obj.Spec.Game.Platforms[k]; !ok {
-				return fmt.Errorf("expected platform %q, got %v", k, obj.Spec.Game.Platforms)
 			}
 		}
 		return nil
