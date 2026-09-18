@@ -63,8 +63,6 @@ func TestTokenServiceDataSource(t *testing.T) {
 	})
 }
 
-// TestTokenServiceDataSource_EOS verifies the "eos" platform entry (STS-2888 bridge) is
-// hidden from the platforms attribute.
 func TestTokenServiceDataSource_EOS(t *testing.T) {
 	ts := &provisioningv1beta1.TokenService{
 		ObjectMeta: metav1.ObjectMeta{Name: "eos-token-service"},
@@ -72,11 +70,18 @@ func TestTokenServiceDataSource_EOS(t *testing.T) {
 			Environment: provisioningv1beta1.TokenServiceEnvProd,
 			Game: provisioningv1beta1.TokenServiceGameSpec{
 				Name: "my-game",
-				Platforms: map[string]provisioningv1beta1.TokenServicePlatformSpec{
-					"eos": {},
-				},
+				// Pre-existing "eos" entry written by the provider before it stopped injecting it.
+				Platforms: map[string]provisioningv1beta1.TokenServicePlatformSpec{"eos": {}},
 			},
-			EOS: []provisioningv1beta1.TokenServiceEOSSpec{{ClientID: "client-id"}},
+			EOS: []provisioningv1beta1.TokenServiceEOSSpec{{
+				ClientID:   "1234567890abcdef1234567890abcdef",
+				TokenTypes: []provisioningv1beta1.TokenServiceEOSTokenType{provisioningv1beta1.TokenServiceEOSTokenTypeConnect},
+			}},
+		},
+		Status: provisioningv1beta1.TokenServiceStatus{
+			State:        provisioningv1beta1.TokenServiceStateAvailable,
+			Hostname:     "my-game.tokens.example.com",
+			PlatformKeys: `{"eos":["40d56e6c3b1af9424f4b6c8e4e8f4a2c9d3b7f1e6a5c4d8b2f7e9a0c3d5b1e6f"]}`,
 		},
 	}
 
@@ -92,8 +97,14 @@ func TestTokenServiceDataSource_EOS(t *testing.T) {
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.gamefabric_steelshield_tokenservice.test", "eos.#", "1"),
-					resource.TestCheckResourceAttr("data.gamefabric_steelshield_tokenservice.test", "platforms.%", "0"),
+					resource.TestCheckResourceAttr("data.gamefabric_steelshield_tokenservice.test", "name", "eos-token-service"),
+					resource.TestCheckResourceAttr("data.gamefabric_steelshield_tokenservice.test", "development_mode", "false"),
+					resource.TestCheckResourceAttr("data.gamefabric_steelshield_tokenservice.test", "game_name", "my-game"),
+					resource.TestCheckResourceAttr("data.gamefabric_steelshield_tokenservice.test", "state", "Available"),
+					resource.TestCheckResourceAttr("data.gamefabric_steelshield_tokenservice.test", "platform_key", "40d56e6c3b1af9424f4b6c8e4e8f4a2c9d3b7f1e6a5c4d8b2f7e9a0c3d5b1e6f"),
+					resource.TestCheckResourceAttr("data.gamefabric_steelshield_tokenservice.test", "platforms.%", "1"),
+					resource.TestCheckNoResourceAttr("data.gamefabric_steelshield_tokenservice.test", "platforms.eos.game_client_token_keys"),
+					resource.TestCheckResourceAttr("data.gamefabric_steelshield_tokenservice.test", "eos.0.client_id", "1234567890abcdef1234567890abcdef"),
 				),
 			},
 		},
