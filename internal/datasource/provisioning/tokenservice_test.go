@@ -63,43 +63,6 @@ func TestTokenServiceDataSource(t *testing.T) {
 	})
 }
 
-// TestTokenServiceDataSource_EOS verifies the "eos" platform entry (STS-2888 bridge) is
-// hidden from the platforms attribute.
-func TestTokenServiceDataSource_EOS(t *testing.T) {
-	ts := &provisioningv1beta1.TokenService{
-		ObjectMeta: metav1.ObjectMeta{Name: "eos-token-service"},
-		Spec: provisioningv1beta1.TokenServiceSpec{
-			Environment: provisioningv1beta1.TokenServiceEnvProd,
-			Game: provisioningv1beta1.TokenServiceGameSpec{
-				Name: "my-game",
-				Platforms: map[string]provisioningv1beta1.TokenServicePlatformSpec{
-					"eos": {},
-				},
-			},
-			EOS: []provisioningv1beta1.TokenServiceEOSSpec{{ClientID: "client-id"}},
-		},
-	}
-
-	pf, _ := providertest.ProtoV6ProviderFactories(t, ts)
-
-	resource.Test(t, resource.TestCase{
-		IsUnitTest:               true,
-		ProtoV6ProviderFactories: pf,
-		Steps: []resource.TestStep{
-			{
-				Config: `data "gamefabric_steelshield_tokenservice" "test" {
-  name = "eos-token-service"
-}
-`,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.gamefabric_steelshield_tokenservice.test", "eos.#", "1"),
-					resource.TestCheckResourceAttr("data.gamefabric_steelshield_tokenservice.test", "platforms.%", "0"),
-				),
-			},
-		},
-	})
-}
-
 func TestTokenServiceDataSource_NotFound(t *testing.T) {
 	pf, _ := providertest.ProtoV6ProviderFactories(t)
 
