@@ -26,7 +26,10 @@ type ContainerModel struct {
 }
 
 // NewContainerForArmada converts the backend resource into the terraform model.
-func NewContainerForArmada(obj armadav1.Container) ContainerModel {
+// metricsMap is an optional map of containerPort → metrics path for ports that should be
+// presented as policy Metric (translated from Agones None by the TFP).
+func NewContainerForArmada(obj armadav1.Container, metricsMap map[uint16]string) ContainerModel {
+	portFn := func(p armadav1.Port) PortModel { return newPortModelForArmada(p, metricsMap) }
 	return ContainerModel{
 		Name: types.StringValue(obj.Name),
 		ImageRef: ImageRefModel{
@@ -37,7 +40,7 @@ func NewContainerForArmada(obj armadav1.Container) ContainerModel {
 		Args:         conv.ForEachSliceItem(obj.Args, types.StringValue),
 		Resources:    newResourcesModel(obj.Resources),
 		Envs:         conv.ForEachSliceItem(obj.Env, core.NewEnvVarModel),
-		Ports:        conv.ForEachSliceItem(obj.Ports, newPortModelForArmada),
+		Ports:        conv.ForEachSliceItem(obj.Ports, portFn),
 		VolumeMounts: conv.ForEachSliceItem(obj.VolumeMounts, newVolumeMountModel),
 		ConfigFiles:  conv.ForEachSliceItem(obj.ConfigFiles, NewConfigFileModelForArmada),
 		Secrets:      conv.ForEachSliceItem(obj.Secrets, NewSecretMountModelForArmada),
@@ -45,7 +48,10 @@ func NewContainerForArmada(obj armadav1.Container) ContainerModel {
 }
 
 // NewContainerForFormation converts the backend resource into the terraform model.
-func NewContainerForFormation(obj formationv1.Container) ContainerModel {
+// metricsMap is an optional map of containerPort → metrics path for ports that should be
+// presented as policy Metric (translated from Agones None by the TFP).
+func NewContainerForFormation(obj formationv1.Container, metricsMap map[uint16]string) ContainerModel {
+	portFn := func(p formationv1.Port) PortModel { return newPortModelForFormation(p, metricsMap) }
 	return ContainerModel{
 		Name: types.StringValue(obj.Name),
 		ImageRef: ImageRefModel{
@@ -56,7 +62,7 @@ func NewContainerForFormation(obj formationv1.Container) ContainerModel {
 		Args:         conv.ForEachSliceItem(obj.Args, types.StringValue),
 		Resources:    newResourcesModel(obj.Resources),
 		Envs:         conv.ForEachSliceItem(obj.Env, core.NewEnvVarModel),
-		Ports:        conv.ForEachSliceItem(obj.Ports, newPortModelForFormation),
+		Ports:        conv.ForEachSliceItem(obj.Ports, portFn),
 		VolumeMounts: conv.ForEachSliceItem(obj.VolumeMounts, newVolumeMountModel),
 		ConfigFiles:  conv.ForEachSliceItem(obj.ConfigFiles, NewConfigFileModelForFormation),
 		Secrets:      conv.ForEachSliceItem(obj.Secrets, NewSecretMountModelForFormation),
@@ -175,52 +181,95 @@ type PortModel struct {
 	ContainerPort      types.Int32  `tfsdk:"container_port"`
 	Policy             types.String `tfsdk:"policy"`
 	ProtectionProtocol types.String `tfsdk:"protection_protocol"`
+	Path               types.String `tfsdk:"path"`
 }
 
-func newPortModelForArmada(obj armadav1.Port) PortModel {
+// newPortModelForArmada converts an API port to a PortModel.
+// metricsMap maps containerPort → metrics path; if a port with policy None appears in this map,
+// it is reconstructed as policy Metric with the corresponding path.
+func newPortModelForArmada(obj armadav1.Port, metricsMap map[uint16]string) PortModel {
 	prot := types.StringNull()
 	if obj.ProtectionProtocol != nil {
 		prot = conv.OptionalFunc(*obj.ProtectionProtocol, types.StringValue, types.StringNull)
+	}
+
+	policy := string(obj.Policy)
+	path := types.StringNull()
+	if obj.Policy == agonesv1.None {
+		policy = MetricPortPolicy
+		if metricsPath, ok := metricsMap[obj.ContainerPort]; ok {
+			path = types.StringValue(metricsPath)
+		}
 	}
 
 	return PortModel{
 		Name:               types.StringValue(obj.Name),
 		Protocol:           types.StringValue(string(obj.Protocol)),
 		ContainerPort:      types.Int32Value(int32(obj.ContainerPort)),
-		Policy:             types.StringValue(string(obj.Policy)),
+		Policy:             types.StringValue(policy),
 		ProtectionProtocol: prot,
+		Path:               path,
 	}
 }
 
-func newPortModelForFormation(obj formationv1.Port) PortModel {
+// newPortModelForFormation converts an API port to a PortModel.
+// metricsMap maps containerPort → metrics path; ports with policy None are always
+// reconstructed as policy Metric (None does not exist in the TFP schema).
+func newPortModelForFormation(obj formationv1.Port, metricsMap map[uint16]string) PortModel {
 	prot := types.StringNull()
 	if obj.ProtectionProtocol != nil {
 		prot = conv.OptionalFunc(*obj.ProtectionProtocol, types.StringValue, types.StringNull)
+	}
+
+	policy := string(obj.Policy)
+	path := types.StringNull()
+	if obj.Policy == agonesv1.None {
+		// None in the API is always Metric in the TFP. Use the path from the
+		// metrics annotation when available, otherwise leave path null.
+		policy = MetricPortPolicy
+		if metricsPath, ok := metricsMap[obj.ContainerPort]; ok {
+			path = types.StringValue(metricsPath)
+		}
 	}
 
 	return PortModel{
 		Name:               types.StringValue(obj.Name),
 		Protocol:           types.StringValue(string(obj.Protocol)),
 		ContainerPort:      types.Int32Value(int32(obj.ContainerPort)),
-		Policy:             types.StringValue(string(obj.Policy)),
+		Policy:             types.StringValue(policy),
 		ProtectionProtocol: prot,
+		Path:               path,
 	}
 }
 
+// toPortForArmada converts a PortModel to an API port.
+// Metric policy is translated to None (Agones) — the metrics label/annotation injection
+// happens at the armada/formation model level.
 func toPortForArmada(p PortModel) armadav1.Port {
+	policy := agonesv1.PortPolicy(p.Policy.ValueString())
+	if policy == MetricPortPolicy {
+		policy = agonesv1.None
+	}
 	return armadav1.Port{
 		Name:               p.Name.ValueString(),
-		Policy:             agonesv1.PortPolicy(p.Policy.ValueString()),
+		Policy:             policy,
 		ContainerPort:      uint16(p.ContainerPort.ValueInt32()),
 		Protocol:           kcorev1.Protocol(p.Protocol.ValueString()),
 		ProtectionProtocol: p.ProtectionProtocol.ValueStringPointer(),
 	}
 }
 
+// toPortForFormation converts a PortModel to an API port.
+// Metric policy is translated to None (Agones) — the metrics label/annotation injection
+// happens at the armada/formation model level.
 func toPortForFormation(p PortModel) formationv1.Port {
+	policy := agonesv1.PortPolicy(p.Policy.ValueString())
+	if policy == MetricPortPolicy {
+		policy = agonesv1.None
+	}
 	return formationv1.Port{
 		Name:               p.Name.ValueString(),
-		Policy:             agonesv1.PortPolicy(p.Policy.ValueString()),
+		Policy:             policy,
 		ContainerPort:      uint16(p.ContainerPort.ValueInt32()),
 		Protocol:           kcorev1.Protocol(p.Protocol.ValueString()),
 		ProtectionProtocol: p.ProtectionProtocol.ValueStringPointer(),
