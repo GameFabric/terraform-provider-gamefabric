@@ -38,7 +38,6 @@ type armadaModel struct {
 
 func newArmadaModel(obj *armadav1.Armada) armadaModel {
 	metricsMap := mps.ParseMetricsAnnotation(obj.Spec.Template.Annotations[mps.MetricsEndpointsAnnotation])
-	containerFn := func(c armadav1.Container) mps.ContainerModel { return mps.NewContainerForArmada(c, metricsMap) }
 	return armadaModel{
 		ID:                    types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String()),
 		Name:                  types.StringValue(obj.Name),
@@ -51,14 +50,16 @@ func newArmadaModel(obj *armadav1.Armada) armadaModel {
 		Replicas:              conv.ForEachSliceItem(obj.Spec.Distribution, newReplicas),
 		GameServerLabels:      conv.ForEachMapItem(conv.MapWithoutKey(obj.Spec.Template.Labels, profilingKey, mps.MetricsScrapeLabel), types.StringValue),
 		GameServerAnnotations: conv.ForEachMapItem(conv.MapWithoutKey(obj.Spec.Template.Annotations, mps.MetricsEndpointsAnnotation), types.StringValue),
-		Containers:            conv.ForEachSliceItem(obj.Spec.Template.Spec.Containers, containerFn),
-		HealthChecks:          mps.NewHealthChecks(obj.Spec.Template.Spec.Health),
-		TerminationConfig:     newTerminationConfig(obj.Spec.Template.Spec.TerminationGracePeriodSeconds),
-		Strategy:              newStrategyModel(obj.Spec.Template.Spec.Strategy),
-		Volumes:               conv.ForEachSliceItem(obj.Spec.Template.Spec.Volumes, newVolumeModel),
-		GatewayPolicies:       conv.ForEachSliceItem(obj.Spec.Template.Spec.GatewayPolicies, types.StringValue),
-		ProfilingEnabled:      conv.BoolFromMapKey(obj.Spec.Template.Labels, profilingKey, types.BoolValue(false)),
-		ImageUpdaterTarget:    container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeArmada, obj.Name, obj.Environment),
+		Containers: conv.ForEachSliceItem(obj.Spec.Template.Spec.Containers, func(c armadav1.Container) mps.ContainerModel {
+			return mps.NewContainerForArmada(c, metricsMap)
+		}),
+		HealthChecks:       mps.NewHealthChecks(obj.Spec.Template.Spec.Health),
+		TerminationConfig:  newTerminationConfig(obj.Spec.Template.Spec.TerminationGracePeriodSeconds),
+		Strategy:           newStrategyModel(obj.Spec.Template.Spec.Strategy),
+		Volumes:            conv.ForEachSliceItem(obj.Spec.Template.Spec.Volumes, newVolumeModel),
+		GatewayPolicies:    conv.ForEachSliceItem(obj.Spec.Template.Spec.GatewayPolicies, types.StringValue),
+		ProfilingEnabled:   conv.BoolFromMapKey(obj.Spec.Template.Labels, profilingKey, types.BoolValue(false)),
+		ImageUpdaterTarget: container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeArmada, obj.Name, obj.Environment),
 	}
 }
 

@@ -34,7 +34,6 @@ type vesselModel struct {
 
 func newVesselModel(obj *formationv1.Vessel) vesselModel {
 	metricsMap := mps.ParseMetricsAnnotation(obj.Spec.Template.Annotations[mps.MetricsEndpointsAnnotation])
-	containerFn := func(c formationv1.Container) mps.ContainerModel { return mps.NewContainerForFormation(c, metricsMap) }
 	return vesselModel{
 		ID:                    types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String()),
 		Name:                  types.StringValue(obj.Name),
@@ -46,13 +45,15 @@ func newVesselModel(obj *formationv1.Vessel) vesselModel {
 		Annotations:           conv.ForEachMapItem(obj.Annotations, types.StringValue),
 		GameServerLabels:      conv.ForEachMapItem(conv.MapWithoutKey(obj.Spec.Template.Labels, profilingKey, mps.MetricsScrapeLabel), types.StringValue),
 		GameServerAnnotations: conv.ForEachMapItem(conv.MapWithoutKey(obj.Spec.Template.Annotations, mps.MetricsEndpointsAnnotation), types.StringValue),
-		Containers:            conv.ForEachSliceItem(obj.Spec.Template.Spec.Containers, containerFn),
-		HealthChecks:          mps.NewHealthChecks(obj.Spec.Template.Spec.Health),
-		TerminationConfig:     newTerminationConfig(obj.Spec.Template.Spec.TerminationGracePeriodSeconds, obj.Spec.TerminationGracePeriods),
-		Volumes:               conv.ForEachSliceItem(obj.Spec.Template.Spec.Volumes, newVolumeModel),
-		GatewayPolicies:       conv.ForEachSliceItem(obj.Spec.Template.Spec.GatewayPolicies, types.StringValue),
-		ProfilingEnabled:      conv.BoolFromMapKey(obj.Spec.Template.Labels, profilingKey, types.BoolValue(false)),
-		ImageUpdaterTarget:    container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeVessel, obj.Name, obj.Environment),
+		Containers: conv.ForEachSliceItem(obj.Spec.Template.Spec.Containers, func(c formationv1.Container) mps.ContainerModel {
+			return mps.NewContainerForFormation(c, metricsMap)
+		}),
+		HealthChecks:       mps.NewHealthChecks(obj.Spec.Template.Spec.Health),
+		TerminationConfig:  newTerminationConfig(obj.Spec.Template.Spec.TerminationGracePeriodSeconds, obj.Spec.TerminationGracePeriods),
+		Volumes:            conv.ForEachSliceItem(obj.Spec.Template.Spec.Volumes, newVolumeModel),
+		GatewayPolicies:    conv.ForEachSliceItem(obj.Spec.Template.Spec.GatewayPolicies, types.StringValue),
+		ProfilingEnabled:   conv.BoolFromMapKey(obj.Spec.Template.Labels, profilingKey, types.BoolValue(false)),
+		ImageUpdaterTarget: container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeVessel, obj.Name, obj.Environment),
 	}
 }
 
