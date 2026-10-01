@@ -408,6 +408,36 @@ func TestResourceFormation_Validates(t *testing.T) {
 	}
 }
 
+func TestResourceFormationMetricPortPolicy(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckFormationDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				Config: testResourceFormationConfigMetricPolicy(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.ports.0.name", "metrics"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.ports.0.policy", "Metric"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.ports.0.container_port", "9090"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.ports.0.protocol", "TCP"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.ports.0.path", "/metrics"),
+					resource.TestCheckNoResourceAttr("gamefabric_formation.test", "gameserver_labels.g8c.io/gameserver-scrape"),
+					resource.TestCheckNoResourceAttr("gamefabric_formation.test", "gameserver_annotations.g8c.io/metrics-endpoints"),
+				),
+			},
+			{
+				ResourceName: "gamefabric_formation.test",
+				ImportState:  true,
+			},
+		},
+	})
+}
+
 func TestFormationResourceGameFabricValidators(t *testing.T) {
 	t.Parallel()
 
@@ -424,6 +454,46 @@ func TestFormationResourceGameFabricValidators(t *testing.T) {
 	for _, path := range got {
 		require.Containsf(t, want, path, "The validator path %q was not found in the Formation API object", path)
 	}
+}
+
+func testResourceFormationConfigMetricPolicy() string {
+	return `resource "gamefabric_formation" "test" {
+  name        = "my-formation"
+  environment = "test"
+  description = "My Formation"
+
+  vessels = [
+    {
+      name   = "default-vessel"
+      region = "eu"
+    }
+  ]
+
+  containers = [
+    {
+      name = "default"
+      image_ref = {
+        name   = "gameserver-asoda0s"
+        branch = "prod"
+      }
+      resources = {
+        requests = {
+          cpu    = "250m"
+          memory = "256Mi"
+        }
+      }
+      ports = [
+        {
+          name           = "metrics"
+          policy         = "Metric"
+          container_port = 9090
+          protocol       = "TCP"
+          path           = "/metrics"
+        }
+      ]
+    }
+  ]
+}`
 }
 
 func testResourceFormationConfigEmpty() string {

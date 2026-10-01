@@ -337,6 +337,57 @@ replicas = [
 	})
 }
 
+func TestResourceArmadaNonePortPolicyRejected(t *testing.T) {
+	t.Parallel()
+
+	pf, _ := providertest.ProtoV6ProviderFactories(t)
+
+	// "None" is an API-internal concept; the TFP only exposes "Metric".
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		Steps: []resource.TestStep{
+			{
+				Config:      testResourceArmadaConfigNonePolicy(),
+				ExpectError: regexp.MustCompile(`None`),
+			},
+		},
+	})
+}
+
+func TestResourceArmadaMetricPortPolicy(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckArmadaDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				Config: testResourceArmadaConfigMetricPolicy(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					// The port is stored as Metric policy in state.
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.ports.0.name", "metrics"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.ports.0.policy", "Metric"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.ports.0.container_port", "9090"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.ports.0.protocol", "TCP"),
+					resource.TestCheckResourceAttr("gamefabric_armada.test", "containers.0.ports.0.path", "/metrics"),
+					// Managed labels/annotations are NOT surfaced in gameserver_labels/gameserver_annotations.
+					resource.TestCheckNoResourceAttr("gamefabric_armada.test", "gameserver_labels.g8c.io/gameserver-scrape"),
+					resource.TestCheckNoResourceAttr("gamefabric_armada.test", "gameserver_annotations.g8c.io/metrics-endpoints"),
+				),
+			},
+			{
+				ResourceName:      "gamefabric_armada.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestResourceArmadaConfigMinReplicasZero(t *testing.T) {
 	t.Parallel()
 
@@ -572,6 +623,12 @@ replicas = [
 			name:        "validates gateway policies",
 			config:      testResourceArmadaConfigFullInvalid(),
 			expectError: regexp.MustCompile(regexp.QuoteMeta(`invalid_gateway_policy!`)),
+		},
+		// Port policy.
+		{
+			name:        "rejects unsupported port policy",
+			config:      testResourceArmadaConfigUnsupportedPortPolicy(),
+			expectError: regexp.MustCompile(`value must be one of`),
 		},
 	}
 
@@ -888,6 +945,104 @@ func testResourceArmadaConfigFullInvalid() string {
     }
   ]
   gateway_policies  = ["invalid_gateway_policy!"]
+}`
+}
+
+func testResourceArmadaConfigNonePolicy() string {
+	return `resource "gamefabric_armada" "test" {
+  name        = "my-armada"
+  environment = "test"
+  description = "My Armada"
+  region      = "eu"
+
+  containers = [
+    {
+      name = "example-container"
+      image_ref = {
+        name   = "gameserver-asoda0s"
+        branch = "prod"
+      }
+      resources = {
+        requests = {
+          cpu    = "250m"
+          memory = "256Mi"
+        }
+      }
+      ports = [
+        {
+          name           = "metrics"
+          policy         = "None"
+          container_port = 9090
+          protocol       = "TCP"
+        }
+      ]
+    }
+  ]
+}`
+}
+
+func testResourceArmadaConfigMetricPolicy() string {
+	return `resource "gamefabric_armada" "test" {
+  name        = "my-armada"
+  environment = "test"
+  description = "My Armada"
+  region      = "eu"
+
+  containers = [
+    {
+      name = "example-container"
+      image_ref = {
+        name   = "gameserver-asoda0s"
+        branch = "prod"
+      }
+      resources = {
+        requests = {
+          cpu    = "250m"
+          memory = "256Mi"
+        }
+      }
+      ports = [
+        {
+          name           = "metrics"
+          policy         = "Metric"
+          container_port = 9090
+          protocol       = "TCP"
+          path           = "/metrics"
+        }
+      ]
+    }
+  ]
+}`
+}
+
+func testResourceArmadaConfigUnsupportedPortPolicy() string {
+	return `resource "gamefabric_armada" "test" {
+  name        = "my-armada"
+  environment = "test"
+  description = "My Armada"
+  region      = "eu"
+
+  containers = [
+    {
+      name = "example-container"
+      image_ref = {
+        name   = "gameserver-asoda0s"
+        branch = "prod"
+      }
+      resources = {
+        requests = {
+          cpu    = "250m"
+          memory = "256Mi"
+        }
+      }
+      ports = [
+        {
+          name   = "game"
+          policy = "Static"
+        }
+      ]
+    }
+  ]
 }`
 }
 

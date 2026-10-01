@@ -37,6 +37,7 @@ type armadaModel struct {
 }
 
 func newArmadaModel(obj *armadav1.Armada) armadaModel {
+	metricsMap := mps.ParseMetricsAnnotation(obj.Spec.Template.Annotations[mps.MetricsEndpointsAnnotation])
 	return armadaModel{
 		ID:                    types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String()),
 		Name:                  types.StringValue(obj.Name),
@@ -47,16 +48,18 @@ func newArmadaModel(obj *armadav1.Armada) armadaModel {
 		Autoscaling:           newArmadaAutoscalingModel(obj.Spec.Autoscaling),
 		Region:                types.StringValue(obj.Spec.Region),
 		Replicas:              conv.ForEachSliceItem(obj.Spec.Distribution, newReplicas),
-		GameServerLabels:      conv.ForEachMapItem(conv.MapWithoutKey(obj.Spec.Template.Labels, profilingKey), types.StringValue),
-		GameServerAnnotations: conv.ForEachMapItem(obj.Spec.Template.Annotations, types.StringValue),
-		Containers:            conv.ForEachSliceItem(obj.Spec.Template.Spec.Containers, mps.NewContainerForArmada),
-		HealthChecks:          mps.NewHealthChecks(obj.Spec.Template.Spec.Health),
-		TerminationConfig:     newTerminationConfig(obj.Spec.Template.Spec.TerminationGracePeriodSeconds),
-		Strategy:              newStrategyModel(obj.Spec.Template.Spec.Strategy),
-		Volumes:               conv.ForEachSliceItem(obj.Spec.Template.Spec.Volumes, newVolumeModel),
-		GatewayPolicies:       conv.ForEachSliceItem(obj.Spec.Template.Spec.GatewayPolicies, types.StringValue),
-		ProfilingEnabled:      conv.BoolFromMapKey(obj.Spec.Template.Labels, profilingKey, types.BoolValue(false)),
-		ImageUpdaterTarget:    container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeArmada, obj.Name, obj.Environment),
+		GameServerLabels:      conv.ForEachMapItem(conv.MapWithoutKey(obj.Spec.Template.Labels, profilingKey, mps.MetricsScrapeLabel), types.StringValue),
+		GameServerAnnotations: conv.ForEachMapItem(conv.MapWithoutKey(obj.Spec.Template.Annotations, mps.MetricsEndpointsAnnotation), types.StringValue),
+		Containers: conv.ForEachSliceItem(obj.Spec.Template.Spec.Containers, func(c armadav1.Container) mps.ContainerModel {
+			return mps.NewContainerForArmada(c, metricsMap)
+		}),
+		HealthChecks:       mps.NewHealthChecks(obj.Spec.Template.Spec.Health),
+		TerminationConfig:  newTerminationConfig(obj.Spec.Template.Spec.TerminationGracePeriodSeconds),
+		Strategy:           newStrategyModel(obj.Spec.Template.Spec.Strategy),
+		Volumes:            conv.ForEachSliceItem(obj.Spec.Template.Spec.Volumes, newVolumeModel),
+		GatewayPolicies:    conv.ForEachSliceItem(obj.Spec.Template.Spec.GatewayPolicies, types.StringValue),
+		ProfilingEnabled:   conv.BoolFromMapKey(obj.Spec.Template.Labels, profilingKey, types.BoolValue(false)),
+		ImageUpdaterTarget: container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeArmada, obj.Name, obj.Environment),
 	}
 }
 
@@ -87,10 +90,14 @@ func (m armadaModel) ToObject() *armadav1.Armada {
 			Template: armadav1.FleetTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: conv.ForEachMapItem(
-						conv.MapWithBool(m.GameServerLabels, profilingKey, m.ProfilingEnabled),
+						conv.MapWithBool(
+							conv.MapWithBool(m.GameServerLabels, profilingKey, m.ProfilingEnabled),
+							mps.MetricsScrapeLabel,
+							types.BoolValue(mps.HasMetricPorts(m.Containers)),
+						),
 						func(v types.String) string { return v.ValueString() },
 					),
-					Annotations: conv.ForEachMapItem(m.GameServerAnnotations, func(v types.String) string { return v.ValueString() }),
+					Annotations: toAnnotationsWithMetrics(m.GameServerAnnotations, m.Containers),
 				},
 				Spec: armadav1.FleetSpec{
 					GatewayPolicies:               conv.ForEachSliceItem(m.GatewayPolicies, func(v types.String) string { return v.ValueString() }),
@@ -143,6 +150,19 @@ func toIntOrString(val types.String) *intstr.IntOrString {
 	}
 	is := intstr.Parse(val.ValueString())
 	return &is
+}
+
+// toAnnotationsWithMetrics builds the gameserver annotation map, injecting the metrics endpoints
+// annotation when metric ports are present, and omitting it otherwise.
+func toAnnotationsWithMetrics(gsAnnotations map[string]types.String, containers []mps.ContainerModel) map[string]string {
+	result := conv.ForEachMapItem(gsAnnotations, func(v types.String) string { return v.ValueString() })
+	if mps.HasMetricPorts(containers) {
+		if result == nil {
+			result = make(map[string]string)
+		}
+		result[mps.MetricsEndpointsAnnotation] = mps.MetricsAnnotationValue(containers)
+	}
+	return result
 }
 
 type armadaAutoscalingModel struct {
