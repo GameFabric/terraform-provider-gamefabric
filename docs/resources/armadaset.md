@@ -404,12 +404,12 @@ Required:
 Required:
 
 - `name` (String) Name is the name of the port. Must contain only lowercase alphanumeric characters, hyphens, or dots. Must start and end with an alphanumeric character. Maximum length is 63 characters.
-- `policy` (String) Policy defines how the host port is populated. `Dynamic` (default) allocates a free host port and maps it to the `container_port` (required). `Passthrough` dynamically allocates a host port and sets `container_port` to match it. `Metric` enables Prometheus scraping: it injects the `g8c.io/gameserver-scrape` label and `g8c.io/metrics-endpoints` annotation on the GameServer template, and is stored as policy `None` in the GameFabric API. Protocol must be `TCP` for `Metric` ports.
+- `policy` (String) Policy defines how the host port is populated. `Dynamic` (default) allocates a free host port and maps it to the `container_port` (required). `Passthrough` dynamically allocates a host port and sets `container_port` to match it. `Metric` enables Prometheus scraping: it injects the `g8c.io/gameserver-scrape` label and `g8c.io/metrics-endpoints` annotation on the GameServer template, and is stored as policy `None` in the GameFabric API. `Metric` ports require `protocol = "TCP"` and a `container_port`.
 
 Optional:
 
 - `container_port` (Number) ContainerPort is the port that is being opened on the specified container&#39;s process.
-- `path` (String) Path is the HTTP path for Prometheus metrics scraping. Only valid when `policy` is `Metric`. Defaults to `/metrics`.
+- `path` (String) Path is the HTTP path for Prometheus metrics scraping. Only valid when `policy` is `Metric`. Defaults to `/metrics` when `policy` is `Metric` and `path` is omitted.
 - `protection_protocol` (String) ProtectionProtocol is the optional name of the protection protocol being used.
 - `protocol` (String) Protocol is the network protocol being used. Defaults to UDP. TCP is the other option.
 

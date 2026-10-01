@@ -197,9 +197,11 @@ func newPortModelForArmada(obj armadav1.Port, metricsMap map[uint16]string) Port
 	path := types.StringNull()
 	if obj.Policy == agonesv1.None {
 		policy = MetricPortPolicy
-		if metricsPath, ok := metricsMap[obj.ContainerPort]; ok {
-			path = types.StringValue(metricsPath)
+		metricsPath, ok := metricsMap[obj.ContainerPort]
+		if !ok {
+			metricsPath = defaultMetricsPath
 		}
+		path = types.StringValue(metricsPath)
 	}
 
 	return PortModel{
@@ -225,11 +227,13 @@ func newPortModelForFormation(obj formationv1.Port, metricsMap map[uint16]string
 	path := types.StringNull()
 	if obj.Policy == agonesv1.None {
 		// None in the API is always Metric in the TFP. Use the path from the
-		// metrics annotation when available, otherwise leave path null.
+		// metrics annotation when available, otherwise default to /metrics.
 		policy = MetricPortPolicy
-		if metricsPath, ok := metricsMap[obj.ContainerPort]; ok {
-			path = types.StringValue(metricsPath)
+		metricsPath, ok := metricsMap[obj.ContainerPort]
+		if !ok {
+			metricsPath = defaultMetricsPath
 		}
+		path = types.StringValue(metricsPath)
 	}
 
 	return PortModel{
