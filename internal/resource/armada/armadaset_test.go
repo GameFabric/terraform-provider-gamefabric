@@ -643,6 +643,37 @@ func TestResourceArmadaSetConfigValidates(t *testing.T) {
 	}
 }
 
+func TestResourceArmadaSetMetricPortPolicy(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckArmadaSetDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				Config: testResourceArmadaSetConfigMetricPolicy(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.ports.0.name", "metrics"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.ports.0.policy", "Metric"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.ports.0.container_port", "9090"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.ports.0.protocol", "TCP"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.ports.0.path", "/metrics"),
+					resource.TestCheckNoResourceAttr("gamefabric_armadaset.test", "gameserver_labels.g8c.io/gameserver-scrape"),
+					resource.TestCheckNoResourceAttr("gamefabric_armadaset.test", "gameserver_annotations.g8c.io/metrics-endpoints"),
+				),
+			},
+			{
+				ResourceName:      "gamefabric_armadaset.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestArmadaSetResourceGameFabricValidators(t *testing.T) {
 	t.Parallel()
 
@@ -659,6 +690,53 @@ func TestArmadaSetResourceGameFabricValidators(t *testing.T) {
 	for _, path := range got {
 		require.Containsf(t, want, path, "The validator path %q was not found in the ArmadaSet API object", path)
 	}
+}
+
+func testResourceArmadaSetConfigMetricPolicy() string {
+	return `resource "gamefabric_armadaset" "test" {
+  name        = "my-armadaset"
+  environment = "test"
+  description = "My ArmadaSet"
+
+  regions = [
+    {
+      name = "eu"
+      replicas = [
+        {
+          region_type  = "baremetal"
+          min_replicas = 1
+          max_replicas = 2
+          buffer_size  = 1
+        }
+      ]
+    }
+  ]
+
+  containers = [
+    {
+      name = "default"
+      image_ref = {
+        name   = "gameserver-asoda0s"
+        branch = "prod"
+      }
+      resources = {
+        requests = {
+          cpu    = "250m"
+          memory = "256Mi"
+        }
+      }
+      ports = [
+        {
+          name           = "metrics"
+          policy         = "Metric"
+          container_port = 9090
+          protocol       = "TCP"
+          path           = "/metrics"
+        }
+      ]
+    }
+  ]
+}`
 }
 
 func testResourceArmadaSetConfigEmpty() string {

@@ -345,6 +345,36 @@ func TestResourceVessel_Validates(t *testing.T) {
 	}
 }
 
+func TestResourceVesselMetricPortPolicy(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckVesselDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				Config: testResourceVesselConfigMetricPolicy(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.ports.0.name", "metrics"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.ports.0.policy", "Metric"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.ports.0.container_port", "9090"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.ports.0.protocol", "TCP"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.ports.0.path", "/metrics"),
+					resource.TestCheckNoResourceAttr("gamefabric_vessel.test", "gameserver_labels.g8c.io/gameserver-scrape"),
+					resource.TestCheckNoResourceAttr("gamefabric_vessel.test", "gameserver_annotations.g8c.io/metrics-endpoints"),
+				),
+			},
+			{
+				ResourceName: "gamefabric_vessel.test",
+				ImportState:  true,
+			},
+		},
+	})
+}
+
 func TestVesselResourceGameFabricValidators(t *testing.T) {
 	t.Parallel()
 
@@ -361,6 +391,40 @@ func TestVesselResourceGameFabricValidators(t *testing.T) {
 	for _, path := range got {
 		require.Containsf(t, want, path, "The validator path %q was not found in the Vessel API object", path)
 	}
+}
+
+func testResourceVesselConfigMetricPolicy() string {
+	return `resource "gamefabric_vessel" "test" {
+  name        = "my-vessel"
+  environment = "test"
+  description = "My Vessel"
+  region      = "eu"
+
+  containers = [
+    {
+      name = "default"
+      image_ref = {
+        name   = "gameserver-asoda0s"
+        branch = "prod"
+      }
+      resources = {
+        requests = {
+          cpu    = "250m"
+          memory = "256Mi"
+        }
+      }
+      ports = [
+        {
+          name           = "metrics"
+          policy         = "Metric"
+          container_port = 9090
+          protocol       = "TCP"
+          path           = "/metrics"
+        }
+      ]
+    }
+  ]
+}`
 }
 
 func testResourceVesselConfigEmpty() string {

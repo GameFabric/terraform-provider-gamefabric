@@ -159,12 +159,14 @@ func ContainersAttributes(val validators.GameFabricValidator, pathPrefix string)
 							},
 						},
 						"policy": schema.StringAttribute{
-							Description:         "Policy defines how the host port is populated. Dynamic (default) allocates a free host port and maps it to the container_port (required). The game server must report the external port (obtained via Agones SDK) to backends for client connections. Passthrough dynamically allocates a host port and sets container_port to match it. The game server must discover this port via Agones SDK and listen on it.",
-							MarkdownDescription: "Policy defines how the host port is populated. `Dynamic` (default) allocates a free host port and maps it to the `container_port` (required). The game server must report the external port (obtained via Agones SDK) to backends for client connections. `Passthrough` dynamically allocates a host port and sets `container_port` to match it. The game server must discover this port via Agones SDK and listen on it.",
+							Description:         "Policy defines how the host port is populated. Dynamic (default) allocates a free host port and maps it to the container_port (required). Passthrough dynamically allocates a host port and sets container_port to match it. Metric enables Prometheus scraping: it injects the g8c.io/gameserver-scrape label and g8c.io/metrics-endpoints annotation on the GameServer template, and is stored as policy None in the GameFabric API. Metric ports require protocol=TCP and a container_port.",
+							MarkdownDescription: "Policy defines how the host port is populated. `Dynamic` (default) allocates a free host port and maps it to the `container_port` (required). `Passthrough` dynamically allocates a host port and sets `container_port` to match it. `Metric` enables Prometheus scraping: it injects the `g8c.io/gameserver-scrape` label and `g8c.io/metrics-endpoints` annotation on the GameServer template, and is stored as policy `None` in the GameFabric API. `Metric` ports require `protocol = \"TCP\"` and a `container_port`.",
 							Required:            true,
 							Validators: []validator.String{
-								stringvalidator.OneOf("Dynamic", "Passthrough"),
-								validators.GFFieldString(val, pathPrefix+".ports[?].policy"),
+								stringvalidator.OneOf("Dynamic", "Passthrough", "Metric"),
+								// GFFieldString is intentionally omitted for policy: "Metric" is a
+								// TFP-only value that gets translated to "None" before hitting the API.
+								metricPolicyValidator{},
 							},
 						},
 						"container_port": schema.Int32Attribute{
@@ -192,6 +194,16 @@ func ContainersAttributes(val validators.GameFabricValidator, pathPrefix string)
 							Validators: []validator.String{
 								validators.NameValidator{},
 								validators.GFFieldString(val, pathPrefix+".ports[?].protectionProtocol"),
+							},
+						},
+						"path": schema.StringAttribute{
+							Description:         "Path is the HTTP path for Prometheus metrics scraping. Only valid when policy is Metric. Defaults to /metrics when policy is Metric and path is omitted.",
+							MarkdownDescription: "Path is the HTTP path for Prometheus metrics scraping. Only valid when `policy` is `Metric`. Defaults to `/metrics` when `policy` is `Metric` and `path` is omitted.",
+							Optional:            true,
+							Computed:            true,
+							Validators: []validator.String{
+								pathOnlyForMetricValidator{},
+								noCommaValidator{},
 							},
 						},
 					},
