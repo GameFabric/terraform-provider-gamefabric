@@ -1,7 +1,7 @@
 package provisioning
 
 import (
-	provisioningv1beta1 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta1"
+	provisioningv1beta2 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta2"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -19,7 +19,7 @@ type allocatorModel struct {
 	RegistryTokens        []types.String `tfsdk:"registry_tokens"`
 }
 
-func newAllocatorModel(obj *provisioningv1beta1.Allocator) allocatorModel {
+func newAllocatorModel(obj *provisioningv1beta2.Allocator) allocatorModel {
 	return allocatorModel{
 		Name:                  types.StringValue(obj.Name),
 		Region:                types.StringValue(obj.Spec.Region),

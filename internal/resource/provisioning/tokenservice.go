@@ -290,7 +290,7 @@ func (r *tokenService) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	obj := plan.ToObject()
-	outObj, err := r.clientSet.ProvisioningV1Beta1().TokenServices().Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.ProvisioningV1Beta2().TokenServices().Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Token Service",
@@ -311,7 +311,7 @@ func (r *tokenService) Read(ctx context.Context, req resource.ReadRequest, resp 
 		return
 	}
 
-	outObj, err := r.clientSet.ProvisioningV1Beta1().TokenServices().Get(ctx, state.Name.ValueString(), metav1.GetOptions{})
+	outObj, err := r.clientSet.ProvisioningV1Beta2().TokenServices().Get(ctx, state.Name.ValueString(), metav1.GetOptions{})
 	if err != nil {
 		switch {
 		case apierrors.IsNotFound(err):
@@ -353,7 +353,7 @@ func (r *tokenService) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	outObj, err := r.clientSet.ProvisioningV1Beta1().TokenServices().Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
+	outObj, err := r.clientSet.ProvisioningV1Beta2().TokenServices().Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Token Service",
@@ -374,7 +374,7 @@ func (r *tokenService) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	err := r.clientSet.ProvisioningV1Beta1().TokenServices().Delete(ctx, state.Name.ValueString(), metav1.DeleteOptions{})
+	err := r.clientSet.ProvisioningV1Beta2().TokenServices().Delete(ctx, state.Name.ValueString(), metav1.DeleteOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting Token Service",
@@ -383,7 +383,7 @@ func (r *tokenService) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	if err = wait.PollUntilNotFound(ctx, r.clientSet.ProvisioningV1Beta1().TokenServices(), state.Name.ValueString()); err != nil {
+	if err = wait.PollUntilNotFound(ctx, r.clientSet.ProvisioningV1Beta2().TokenServices(), state.Name.ValueString()); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Waiting for Token Service Deletion",
 			fmt.Sprintf("Timed out waiting for deletion of Token Service: %v", err),

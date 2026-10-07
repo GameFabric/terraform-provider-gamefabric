@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
-	provisioningv1beta1 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta1"
+	provisioningv1beta2 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta2"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -12,23 +12,23 @@ import (
 func TestAllocator(t *testing.T) {
 	t.Parallel()
 
-	alloc := &provisioningv1beta1.Allocator{
+	alloc := &provisioningv1beta2.Allocator{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test-allocator",
 		},
-		Spec: provisioningv1beta1.AllocatorSpec{
+		Spec: provisioningv1beta2.AllocatorSpec{
 			Region: "eu-west",
-			RateLimit: provisioningv1beta1.RateLimit{
+			RateLimit: provisioningv1beta2.RateLimit{
 				QPS:   100,
 				Burst: 200,
 			},
 		},
-		Status: provisioningv1beta1.AllocatorStatus{
-			Allocation: provisioningv1beta1.AllocatorEndpoint{
+		Status: provisioningv1beta2.AllocatorStatus{
+			Allocation: provisioningv1beta2.AllocatorEndpoint{
 				URL:    "https://alloc.example.com",
 				Tokens: []string{"alloc-token-old", "alloc-token-new"},
 			},
-			Registration: provisioningv1beta1.AllocatorEndpoint{
+			Registration: provisioningv1beta2.AllocatorEndpoint{
 				URL:    "https://reg.example.com",
 				Tokens: []string{"reg-token-old", "reg-token-new"},
 			},
@@ -70,11 +70,11 @@ func TestAllocator(t *testing.T) {
 func TestAllocator_NoRateLimit(t *testing.T) {
 	t.Parallel()
 
-	alloc := &provisioningv1beta1.Allocator{
+	alloc := &provisioningv1beta2.Allocator{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "minimal-allocator",
 		},
-		Spec: provisioningv1beta1.AllocatorSpec{
+		Spec: provisioningv1beta2.AllocatorSpec{
 			Region: "us-east",
 		},
 	}

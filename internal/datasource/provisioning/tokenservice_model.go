@@ -3,7 +3,7 @@ package provisioning
 import (
 	"time"
 
-	provisioningv1beta1 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta1"
+	provisioningv1beta2 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta2"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	resourceprovisioning "github.com/gamefabric/terraform-provider-gamefabric/internal/resource/provisioning"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -50,10 +50,10 @@ type tokenServiceJWKSModel struct {
 	URL types.String `tfsdk:"url"`
 }
 
-func newTokenServiceModel(obj *provisioningv1beta1.TokenService) tokenServiceModel {
+func newTokenServiceModel(obj *provisioningv1beta2.TokenService) tokenServiceModel {
 	return tokenServiceModel{
 		Name:             types.StringValue(obj.Name),
-		DevelopmentMode:  types.BoolValue(obj.Spec.Environment == provisioningv1beta1.TokenServiceEnvDev),
+		DevelopmentMode:  types.BoolValue(obj.Spec.Environment == provisioningv1beta2.TokenServiceEnvDev),
 		Labels:           conv.ForEachMapItem(obj.Labels, types.StringValue),
 		Annotations:      conv.ForEachMapItem(obj.Annotations, types.StringValue),
 		GameName:         types.StringValue(obj.Spec.Game.Name),
@@ -69,7 +69,7 @@ func newTokenServiceModel(obj *provisioningv1beta1.TokenService) tokenServiceMod
 }
 
 func newTokenServicePlatformModels(
-	platforms map[string]provisioningv1beta1.TokenServicePlatformSpec,
+	platforms map[string]provisioningv1beta2.TokenServicePlatformSpec,
 ) map[string]tokenServicePlatformModel {
 	out := make(map[string]tokenServicePlatformModel, len(platforms))
 	for name, platform := range platforms {
@@ -80,7 +80,7 @@ func newTokenServicePlatformModels(
 	return out
 }
 
-func newTokenServiceKeyModel(key provisioningv1beta1.TokenServiceKeySpec) tokenServiceKeyModel {
+func newTokenServiceKeyModel(key provisioningv1beta2.TokenServiceKeySpec) tokenServiceKeyModel {
 	return tokenServiceKeyModel{
 		Key:              types.StringValue(key.Key),
 		SigningAlgorithm: types.StringValue(string(key.SigningAlgorithm)),
@@ -89,7 +89,7 @@ func newTokenServiceKeyModel(key provisioningv1beta1.TokenServiceKeySpec) tokenS
 
 // newTokenServiceEOSModel converts the backend's EOS list to the model's EOS list.
 // Returns nil if no EOS configuration is present.
-func newTokenServiceEOSModel(eos []provisioningv1beta1.TokenServiceEOSSpec) []tokenServiceEOSModel {
+func newTokenServiceEOSModel(eos []provisioningv1beta2.TokenServiceEOSSpec) []tokenServiceEOSModel {
 	if len(eos) == 0 {
 		return nil
 	}
@@ -97,7 +97,7 @@ func newTokenServiceEOSModel(eos []provisioningv1beta1.TokenServiceEOSSpec) []to
 	for i, e := range eos {
 		out[i] = tokenServiceEOSModel{
 			ClientID: types.StringValue(e.ClientID),
-			TokenTypes: conv.ForEachSliceItem(e.TokenTypes, func(t provisioningv1beta1.TokenServiceEOSTokenType) types.String {
+			TokenTypes: conv.ForEachSliceItem(e.TokenTypes, func(t provisioningv1beta2.TokenServiceEOSTokenType) types.String {
 				return types.StringValue(string(t))
 			}),
 			DeploymentID: conv.OptionalFunc(e.DeploymentID, types.StringValue, types.StringNull),
@@ -108,7 +108,7 @@ func newTokenServiceEOSModel(eos []provisioningv1beta1.TokenServiceEOSSpec) []to
 	return out
 }
 
-func newTokenServiceJWKSModel(jwks *provisioningv1beta1.TokenServiceJWKSSpec) *tokenServiceJWKSModel {
+func newTokenServiceJWKSModel(jwks *provisioningv1beta2.TokenServiceJWKSSpec) *tokenServiceJWKSModel {
 	if jwks == nil {
 		return nil
 	}

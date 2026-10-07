@@ -6,7 +6,7 @@ import (
 	"time"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
-	provisioningv1beta1 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta1"
+	provisioningv1beta2 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta2"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -53,11 +53,11 @@ type tokenServiceJWKSModel struct {
 	URL types.String `tfsdk:"url"`
 }
 
-func newTokenServiceModel(obj *provisioningv1beta1.TokenService) tokenServiceModel {
+func newTokenServiceModel(obj *provisioningv1beta2.TokenService) tokenServiceModel {
 	return tokenServiceModel{
 		ID:               types.StringValue(obj.Name),
 		Name:             types.StringValue(obj.Name),
-		DevelopmentMode:  types.BoolValue(obj.Spec.Environment == provisioningv1beta1.TokenServiceEnvDev),
+		DevelopmentMode:  types.BoolValue(obj.Spec.Environment == provisioningv1beta2.TokenServiceEnvDev),
 		Labels:           conv.ForEachMapItem(obj.Labels, types.StringValue),
 		Annotations:      conv.ForEachMapItem(obj.Annotations, types.StringValue),
 		GameName:         types.StringValue(obj.Spec.Game.Name),
@@ -72,17 +72,17 @@ func newTokenServiceModel(obj *provisioningv1beta1.TokenService) tokenServiceMod
 	}
 }
 
-func (m tokenServiceModel) ToObject() *provisioningv1beta1.TokenService {
-	return &provisioningv1beta1.TokenService{
+func (m tokenServiceModel) ToObject() *provisioningv1beta2.TokenService {
+	return &provisioningv1beta2.TokenService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        m.Name.ValueString(),
 			Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
 			Annotations: conv.ForEachMapItem(m.Annotations, func(v types.String) string { return v.ValueString() }),
 		},
-		Spec: provisioningv1beta1.TokenServiceSpec{
+		Spec: provisioningv1beta2.TokenServiceSpec{
 			Environment: tokenServiceEnvFromDevelopmentMode(m.DevelopmentMode.ValueBool()),
 			EOS:         tokenServiceEOSToObject(m.EOS),
-			Game: provisioningv1beta1.TokenServiceGameSpec{
+			Game: provisioningv1beta2.TokenServiceGameSpec{
 				Name:      m.GameName.ValueString(),
 				Platforms: tokenServicePlatformsToObject(m.Platforms),
 			},
@@ -93,15 +93,15 @@ func (m tokenServiceModel) ToObject() *provisioningv1beta1.TokenService {
 
 // tokenServiceEnvFromDevelopmentMode maps the development_mode boolean to the environment
 // string the GameFabric API currently expects: true -> dev, false -> prod.
-func tokenServiceEnvFromDevelopmentMode(developmentMode bool) provisioningv1beta1.TokenServiceEnv {
+func tokenServiceEnvFromDevelopmentMode(developmentMode bool) provisioningv1beta2.TokenServiceEnv {
 	if developmentMode {
-		return provisioningv1beta1.TokenServiceEnvDev
+		return provisioningv1beta2.TokenServiceEnvDev
 	}
-	return provisioningv1beta1.TokenServiceEnvProd
+	return provisioningv1beta2.TokenServiceEnvProd
 }
 
 func newTokenServicePlatformModels(
-	platforms map[string]provisioningv1beta1.TokenServicePlatformSpec,
+	platforms map[string]provisioningv1beta2.TokenServicePlatformSpec,
 ) map[string]tokenServicePlatformModel {
 	out := make(map[string]tokenServicePlatformModel, len(platforms))
 	for name, platform := range platforms {
@@ -114,33 +114,33 @@ func newTokenServicePlatformModels(
 
 func tokenServicePlatformsToObject(
 	platforms map[string]tokenServicePlatformModel,
-) map[string]provisioningv1beta1.TokenServicePlatformSpec {
-	out := make(map[string]provisioningv1beta1.TokenServicePlatformSpec, len(platforms))
+) map[string]provisioningv1beta2.TokenServicePlatformSpec {
+	out := make(map[string]provisioningv1beta2.TokenServicePlatformSpec, len(platforms))
 	for name, platform := range platforms {
-		out[name] = provisioningv1beta1.TokenServicePlatformSpec{
+		out[name] = provisioningv1beta2.TokenServicePlatformSpec{
 			GameClientTokenKeys: conv.ForEachSliceItem(platform.GameClientTokenKeys, tokenServiceKeyToObject),
 		}
 	}
 	return out
 }
 
-func newTokenServiceKeyModel(key provisioningv1beta1.TokenServiceKeySpec) tokenServiceKeyModel {
+func newTokenServiceKeyModel(key provisioningv1beta2.TokenServiceKeySpec) tokenServiceKeyModel {
 	return tokenServiceKeyModel{
 		Key:              types.StringValue(key.Key),
 		SigningAlgorithm: types.StringValue(string(key.SigningAlgorithm)),
 	}
 }
 
-func tokenServiceKeyToObject(key tokenServiceKeyModel) provisioningv1beta1.TokenServiceKeySpec {
-	return provisioningv1beta1.TokenServiceKeySpec{
+func tokenServiceKeyToObject(key tokenServiceKeyModel) provisioningv1beta2.TokenServiceKeySpec {
+	return provisioningv1beta2.TokenServiceKeySpec{
 		Key:              key.Key.ValueString(),
-		SigningAlgorithm: provisioningv1beta1.TokenServiceSigningAlgorithm(key.SigningAlgorithm.ValueString()),
+		SigningAlgorithm: provisioningv1beta2.TokenServiceSigningAlgorithm(key.SigningAlgorithm.ValueString()),
 	}
 }
 
 // newTokenServiceEOSModel converts the backend's EOS list to the model's EOS list.
 // Returns nil if no EOS configuration is present.
-func newTokenServiceEOSModel(eos []provisioningv1beta1.TokenServiceEOSSpec) []tokenServiceEOSModel {
+func newTokenServiceEOSModel(eos []provisioningv1beta2.TokenServiceEOSSpec) []tokenServiceEOSModel {
 	if len(eos) == 0 {
 		return nil
 	}
@@ -148,7 +148,7 @@ func newTokenServiceEOSModel(eos []provisioningv1beta1.TokenServiceEOSSpec) []to
 	for i, e := range eos {
 		out[i] = tokenServiceEOSModel{
 			ClientID:     types.StringValue(e.ClientID),
-			TokenTypes:   conv.ForEachSliceItem(e.TokenTypes, func(t provisioningv1beta1.TokenServiceEOSTokenType) types.String { return types.StringValue(string(t)) }),
+			TokenTypes:   conv.ForEachSliceItem(e.TokenTypes, func(t provisioningv1beta2.TokenServiceEOSTokenType) types.String { return types.StringValue(string(t)) }),
 			DeploymentID: conv.OptionalFunc(e.DeploymentID, types.StringValue, types.StringNull),
 			ProductID:    conv.OptionalFunc(e.ProductID, types.StringValue, types.StringNull),
 			SandboxID:    conv.OptionalFunc(e.SandboxID, types.StringValue, types.StringNull),
@@ -159,37 +159,37 @@ func newTokenServiceEOSModel(eos []provisioningv1beta1.TokenServiceEOSSpec) []to
 
 // tokenServiceEOSToObject converts the model's EOS list to the backend's EOS list,
 // or nil if the eos attribute is empty.
-func tokenServiceEOSToObject(m []tokenServiceEOSModel) []provisioningv1beta1.TokenServiceEOSSpec {
+func tokenServiceEOSToObject(m []tokenServiceEOSModel) []provisioningv1beta2.TokenServiceEOSSpec {
 	if len(m) == 0 {
 		return nil
 	}
-	out := make([]provisioningv1beta1.TokenServiceEOSSpec, len(m))
+	out := make([]provisioningv1beta2.TokenServiceEOSSpec, len(m))
 	for i, e := range m {
-		out[i] = provisioningv1beta1.TokenServiceEOSSpec{
+		out[i] = provisioningv1beta2.TokenServiceEOSSpec{
 			ClientID:     e.ClientID.ValueString(),
 			DeploymentID: e.DeploymentID.ValueString(),
 			ProductID:    e.ProductID.ValueString(),
 			SandboxID:    e.SandboxID.ValueString(),
-			TokenTypes: conv.ForEachSliceItem(e.TokenTypes, func(v types.String) provisioningv1beta1.TokenServiceEOSTokenType {
-				return provisioningv1beta1.TokenServiceEOSTokenType(v.ValueString())
+			TokenTypes: conv.ForEachSliceItem(e.TokenTypes, func(v types.String) provisioningv1beta2.TokenServiceEOSTokenType {
+				return provisioningv1beta2.TokenServiceEOSTokenType(v.ValueString())
 			}),
 		}
 	}
 	return out
 }
 
-func newTokenServiceJWKSModel(jwks *provisioningv1beta1.TokenServiceJWKSSpec) *tokenServiceJWKSModel {
+func newTokenServiceJWKSModel(jwks *provisioningv1beta2.TokenServiceJWKSSpec) *tokenServiceJWKSModel {
 	if jwks == nil {
 		return nil
 	}
 	return &tokenServiceJWKSModel{URL: types.StringValue(jwks.URL)}
 }
 
-func tokenServiceJWKSToObject(m *tokenServiceJWKSModel) *provisioningv1beta1.TokenServiceJWKSSpec {
+func tokenServiceJWKSToObject(m *tokenServiceJWKSModel) *provisioningv1beta2.TokenServiceJWKSSpec {
 	if m == nil {
 		return nil
 	}
-	return &provisioningv1beta1.TokenServiceJWKSSpec{URL: m.URL.ValueString()}
+	return &provisioningv1beta2.TokenServiceJWKSSpec{URL: m.URL.ValueString()}
 }
 
 func newStateLastChanged(t *time.Time) types.String {

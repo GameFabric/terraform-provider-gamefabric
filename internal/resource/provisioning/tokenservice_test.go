@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
-	provisioningv1beta1 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta1"
+	provisioningv1beta2 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta2"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -111,25 +111,25 @@ func TestTokenService_EOS(t *testing.T) {
 
 func TestTokenService_EOSLegacyPlatforms(t *testing.T) {
 	name := "eos-legacy-service"
-	ts := &provisioningv1beta1.TokenService{
+	ts := &provisioningv1beta2.TokenService{
 		ObjectMeta: metav1.ObjectMeta{Name: name},
-		Spec: provisioningv1beta1.TokenServiceSpec{
-			Environment: provisioningv1beta1.TokenServiceEnvProd,
-			Game: provisioningv1beta1.TokenServiceGameSpec{
+		Spec: provisioningv1beta2.TokenServiceSpec{
+			Environment: provisioningv1beta2.TokenServiceEnvProd,
+			Game: provisioningv1beta2.TokenServiceGameSpec{
 				Name: "my-game",
 				// Pre-existing "eos" entry written by the provider before it stopped injecting it.
-				Platforms: map[string]provisioningv1beta1.TokenServicePlatformSpec{"eos": {}},
+				Platforms: map[string]provisioningv1beta2.TokenServicePlatformSpec{"eos": {}},
 			},
-			EOS: []provisioningv1beta1.TokenServiceEOSSpec{{
+			EOS: []provisioningv1beta2.TokenServiceEOSSpec{{
 				ClientID:     "1234567890abcdef1234567890abcdef",
 				ProductID:    "abc123",
 				DeploymentID: "def456",
 				SandboxID:    "ghi789",
-				TokenTypes:   []provisioningv1beta1.TokenServiceEOSTokenType{provisioningv1beta1.TokenServiceEOSTokenTypeConnect},
+				TokenTypes:   []provisioningv1beta2.TokenServiceEOSTokenType{provisioningv1beta2.TokenServiceEOSTokenTypeConnect},
 			}},
 		},
-		Status: provisioningv1beta1.TokenServiceStatus{
-			State:        provisioningv1beta1.TokenServiceStateAvailable,
+		Status: provisioningv1beta2.TokenServiceStatus{
+			State:        provisioningv1beta2.TokenServiceStateAvailable,
 			Hostname:     "my-game.tokens.example.com",
 			PlatformKeys: `{"eos":["40d56e6c3b1af9424f4b6c8e4e8f4a2c9d3b7f1e6a5c4d8b2f7e9a0c3d5b1e6f"]}`,
 		},
@@ -429,7 +429,7 @@ func testResourceTokenServiceDestroy(t *testing.T, cs clientset.Interface) func(
 				continue
 			}
 
-			resp, err := cs.ProvisioningV1Beta1().TokenServices().Get(t.Context(), rs.Primary.ID, metav1.GetOptions{})
+			resp, err := cs.ProvisioningV1Beta2().TokenServices().Get(t.Context(), rs.Primary.ID, metav1.GetOptions{})
 			if err == nil && resp.Name == rs.Primary.ID {
 				return fmt.Errorf("token service still exists: %s", rs.Primary.ID)
 			}
