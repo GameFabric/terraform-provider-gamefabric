@@ -4,32 +4,32 @@ import (
 	"testing"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
-	provisioningv1beta1 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta1"
+	provisioningv1beta2 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta2"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestTokenServicesDataSource(t *testing.T) {
-	a := &provisioningv1beta1.TokenService{
+	a := &provisioningv1beta2.TokenService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   "service-a",
 			Labels: map[string]string{"team": "platforms"},
 		},
-		Spec: provisioningv1beta1.TokenServiceSpec{
-			Environment: provisioningv1beta1.TokenServiceEnvProd,
-			Game:        provisioningv1beta1.TokenServiceGameSpec{Name: "game-a"},
-			JWKS:        &provisioningv1beta1.TokenServiceJWKSSpec{URL: "https://a.example.com/jwks.json"},
+		Spec: provisioningv1beta2.TokenServiceSpec{
+			Environment: provisioningv1beta2.TokenServiceEnvProd,
+			Game:        provisioningv1beta2.TokenServiceGameSpec{Name: "game-a"},
+			JWKS:        &provisioningv1beta2.TokenServiceJWKSSpec{URL: "https://a.example.com/jwks.json"},
 		},
 	}
-	b := &provisioningv1beta1.TokenService{
+	b := &provisioningv1beta2.TokenService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   "service-b",
 			Labels: map[string]string{"team": "other"},
 		},
-		Spec: provisioningv1beta1.TokenServiceSpec{
-			Environment: provisioningv1beta1.TokenServiceEnvDev,
-			Game:        provisioningv1beta1.TokenServiceGameSpec{Name: "game-b"},
-			JWKS:        &provisioningv1beta1.TokenServiceJWKSSpec{URL: "https://b.example.com/jwks.json"},
+		Spec: provisioningv1beta2.TokenServiceSpec{
+			Environment: provisioningv1beta2.TokenServiceEnvDev,
+			Game:        provisioningv1beta2.TokenServiceGameSpec{Name: "game-b"},
+			JWKS:        &provisioningv1beta2.TokenServiceJWKSSpec{URL: "https://b.example.com/jwks.json"},
 		},
 	}
 

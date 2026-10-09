@@ -4,27 +4,27 @@ import (
 	"testing"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
-	provisioningv1beta1 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta1"
+	provisioningv1beta2 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta2"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAllocatorsDataSource(t *testing.T) {
-	a := &provisioningv1beta1.Allocator{
+	a := &provisioningv1beta2.Allocator{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   "allocator-a",
 			Labels: map[string]string{"region": "eu-west"},
 		},
-		Spec: provisioningv1beta1.AllocatorSpec{
+		Spec: provisioningv1beta2.AllocatorSpec{
 			Region: "eu-west",
 		},
 	}
-	b := &provisioningv1beta1.Allocator{
+	b := &provisioningv1beta2.Allocator{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   "allocator-b",
 			Labels: map[string]string{"region": "us-east"},
 		},
-		Spec: provisioningv1beta1.AllocatorSpec{
+		Spec: provisioningv1beta2.AllocatorSpec{
 			Region: "us-east",
 		},
 	}

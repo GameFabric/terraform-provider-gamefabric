@@ -81,7 +81,7 @@ func (r *tokenService) Read(ctx context.Context, req datasource.ReadRequest, res
 		return
 	}
 
-	obj, err := r.clientSet.ProvisioningV1Beta1().TokenServices().Get(ctx, config.Name.ValueString(), metav1.GetOptions{})
+	obj, err := r.clientSet.ProvisioningV1Beta2().TokenServices().Get(ctx, config.Name.ValueString(), metav1.GetOptions{})
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			resp.Diagnostics.AddError(

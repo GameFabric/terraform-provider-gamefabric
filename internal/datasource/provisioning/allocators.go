@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
-	provisioningv1beta1 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta1"
+	provisioningv1beta2 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta2"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
@@ -141,7 +141,7 @@ func (r *allocators) Read(ctx context.Context, req datasource.ReadRequest, resp 
 		return
 	}
 
-	list, err := r.clientSet.ProvisioningV1Beta1().Allocators().List(ctx, metav1.ListOptions{
+	list, err := r.clientSet.ProvisioningV1Beta2().Allocators().List(ctx, metav1.ListOptions{
 		LabelSelector: conv.ForEachMapItem(config.LabelFilter, func(item types.String) string { return item.ValueString() }),
 	})
 	if err != nil {
@@ -151,7 +151,7 @@ func (r *allocators) Read(ctx context.Context, req datasource.ReadRequest, resp 
 		)
 		return
 	}
-	slices.SortFunc(list.Items, func(a, b provisioningv1beta1.Allocator) int {
+	slices.SortFunc(list.Items, func(a, b provisioningv1beta2.Allocator) int {
 		return strings.Compare(a.Name, b.Name)
 	})
 
