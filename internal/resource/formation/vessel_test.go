@@ -695,3 +695,104 @@ func testCheckVesselDestroy(t *testing.T, cs clientset.Interface) func(s *terraf
 		return nil
 	}
 }
+
+func TestResourceVesselUpdateMetricPortDefaultPath(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckVesselDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				Config: testResourceVesselConfigWithoutMetricPort(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.ports.0.name", "game"),
+					resource.TestCheckNoResourceAttr("gamefabric_vessel.test", "containers.0.ports.1.name"),
+				),
+			},
+			{
+				Config: testResourceVesselConfigWithMetricPortNoPath(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.ports.1.name", "metrics"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.ports.1.policy", "Metric"),
+					resource.TestCheckResourceAttr("gamefabric_vessel.test", "containers.0.ports.1.path", "/metrics"),
+				),
+			},
+		},
+	})
+}
+
+func testResourceVesselConfigWithoutMetricPort() string {
+	return `resource "gamefabric_vessel" "test" {
+  name        = "my-vessel"
+  environment = "test"
+  description = "My Vessel"
+  region      = "eu"
+
+  containers = [
+    {
+      name = "default"
+      image_ref = {
+        name   = "gameserver-asoda0s"
+        branch = "prod"
+      }
+      resources = {
+        requests = {
+          cpu    = "250m"
+          memory = "256Mi"
+        }
+      }
+      ports = [
+        {
+          name           = "game"
+          policy         = "Dynamic"
+          container_port = 7777
+          protocol       = "UDP"
+        }
+      ]
+    }
+  ]
+}`
+}
+
+func testResourceVesselConfigWithMetricPortNoPath() string {
+	return `resource "gamefabric_vessel" "test" {
+  name        = "my-vessel"
+  environment = "test"
+  description = "My Vessel"
+  region      = "eu"
+
+  containers = [
+    {
+      name = "default"
+      image_ref = {
+        name   = "gameserver-asoda0s"
+        branch = "prod"
+      }
+      resources = {
+        requests = {
+          cpu    = "250m"
+          memory = "256Mi"
+        }
+      }
+      ports = [
+        {
+          name           = "game"
+          policy         = "Dynamic"
+          container_port = 7777
+          protocol       = "UDP"
+        },
+        {
+          name           = "metrics"
+          policy         = "Metric"
+          container_port = 9090
+          protocol       = "TCP"
+        }
+      ]
+    }
+  ]
+}`
+}
