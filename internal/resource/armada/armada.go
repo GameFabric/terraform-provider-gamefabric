@@ -17,7 +17,6 @@ import (
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/normalize"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/planmodifiers"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
-	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/validators"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
@@ -529,7 +528,8 @@ func (r *armada) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	if _, err = r.clientSet.ArmadaV1().Armadas(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
+	outObj, err := r.clientSet.ArmadaV1().Armadas(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Armada",
 			fmt.Sprintf("Could not patch Armada: %v", err),
@@ -537,8 +537,8 @@ func (r *armada) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	plan.ID = types.StringValue(cache.NewObjectName(newObj.Environment, newObj.Name).String())
-	plan.ImageUpdaterTarget = container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeArmada, oldObj.Name, oldObj.Environment)
+	plan = newArmadaModel(outObj)
+	resp.Diagnostics.Append(normalize.Model(ctx, &plan, req.Plan)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
