@@ -830,3 +830,116 @@ func testCheckFormationDestroy(t *testing.T, cs clientset.Interface) func(s *ter
 		return nil
 	}
 }
+
+func TestResourceFormationUpdateMetricPortDefaultPath(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckFormationDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				Config: testResourceFormationConfigWithoutMetricPort(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.ports.0.name", "game"),
+					resource.TestCheckNoResourceAttr("gamefabric_formation.test", "containers.0.ports.1.name"),
+				),
+			},
+			{
+				Config: testResourceFormationConfigWithMetricPortNoPath(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.ports.1.name", "metrics"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.ports.1.policy", "Metric"),
+					resource.TestCheckResourceAttr("gamefabric_formation.test", "containers.0.ports.1.path", "/metrics"),
+				),
+			},
+		},
+	})
+}
+
+func testResourceFormationConfigWithoutMetricPort() string {
+	return `resource "gamefabric_formation" "test" {
+  name        = "my-formation"
+  environment = "test"
+  description = "My Formation"
+
+  vessels = [
+    {
+      name   = "default-vessel"
+      region = "eu"
+    }
+  ]
+
+  containers = [
+    {
+      name = "default"
+      image_ref = {
+        name   = "gameserver-asoda0s"
+        branch = "prod"
+      }
+      resources = {
+        requests = {
+          cpu    = "250m"
+          memory = "256Mi"
+        }
+      }
+      ports = [
+        {
+          name           = "game"
+          policy         = "Dynamic"
+          container_port = 7777
+          protocol       = "UDP"
+        }
+      ]
+    }
+  ]
+}`
+}
+
+func testResourceFormationConfigWithMetricPortNoPath() string {
+	return `resource "gamefabric_formation" "test" {
+  name        = "my-formation"
+  environment = "test"
+  description = "My Formation"
+
+  vessels = [
+    {
+      name   = "default-vessel"
+      region = "eu"
+    }
+  ]
+
+  containers = [
+    {
+      name = "default"
+      image_ref = {
+        name   = "gameserver-asoda0s"
+        branch = "prod"
+      }
+      resources = {
+        requests = {
+          cpu    = "250m"
+          memory = "256Mi"
+        }
+      }
+      ports = [
+        {
+          name           = "game"
+          policy         = "Dynamic"
+          container_port = 7777
+          protocol       = "UDP"
+        },
+        {
+          name           = "metrics"
+          policy         = "Metric"
+          container_port = 9090
+          protocol       = "TCP"
+        }
+      ]
+    }
+  ]
+}`
+}

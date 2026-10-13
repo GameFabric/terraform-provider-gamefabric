@@ -1170,3 +1170,130 @@ func testCheckArmadaSetDestroy(t *testing.T, cs clientset.Interface) func(s *ter
 		return nil
 	}
 }
+
+func TestResourceArmadaSetUpdateMetricPortDefaultPath(t *testing.T) {
+	t.Parallel()
+
+	pf, cs := providertest.ProtoV6ProviderFactories(t)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: pf,
+		CheckDestroy:             testCheckArmadaSetDestroy(t, cs),
+		Steps: []resource.TestStep{
+			{
+				Config: testResourceArmadaSetConfigWithoutMetricPort(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.ports.0.name", "game"),
+					resource.TestCheckNoResourceAttr("gamefabric_armadaset.test", "containers.0.ports.1.name"),
+				),
+			},
+			{
+				Config: testResourceArmadaSetConfigWithMetricPortNoPath(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.ports.1.name", "metrics"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.ports.1.policy", "Metric"),
+					resource.TestCheckResourceAttr("gamefabric_armadaset.test", "containers.0.ports.1.path", "/metrics"),
+				),
+			},
+		},
+	})
+}
+
+func testResourceArmadaSetConfigWithoutMetricPort() string {
+	return `resource "gamefabric_armadaset" "test" {
+  name        = "my-armadaset"
+  environment = "test"
+  description = "My ArmadaSet"
+
+  regions = [
+    {
+      name = "eu"
+      replicas = [
+        {
+          region_type  = "baremetal"
+          min_replicas = 1
+          max_replicas = 2
+          buffer_size  = 1
+        }
+      ]
+    }
+  ]
+
+  containers = [
+    {
+      name = "default"
+      image_ref = {
+        name   = "gameserver-asoda0s"
+        branch = "prod"
+      }
+      resources = {
+        requests = {
+          cpu    = "250m"
+          memory = "256Mi"
+        }
+      }
+      ports = [
+        {
+          name           = "game"
+          policy         = "Dynamic"
+          container_port = 7777
+          protocol       = "UDP"
+        }
+      ]
+    }
+  ]
+}`
+}
+
+func testResourceArmadaSetConfigWithMetricPortNoPath() string {
+	return `resource "gamefabric_armadaset" "test" {
+  name        = "my-armadaset"
+  environment = "test"
+  description = "My ArmadaSet"
+
+  regions = [
+    {
+      name = "eu"
+      replicas = [
+        {
+          region_type  = "baremetal"
+          min_replicas = 1
+          max_replicas = 2
+          buffer_size  = 1
+        }
+      ]
+    }
+  ]
+
+  containers = [
+    {
+      name = "default"
+      image_ref = {
+        name   = "gameserver-asoda0s"
+        branch = "prod"
+      }
+      resources = {
+        requests = {
+          cpu    = "250m"
+          memory = "256Mi"
+        }
+      }
+      ports = [
+        {
+          name           = "game"
+          policy         = "Dynamic"
+          container_port = 7777
+          protocol       = "UDP"
+        },
+        {
+          name           = "metrics"
+          policy         = "Metric"
+          container_port = 9090
+          protocol       = "TCP"
+        }
+      ]
+    }
+  ]
+}`
+}
