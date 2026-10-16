@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
-	provisioningv1beta2 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta2"
+	provisioningv1beta3 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta3"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -12,11 +12,11 @@ import (
 func TestPingDiscovery(t *testing.T) {
 	t.Parallel()
 
-	pd := &provisioningv1beta2.PingDiscovery{
+	pd := &provisioningv1beta3.PingDiscovery{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test-pd",
 		},
-		Status: provisioningv1beta2.PingDiscoveryStatus{
+		Status: provisioningv1beta3.PingDiscoveryStatus{
 			URL:    "https://ping.example.com",
 			Tokens: []string{"pd-token-old", "pd-token-new"},
 		},
@@ -49,7 +49,7 @@ func TestPingDiscovery(t *testing.T) {
 func TestPingDiscovery_NoTokens(t *testing.T) {
 	t.Parallel()
 
-	pd := &provisioningv1beta2.PingDiscovery{
+	pd := &provisioningv1beta3.PingDiscovery{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "empty-pd",
 		},
