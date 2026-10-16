@@ -14,10 +14,10 @@ tool github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 require (
 	agones.dev/agones v1.61.0
 	github.com/cenkalti/backoff/v7 v7.0.1
-	github.com/gamefabric/gf-apiclient v0.6.2
-	github.com/gamefabric/gf-apicore v1.14.1
-	github.com/gamefabric/gf-apiserver v1.19.1
-	github.com/gamefabric/gf-core v0.47.1
+	github.com/gamefabric/gf-apiclient v0.7.0
+	github.com/gamefabric/gf-apicore v1.15.0
+	github.com/gamefabric/gf-apiserver v1.20.1
+	github.com/gamefabric/gf-core v0.48.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
@@ -69,7 +69,6 @@ require (
 	github.com/go4org/hashtriemap v0.0.0-20260925222741-44e5305f85d9 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/gorilla/schema v1.4.1 // indirect
 	github.com/grafana/otel-profiling-go v0.7.0 // indirect
 	github.com/grafana/pyroscope-go v1.4.3 // indirect
 	github.com/grafana/pyroscope-go/godeltaprof v0.1.12 // indirect

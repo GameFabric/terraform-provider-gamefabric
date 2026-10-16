@@ -80,8 +80,8 @@ linters:
           alias: authv1
         - pkg: github.com/gamefabric/gf-core/pkg/api/storage/v1beta1
           alias: storagev1beta1
-        - pkg: github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta2
-          alias: provisioningv1beta2
+        - pkg: github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta3
+          alias: provisioningv1beta3
         - pkg: github.com/gamefabric/gf-core/pkg/api/notification/v1alpha1
           alias: notificationv1alpha1
         - pkg: github.com/gamefabric/gf-core/pkg/api/billing/v2alpha1

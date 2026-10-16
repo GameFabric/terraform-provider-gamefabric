@@ -3,9 +3,8 @@ package provisioning
 import (
 	"time"
 
-	provisioningv1beta2 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta2"
+	provisioningv1beta3 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta3"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
-	resourceprovisioning "github.com/gamefabric/terraform-provider-gamefabric/internal/resource/provisioning"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -50,10 +49,10 @@ type tokenServiceJWKSModel struct {
 	URL types.String `tfsdk:"url"`
 }
 
-func newTokenServiceModel(obj *provisioningv1beta2.TokenService) tokenServiceModel {
+func newTokenServiceModel(obj *provisioningv1beta3.TokenService) tokenServiceModel {
 	return tokenServiceModel{
 		Name:             types.StringValue(obj.Name),
-		DevelopmentMode:  types.BoolValue(obj.Spec.Environment == provisioningv1beta2.TokenServiceEnvDev),
+		DevelopmentMode:  types.BoolValue(obj.Spec.DevelopmentMode),
 		Labels:           conv.ForEachMapItem(obj.Labels, types.StringValue),
 		Annotations:      conv.ForEachMapItem(obj.Annotations, types.StringValue),
 		GameName:         types.StringValue(obj.Spec.Game.Name),
@@ -62,15 +61,13 @@ func newTokenServiceModel(obj *provisioningv1beta2.TokenService) tokenServiceMod
 		JWKS:             newTokenServiceJWKSModel(obj.Spec.JWKS),
 		State:            types.StringValue(string(obj.Status.State)),
 		Hostname:         conv.OptionalFunc(obj.Status.Hostname, types.StringValue, types.StringNull),
-		PlatformKey:      resourceprovisioning.FirstPlatformKey(obj.Status.PlatformKeys),
+		PlatformKey:      conv.OptionalFunc(obj.Status.PlatformKey, types.StringValue, types.StringNull),
 		Reason:           conv.OptionalFunc(obj.Status.Reason, types.StringValue, types.StringNull),
 		StateLastChanged: newStateLastChanged(obj.Status.StateLastChanged),
 	}
 }
 
-func newTokenServicePlatformModels(
-	platforms map[string]provisioningv1beta2.TokenServicePlatformSpec,
-) map[string]tokenServicePlatformModel {
+func newTokenServicePlatformModels(platforms map[string]provisioningv1beta3.TokenServicePlatformSpec) map[string]tokenServicePlatformModel {
 	out := make(map[string]tokenServicePlatformModel, len(platforms))
 	for name, platform := range platforms {
 		out[name] = tokenServicePlatformModel{
@@ -80,7 +77,7 @@ func newTokenServicePlatformModels(
 	return out
 }
 
-func newTokenServiceKeyModel(key provisioningv1beta2.TokenServiceKeySpec) tokenServiceKeyModel {
+func newTokenServiceKeyModel(key provisioningv1beta3.TokenServiceKeySpec) tokenServiceKeyModel {
 	return tokenServiceKeyModel{
 		Key:              types.StringValue(key.Key),
 		SigningAlgorithm: types.StringValue(string(key.SigningAlgorithm)),
@@ -89,7 +86,7 @@ func newTokenServiceKeyModel(key provisioningv1beta2.TokenServiceKeySpec) tokenS
 
 // newTokenServiceEOSModel converts the backend's EOS list to the model's EOS list.
 // Returns nil if no EOS configuration is present.
-func newTokenServiceEOSModel(eos []provisioningv1beta2.TokenServiceEOSSpec) []tokenServiceEOSModel {
+func newTokenServiceEOSModel(eos []provisioningv1beta3.TokenServiceEOSSpec) []tokenServiceEOSModel {
 	if len(eos) == 0 {
 		return nil
 	}
@@ -97,7 +94,7 @@ func newTokenServiceEOSModel(eos []provisioningv1beta2.TokenServiceEOSSpec) []to
 	for i, e := range eos {
 		out[i] = tokenServiceEOSModel{
 			ClientID: types.StringValue(e.ClientID),
-			TokenTypes: conv.ForEachSliceItem(e.TokenTypes, func(t provisioningv1beta2.TokenServiceEOSTokenType) types.String {
+			TokenTypes: conv.ForEachSliceItem(e.TokenTypes, func(t provisioningv1beta3.TokenServiceEOSTokenType) types.String {
 				return types.StringValue(string(t))
 			}),
 			DeploymentID: conv.OptionalFunc(e.DeploymentID, types.StringValue, types.StringNull),
@@ -108,7 +105,7 @@ func newTokenServiceEOSModel(eos []provisioningv1beta2.TokenServiceEOSSpec) []to
 	return out
 }
 
-func newTokenServiceJWKSModel(jwks *provisioningv1beta2.TokenServiceJWKSSpec) *tokenServiceJWKSModel {
+func newTokenServiceJWKSModel(jwks *provisioningv1beta3.TokenServiceJWKSSpec) *tokenServiceJWKSModel {
 	if jwks == nil {
 		return nil
 	}
