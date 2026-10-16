@@ -4,32 +4,32 @@ import (
 	"testing"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
-	provisioningv1beta2 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta2"
+	provisioningv1beta3 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta3"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestTokenServicesDataSource(t *testing.T) {
-	a := &provisioningv1beta2.TokenService{
+	a := &provisioningv1beta3.TokenService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   "service-a",
 			Labels: map[string]string{"team": "platforms"},
 		},
-		Spec: provisioningv1beta2.TokenServiceSpec{
-			Environment: provisioningv1beta2.TokenServiceEnvProd,
-			Game:        provisioningv1beta2.TokenServiceGameSpec{Name: "game-a"},
-			JWKS:        &provisioningv1beta2.TokenServiceJWKSSpec{URL: "https://a.example.com/jwks.json"},
+		Spec: provisioningv1beta3.TokenServiceSpec{
+			DevelopmentMode: false,
+			Game:            provisioningv1beta3.TokenServiceGameSpec{Name: "game-a"},
+			JWKS:            &provisioningv1beta3.TokenServiceJWKSSpec{URL: "https://a.example.com/jwks.json"},
 		},
 	}
-	b := &provisioningv1beta2.TokenService{
+	b := &provisioningv1beta3.TokenService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   "service-b",
 			Labels: map[string]string{"team": "other"},
 		},
-		Spec: provisioningv1beta2.TokenServiceSpec{
-			Environment: provisioningv1beta2.TokenServiceEnvDev,
-			Game:        provisioningv1beta2.TokenServiceGameSpec{Name: "game-b"},
-			JWKS:        &provisioningv1beta2.TokenServiceJWKSSpec{URL: "https://b.example.com/jwks.json"},
+		Spec: provisioningv1beta3.TokenServiceSpec{
+			DevelopmentMode: true,
+			Game:            provisioningv1beta3.TokenServiceGameSpec{Name: "game-b"},
+			JWKS:            &provisioningv1beta3.TokenServiceJWKSSpec{URL: "https://b.example.com/jwks.json"},
 		},
 	}
 
@@ -46,7 +46,7 @@ func TestTokenServicesDataSource(t *testing.T) {
 					resource.TestCheckResourceAttr("data.gamefabric_steelshield_tokenservices.all", "token_services.#", "2"),
 					resource.TestCheckResourceAttr("data.gamefabric_steelshield_tokenservices.all", "token_services.0.name", "service-a"),
 					resource.TestCheckResourceAttr("data.gamefabric_steelshield_tokenservices.all", "token_services.1.name", "service-b"),
-					// service-a is prod (development_mode=false), service-b is dev (development_mode=true).
+					// service-a has development_mode=false, service-b has development_mode=true.
 					resource.TestCheckResourceAttr("data.gamefabric_steelshield_tokenservices.all", "token_services.0.development_mode", "false"),
 					resource.TestCheckResourceAttr("data.gamefabric_steelshield_tokenservices.all", "token_services.1.development_mode", "true"),
 				),
