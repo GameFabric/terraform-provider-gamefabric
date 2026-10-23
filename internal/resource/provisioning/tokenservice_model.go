@@ -1,7 +1,8 @@
 package provisioning
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"strings"
 	"time"
 
@@ -213,32 +214,33 @@ func newStateLastChanged(t *time.Time) types.String {
 // full, not just up to the first extracted value), or has no keys, matching the webui's
 // fallback to an empty value on any parse error.
 func FirstPlatformKey(platformKeysJSON string) types.String {
-	if platformKeysJSON == "" || !json.Valid([]byte(platformKeysJSON)) {
+	if platformKeysJSON == "" || !jsontext.Value(platformKeysJSON).IsValid() {
 		return types.StringNull()
 	}
 
-	dec := json.NewDecoder(strings.NewReader(platformKeysJSON))
+	dec := jsontext.NewDecoder(strings.NewReader(platformKeysJSON))
 
-	tok, err := dec.Token()
-	if err != nil {
-		return types.StringNull()
-	}
-	if delim, ok := tok.(json.Delim); !ok || delim != '{' {
+	tok, err := dec.ReadToken()
+	if err != nil || tok.Kind() != '{' {
 		return types.StringNull()
 	}
 
-	if !dec.More() {
+	if dec.PeekKind() == '}' {
 		// Empty object.
 		return types.StringNull()
 	}
 
 	// The first object key, in original JSON order.
-	if _, err = dec.Token(); err != nil {
+	if _, err = dec.ReadToken(); err != nil {
 		return types.StringNull()
 	}
 
 	var keys []string
-	if err = dec.Decode(&keys); err != nil {
+	val, err := dec.ReadValue()
+	if err != nil {
+		return types.StringNull()
+	}
+	if err = json.Unmarshal(val, &keys); err != nil {
 		return types.StringNull()
 	}
 	if len(keys) == 0 {
