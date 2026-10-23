@@ -1,7 +1,6 @@
 package billing
 
 import (
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	billingv2alpha1 "github.com/gamefabric/gf-core/pkg/api/billing/v2alpha1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -59,11 +58,9 @@ func (m cloudBudgetModel) ToObject() *billingv2alpha1.CloudBudget {
 	}
 
 	return &billingv2alpha1.CloudBudget{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        m.Name.ValueString(),
-			Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
-			Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
-		},
+		Name:        m.Name.ValueString(),
+		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
+		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
 		Spec: billingv2alpha1.CloudBudgetSpec{
 			Suspended: m.Suspended.ValueBool(),
 			Receivers: conv.ForEachSliceItem(m.Receivers, func(v types.String) string { return v.ValueString() }),

@@ -5,7 +5,6 @@ import (
 
 	"agones.dev/agones/pkg/apis"
 	"github.com/gamefabric/gf-apiclient/tools/cache"
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -40,12 +39,10 @@ func newRegionModel(obj *corev1.Region) regionModel {
 
 func (m regionModel) ToObject() *corev1.Region {
 	obj := &corev1.Region{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        m.Name.ValueString(),
-			Environment: m.Environment.ValueString(),
-			Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
-			Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
-		},
+		Name:        m.Name.ValueString(),
+		Environment: m.Environment.ValueString(),
+		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
+		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
 		Spec: corev1.RegionSpec{
 			DisplayName: m.DisplayName.ValueString(),
 			Description: m.Description.ValueString(),

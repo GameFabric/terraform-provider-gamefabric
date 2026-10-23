@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/gamefabric/gf-apiclient/tools/cache"
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	armadav1 "github.com/gamefabric/gf-core/pkg/api/armada/v1"
 	containerv1 "github.com/gamefabric/gf-core/pkg/api/container/v1"
 	formationv1 "github.com/gamefabric/gf-core/pkg/api/formation/v1"
@@ -145,10 +144,8 @@ func newImageUpdaterModel(obj *containerv1.ImageUpdater) imageUpdaterModel {
 
 func (m imageUpdaterModel) ToObject(name string) *containerv1.ImageUpdater {
 	obj := &containerv1.ImageUpdater{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        name,
-			Environment: m.Target.Environment.ValueString(),
-		},
+		Name:        name,
+		Environment: m.Target.Environment.ValueString(),
 		Spec: containerv1.ImageUpdaterSpec{
 			Branch:    m.Branch.ValueString(),
 			ImageName: m.Image.ValueString(),

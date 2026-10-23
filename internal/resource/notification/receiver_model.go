@@ -1,7 +1,6 @@
 package notification
 
 import (
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	notificationv1alpha1 "github.com/gamefabric/gf-core/pkg/api/notification/v1alpha1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -32,11 +31,9 @@ func newReceiverModel(obj *notificationv1alpha1.Receiver) receiverModel {
 
 func (m receiverModel) ToObject() *notificationv1alpha1.Receiver {
 	return &notificationv1alpha1.Receiver{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        m.Name.ValueString(),
-			Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
-			Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
-		},
+		Name:        m.Name.ValueString(),
+		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
+		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
 		Spec: notificationv1alpha1.ReceiverSpec{
 			Email: &notificationv1alpha1.ReceiverEmail{
 				To: conv.ForEachSliceItem(m.EmailTo, func(v types.String) string { return v.ValueString() }),

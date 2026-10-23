@@ -1,7 +1,6 @@
 package protection
 
 import (
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	protectionv1 "github.com/gamefabric/gf-core/pkg/api/protection/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -31,11 +30,9 @@ func newGatewayPolicyModel(obj *protectionv1.GatewayPolicy) gatewayPolicyModel {
 
 func (m gatewayPolicyModel) ToObject() *protectionv1.GatewayPolicy {
 	return &protectionv1.GatewayPolicy{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        m.Name.ValueString(),
-			Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
-			Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
-		},
+		Name:        m.Name.ValueString(),
+		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
+		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
 		Spec: protectionv1.GatewayPolicySpec{
 			DisplayName:      m.DisplayName.ValueString(),
 			Description:      m.Description.ValueString(),

@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	provisioningv1beta2 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta2"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -74,11 +73,9 @@ func newTokenServiceModel(obj *provisioningv1beta2.TokenService) tokenServiceMod
 
 func (m tokenServiceModel) ToObject() *provisioningv1beta2.TokenService {
 	return &provisioningv1beta2.TokenService{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        m.Name.ValueString(),
-			Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
-			Annotations: conv.ForEachMapItem(m.Annotations, func(v types.String) string { return v.ValueString() }),
-		},
+		Name:        m.Name.ValueString(),
+		Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
+		Annotations: conv.ForEachMapItem(m.Annotations, func(v types.String) string { return v.ValueString() }),
 		Spec: provisioningv1beta2.TokenServiceSpec{
 			Environment: tokenServiceEnvFromDevelopmentMode(m.DevelopmentMode.ValueBool()),
 			EOS:         tokenServiceEOSToObject(m.EOS),

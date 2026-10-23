@@ -1,7 +1,6 @@
 package authentication
 
 import (
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	authv1 "github.com/gamefabric/gf-core/pkg/api/authentication/v1beta1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -25,9 +24,7 @@ func newProviderModel(obj *authv1.Provider) providerModel {
 
 func (m providerModel) ToObject() *authv1.Provider {
 	return &authv1.Provider{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: m.Name.ValueString(),
-		},
+		Name: m.Name.ValueString(),
 		Spec: authv1.ProviderSpec{
 			DisplayName: m.DisplayName.ValueString(),
 			OIDC:        m.OIDC.ToObject(),
@@ -158,7 +155,7 @@ func (m *oidcProvider) ToObject() *authv1.OIDCProvider {
 		ProviderDiscoveryOverrides: m.ProviderDiscoveryOverrides.ToObject(),
 		BasicAuthUnsupported:       m.BasicAuthUnsupported.ValueBoolPointer(),
 		Scopes:                     conv.ForEachSliceItem(m.Scopes, func(v types.String) string { return v.ValueString() }),
-		HostedDomains:              conv.ForEachSliceItem(m.HostedDomains, func(v types.String) string { return v.ValueString() }),
+		HostedDomains:              conv.ForEachSliceItem(m.HostedDomains, func(v types.String) string { return v.ValueString() }), //nolint:staticcheck // Useful for OIDC with Google.
 		RootCAs:                    conv.ForEachSliceItem(m.RootCAs, func(v types.String) string { return v.ValueString() }),
 		InsecureSkipEmailVerified:  m.InsecureSkipEmailVerified.ValueBool(),
 		InsecureEnableGroups:       m.InsecureEnableGroups.ValueBool(),

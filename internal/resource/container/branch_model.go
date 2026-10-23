@@ -1,7 +1,6 @@
 package container
 
 import (
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	containerv1 "github.com/gamefabric/gf-core/pkg/api/container/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -31,11 +30,9 @@ func newBranchModel(obj *containerv1.Branch) branchModel {
 
 func (m branchModel) ToObject() *containerv1.Branch {
 	return &containerv1.Branch{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        m.Name.ValueString(),
-			Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
-			Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
-		},
+		Name:        m.Name.ValueString(),
+		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
+		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
 		Spec: containerv1.BranchSpec{
 			DisplayName: m.DisplayName.ValueString(),
 			Description: m.Description.ValueString(),

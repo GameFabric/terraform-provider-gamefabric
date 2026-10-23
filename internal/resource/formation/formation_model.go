@@ -62,12 +62,10 @@ func newFormationModel(obj *formationv1.Formation) formationModel {
 
 func (m formationModel) ToObject() *formationv1.Formation {
 	return &formationv1.Formation{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        m.Name.ValueString(),
-			Environment: m.Environment.ValueString(),
-			Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
-			Annotations: conv.ForEachMapItem(m.Annotations, func(v types.String) string { return v.ValueString() }),
-		},
+		Name:        m.Name.ValueString(),
+		Environment: m.Environment.ValueString(),
+		Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
+		Annotations: conv.ForEachMapItem(m.Annotations, func(v types.String) string { return v.ValueString() }),
 		Spec: formationv1.FormationSpec{
 			Description: m.Description.ValueString(),
 			Vessels:     conv.ForEachSliceItem(m.Vessels, toVesselTemplateModel),
@@ -129,9 +127,7 @@ func newVolumeTemplate(obj formationv1.VolumeTemplate) VolumeTemplateModel {
 
 func toVolumeTemplateModel(m VolumeTemplateModel) formationv1.VolumeTemplate {
 	return formationv1.VolumeTemplate{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: m.Name.ValueString(),
-		},
+		Name: m.Name.ValueString(),
 		Spec: formationv1.VolumeTemplateSpec{
 			VolumeSpec: v1beta1.VolumeSpec{
 				VolumeStoreName: m.VolumeStoreName.ValueString(),

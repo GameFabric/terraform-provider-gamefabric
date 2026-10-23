@@ -2,7 +2,6 @@ package storage
 
 import (
 	"github.com/gamefabric/gf-apiclient/tools/cache"
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	storagev1beta1 "github.com/gamefabric/gf-core/pkg/api/storage/v1beta1"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
@@ -39,10 +38,8 @@ func newVolumeStoreRetentionPolicyModel(obj *storagev1beta1.VolumeStoreRetention
 
 func (m volumeStoreRetentionPolicyModel) ToObject() *storagev1beta1.VolumeStoreRetentionPolicy {
 	obj := &storagev1beta1.VolumeStoreRetentionPolicy{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        m.VolumeStore.ValueString(),
-			Environment: m.Environment.ValueString(),
-		},
+		Name:        m.VolumeStore.ValueString(),
+		Environment: m.Environment.ValueString(),
 		Spec: storagev1beta1.VolumeStoreRetentionPolicySpec{
 			VolumeStoreName: m.VolumeStore.ValueString(),
 		},
