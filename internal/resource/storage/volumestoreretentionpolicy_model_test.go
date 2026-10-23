@@ -3,7 +3,6 @@ package storage
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	storagev1beta1 "github.com/gamefabric/gf-core/pkg/api/storage/v1beta1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -23,10 +22,10 @@ func TestVolumeStoreRetentionPolicyModel_ToObject(t *testing.T) {
 
 var (
 	testVolumeRetentionPolicyObject = &storagev1beta1.VolumeStoreRetentionPolicy{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "test-volume-store",
-			Environment: "dflt",
-		},
+		// ObjectMeta
+		Name:        "test-volume-store",
+		Environment: "dflt",
+
 		Spec: storagev1beta1.VolumeStoreRetentionPolicySpec{
 			VolumeStoreName: "test-volume-store",
 			Snapshots: &storagev1beta1.VolumeStoreRetentionPolicySnapshots{

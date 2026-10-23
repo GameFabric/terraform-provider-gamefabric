@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cenkalti/backoff/v5"
+	"github.com/cenkalti/backoff/v7"
 	"github.com/gamefabric/gf-apiclient/tools/clientset"
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
-	v1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
+	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-apicore/runtime"
 )
 
@@ -21,7 +21,7 @@ func PollUntilNotFound[T runtime.Object](ctx context.Context, getFn clientset.Ge
 	}
 
 	_, err := backoff.Retry(ctx, func() (struct{}, error) {
-		_, err := getFn.Get(ctx, name, v1.GetOptions{})
+		_, err := getFn.Get(ctx, name, metav1.GetOptions{})
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				return struct{}{}, nil

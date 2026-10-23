@@ -4,7 +4,6 @@ import (
 	"regexp"
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	protectionv1 "github.com/gamefabric/gf-core/pkg/api/protection/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -14,9 +13,9 @@ func TestProtocol(t *testing.T) {
 	t.Parallel()
 
 	proto := &protectionv1.Protocol{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-protocol",
-		},
+		// ObjectMeta
+		Name: "test-protocol",
+
 		Spec: protectionv1.ProtocolSpec{
 			DisplayName: "My Protocol",
 			Description: "My Protection Protocol",
@@ -62,17 +61,17 @@ func TestProtocol_HandlesMultipleMatches(t *testing.T) {
 	t.Parallel()
 
 	proto := &protectionv1.Protocol{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-protocol",
-		},
+		// ObjectMeta
+		Name: "test-protocol",
+
 		Spec: protectionv1.ProtocolSpec{
 			DisplayName: "My Protocol",
 		},
 	}
 	otherProto := &protectionv1.Protocol{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "other-region",
-		},
+		// ObjectMeta
+		Name: "other-region",
+
 		Spec: protectionv1.ProtocolSpec{
 			DisplayName: "My Protocol",
 		},

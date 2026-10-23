@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
-	storagev1 "github.com/gamefabric/gf-core/pkg/api/storage/v1beta1"
+	storagev1beta1 "github.com/gamefabric/gf-core/pkg/api/storage/v1beta1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -88,7 +88,7 @@ func (r *volumeStores) Read(ctx context.Context, _ datasource.ReadRequest, resp 
 		return
 	}
 
-	slices.SortFunc(list.Items, func(a, b storagev1.VolumeStore) int {
+	slices.SortFunc(list.Items, func(a, b storagev1beta1.VolumeStore) int {
 		return strings.Compare(a.Name, b.Name)
 	})
 

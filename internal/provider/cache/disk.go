@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"os"
 	"path/filepath"
@@ -76,7 +76,7 @@ func (c *DiskCache) Save(host string, tok *oauth2.Token) error {
 		return err
 	}
 
-	data, err := json.Marshal(token{ //nolint:gosec // This is not a security issue; we are just serializing a struct to JSON.
+	data, err := json.Marshal(token{
 		AccessToken:  tok.AccessToken,
 		TokenType:    tok.TokenType,
 		RefreshToken: tok.RefreshToken,

@@ -3,7 +3,6 @@ package provisioning_test
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	provisioningv1beta2 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta2"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -13,9 +12,9 @@ func TestPingDiscovery(t *testing.T) {
 	t.Parallel()
 
 	pd := &provisioningv1beta2.PingDiscovery{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-pd",
-		},
+		// ObjectMeta
+		Name: "test-pd",
+
 		Status: provisioningv1beta2.PingDiscoveryStatus{
 			URL:    "https://ping.example.com",
 			Tokens: []string{"pd-token-old", "pd-token-new"},
@@ -50,9 +49,8 @@ func TestPingDiscovery_NoTokens(t *testing.T) {
 	t.Parallel()
 
 	pd := &provisioningv1beta2.PingDiscovery{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "empty-pd",
-		},
+		// ObjectMeta
+		Name: "empty-pd",
 	}
 
 	pf, _ := providertest.ProtoV6ProviderFactories(t, pd)

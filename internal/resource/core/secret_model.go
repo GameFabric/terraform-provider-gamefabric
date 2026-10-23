@@ -2,7 +2,6 @@ package core
 
 import (
 	"github.com/gamefabric/gf-apiclient/tools/cache"
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -36,12 +35,12 @@ func newSecretModel(obj *corev1.Secret, ver int64) secretModel {
 
 func (m secretModel) ToObject() *corev1.Secret {
 	return &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        m.Name.ValueString(),
-			Environment: m.Environment.ValueString(),
-			Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
-			Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
-		},
+		// ObjectMeta
+		Name:        m.Name.ValueString(),
+		Environment: m.Environment.ValueString(),
+		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
+		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
+
 		Description: m.Description.ValueString(),
 		Data:        conv.ForEachMapItem(chooseData(m), func(item types.String) string { return item.ValueString() }),
 	}

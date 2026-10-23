@@ -3,7 +3,6 @@ package core
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -21,16 +20,16 @@ func TestConfigModel_ToObject(t *testing.T) {
 
 var (
 	testConfigFileObject = &corev1.ConfigFile{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "test-configfile",
-			Environment: "test-environment",
-			Labels: map[string]string{
-				"label-key": "label-value",
-			},
-			Annotations: map[string]string{
-				"annotation-key": "annotation-value",
-			},
+		// ObjectMeta
+		Name:        "test-configfile",
+		Environment: "test-environment",
+		Labels: map[string]string{
+			"label-key": "label-value",
 		},
+		Annotations: map[string]string{
+			"annotation-key": "annotation-value",
+		},
+
 		Description: "ConfigFile Description",
 		Data:        "config file data content",
 	}

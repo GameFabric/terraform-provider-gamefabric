@@ -3,7 +3,6 @@ package core_test
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -13,10 +12,10 @@ func TestConfigFile(t *testing.T) {
 	t.Parallel()
 
 	cfgFile := &corev1.ConfigFile{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "test-config-file",
-			Environment: "dflt",
-		},
+		// ObjectMeta
+		Name:        "test-config-file",
+		Environment: "dflt",
+
 		Data: "some-configuration-data",
 	}
 

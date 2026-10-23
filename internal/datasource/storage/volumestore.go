@@ -6,7 +6,7 @@ import (
 
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
-	storagev1 "github.com/gamefabric/gf-core/pkg/api/storage/v1beta1"
+	storagev1beta1 "github.com/gamefabric/gf-core/pkg/api/storage/v1beta1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	provcontext "github.com/gamefabric/terraform-provider-gamefabric/internal/provider/context"
@@ -93,7 +93,7 @@ func (r *volumeStore) Read(ctx context.Context, req datasource.ReadRequest, resp
 	}
 
 	var (
-		obj *storagev1.VolumeStore
+		obj *storagev1beta1.VolumeStore
 		err error
 	)
 

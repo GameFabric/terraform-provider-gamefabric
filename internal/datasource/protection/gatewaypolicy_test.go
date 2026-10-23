@@ -4,7 +4,6 @@ import (
 	"regexp"
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	protectionv1 "github.com/gamefabric/gf-core/pkg/api/protection/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -14,7 +13,9 @@ func TestGatewayPolicy(t *testing.T) {
 	t.Parallel()
 
 	pol := &protectionv1.GatewayPolicy{
-		ObjectMeta: metav1.ObjectMeta{Name: "test-gateway-policy"},
+		// ObjectMeta
+		Name: "test-gateway-policy",
+
 		Spec: protectionv1.GatewayPolicySpec{
 			DisplayName:      "My Gateway Policy",
 			Description:      "My Gateway Policy Description",
@@ -62,13 +63,17 @@ func TestGatewayPolicy_HandlesMultipleMatches(t *testing.T) {
 	t.Parallel()
 
 	pol := &protectionv1.GatewayPolicy{
-		ObjectMeta: metav1.ObjectMeta{Name: "test-gateway-policy"},
+		// ObjectMeta
+		Name: "test-gateway-policy",
+
 		Spec: protectionv1.GatewayPolicySpec{
 			DisplayName: "My Gateway Policy",
 		},
 	}
 	otherPol := &protectionv1.GatewayPolicy{
-		ObjectMeta: metav1.ObjectMeta{Name: "other"},
+		// ObjectMeta
+		Name: "other",
+
 		Spec: protectionv1.GatewayPolicySpec{
 			DisplayName: "My Gateway Policy",
 		},

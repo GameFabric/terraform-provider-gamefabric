@@ -3,7 +3,6 @@ package rbac_test
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	rbacv1 "github.com/gamefabric/gf-core/pkg/api/rbac/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -13,11 +12,10 @@ func TestGroups(t *testing.T) {
 	t.Parallel()
 
 	grp := &rbacv1.Group{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-group",
-			Labels: map[string]string{
-				"foo": "bar",
-			},
+		// ObjectMeta
+		Name: "test-group",
+		Labels: map[string]string{
+			"foo": "bar",
 		},
 	}
 
@@ -48,19 +46,17 @@ func TestGroups_AllowsGettingAll(t *testing.T) {
 	t.Parallel()
 
 	grp1 := &rbacv1.Group{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-group1",
-			Labels: map[string]string{
-				"foo": "bar",
-			},
+		// ObjectMeta
+		Name: "test-group1",
+		Labels: map[string]string{
+			"foo": "bar",
 		},
 	}
 	grp2 := &rbacv1.Group{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-group2",
-			Labels: map[string]string{
-				"foo": "bat",
-			},
+		// ObjectMeta
+		Name: "test-group2",
+		Labels: map[string]string{
+			"foo": "bat",
 		},
 	}
 

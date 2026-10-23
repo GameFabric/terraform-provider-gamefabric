@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	containerv1 "github.com/gamefabric/gf-core/pkg/api/container/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -14,10 +13,11 @@ func TestImage(t *testing.T) {
 	t.Parallel()
 
 	img := &containerv1.Image{
-		ImageObjectMeta: containerv1.ImageObjectMeta{
-			ObjectMeta: metav1.ObjectMeta{Name: "test-image"},
-			Branch:     "test-branch",
-		},
+		// ObjectMeta
+		Name: "test-image",
+
+		// ImageObjectMeta
+		Branch: "test-branch",
 		Spec: containerv1.ImageSpec{
 			Image: "my-image",
 			Tag:   "v1.0.0",
@@ -53,26 +53,24 @@ func TestImage_Latest(t *testing.T) {
 	before := now.Add(-1 * time.Hour)
 
 	img1 := &containerv1.Image{
-		ImageObjectMeta: containerv1.ImageObjectMeta{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:             "test-image1",
-				CreatedTimestamp: before,
-			},
-			Branch: "test-branch",
-		},
+		// ObjectMeta
+		Name:             "test-image1",
+		CreatedTimestamp: before,
+
+		// ImageObjectMeta
+		Branch: "test-branch",
 		Spec: containerv1.ImageSpec{
 			Image: "my-image",
 			Tag:   "v1.0.0",
 		},
 	}
 	img2 := &containerv1.Image{
-		ImageObjectMeta: containerv1.ImageObjectMeta{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:             "test-image2",
-				CreatedTimestamp: now,
-			},
-			Branch: "test-branch",
-		},
+		// ObjectMeta
+		Name:             "test-image2",
+		CreatedTimestamp: now,
+
+		// ImageObjectMeta
+		Branch: "test-branch",
 		Spec: containerv1.ImageSpec{
 			Image: "my-image",
 			Tag:   "v1.0.1",

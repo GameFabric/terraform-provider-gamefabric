@@ -3,7 +3,6 @@ package core_test
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -13,12 +12,12 @@ func TestEnvironments(t *testing.T) {
 	t.Parallel()
 
 	env := &corev1.Environment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "dflt",
-			Labels: map[string]string{
-				"env": "prod",
-			},
+		// ObjectMeta
+		Name: "dflt",
+		Labels: map[string]string{
+			"env": "prod",
 		},
+
 		Spec: corev1.EnvironmentSpec{
 			DisplayName: "My Env",
 			Description: "My Env Description",
@@ -55,9 +54,9 @@ func TestEnvironments_AllowsGettingAll(t *testing.T) {
 	t.Parallel()
 
 	env := &corev1.Environment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "dflt",
-		},
+		// ObjectMeta
+		Name: "dflt",
+
 		Spec: corev1.EnvironmentSpec{
 			DisplayName: "My Env",
 			Description: "My Env Description",

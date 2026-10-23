@@ -10,7 +10,7 @@ import (
 	apierrors "github.com/gamefabric/gf-apicore/api/errors"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	"github.com/gamefabric/gf-apiserver/registry/generic"
-	authenticationv1 "github.com/gamefabric/gf-core/pkg/api/authentication/v1beta1"
+	authv1 "github.com/gamefabric/gf-core/pkg/api/authentication/v1beta1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	providerreg "github.com/gamefabric/gf-core/pkg/apiserver/registry/authentication/provider"
 	"github.com/gamefabric/gf-core/pkg/apiserver/registry/registrytest"
@@ -35,7 +35,7 @@ var (
 	_ resource.ResourceWithImportState = &provider{}
 )
 
-var providerValidator = validators.NewGameFabricValidator[*authenticationv1.Provider, providerModel](func() validators.StoreValidator {
+var providerValidator = validators.NewGameFabricValidator[*authv1.Provider, providerModel](func() validators.StoreValidator {
 	storage, _ := providerreg.New(generic.StoreOptions{Config: generic.Config{
 		StorageFactory: registrytest.FakeStorageFactory{},
 	}})

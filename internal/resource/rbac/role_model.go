@@ -1,7 +1,6 @@
 package rbac
 
 import (
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	rbacv1 "github.com/gamefabric/gf-core/pkg/api/rbac/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -45,11 +44,11 @@ func newRoleModel(obj *rbacv1.Role) roleModel {
 
 func (m roleModel) ToObject() *rbacv1.Role {
 	return &rbacv1.Role{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        m.Name.ValueString(),
-			Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
-			Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
-		},
+		// ObjectMeta
+		Name:        m.Name.ValueString(),
+		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
+		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
+
 		Rules: conv.ForEachSliceItem(m.Rules, func(rule ruleModel) rbacv1.Rule {
 			return rbacv1.Rule{
 				Verbs:         conv.ForEachSliceItem(rule.Verbs, func(item types.String) string { return item.ValueString() }),

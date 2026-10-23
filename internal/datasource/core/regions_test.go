@@ -3,7 +3,6 @@ package core_test
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -12,13 +11,13 @@ import (
 
 func TestRegions(t *testing.T) {
 	region1 := &corev1.Region{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "region-1",
-			Environment: "dflt",
-			Labels: map[string]string{
-				"baremetal": "true",
-			},
+		// ObjectMeta
+		Name:        "region-1",
+		Environment: "dflt",
+		Labels: map[string]string{
+			"baremetal": "true",
 		},
+
 		Spec: corev1.RegionSpec{
 			Types: []corev1.RegionType{
 				{

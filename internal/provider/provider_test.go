@@ -2,7 +2,7 @@ package provider_test
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"maps"
 	"net/http"
 	"net/http/httptest"
@@ -598,16 +598,16 @@ func testBrowserAuthServer(t *testing.T, tokenCalls *atomic.Int64) *httptest.Ser
 			_ = r.ParseForm()
 			if r.FormValue("grant_type") != "authorization_code" || r.FormValue("code") != "test-auth-code" {
 				w.WriteHeader(http.StatusBadRequest)
-				_ = json.NewEncoder(w).Encode(map[string]string{"error": "invalid_grant"})
+				_ = json.MarshalWrite(w, map[string]string{"error": "invalid_grant"}, json.DefaultOptionsV2())
 				return
 			}
 			w.WriteHeader(http.StatusOK)
-			_ = json.NewEncoder(w).Encode(map[string]any{
+			_ = json.MarshalWrite(w, map[string]any{
 				"access_token":  validJWT,
 				"token_type":    "bearer",
 				"refresh_token": "test-refresh-token",
 				"expires_in":    3600,
-			})
+			}, json.DefaultOptionsV2())
 
 		default:
 			http.NotFound(w, r)

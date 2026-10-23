@@ -3,7 +3,6 @@ package storage_test
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	storagev1beta1 "github.com/gamefabric/gf-core/pkg/api/storage/v1beta1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -13,12 +12,11 @@ func TestVolumes(t *testing.T) {
 	t.Parallel()
 
 	vol := &storagev1beta1.Volume{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "test-volume",
-			Environment: "dflt",
-			Labels: map[string]string{
-				"foo": "bar",
-			},
+		// ObjectMeta
+		Name:        "test-volume",
+		Environment: "dflt",
+		Labels: map[string]string{
+			"foo": "bar",
 		},
 	}
 
@@ -52,16 +50,14 @@ func TestVolumes_AllowsGettingAll(t *testing.T) {
 	t.Parallel()
 
 	vol1 := &storagev1beta1.Volume{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "test-volume1",
-			Environment: "dflt",
-		},
+		// ObjectMeta
+		Name:        "test-volume1",
+		Environment: "dflt",
 	}
 	vol2 := &storagev1beta1.Volume{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "test-volume2",
-			Environment: "dflt",
-		},
+		// ObjectMeta
+		Name:        "test-volume2",
+		Environment: "dflt",
 	}
 
 	pf, _ := providertest.ProtoV6ProviderFactories(t, vol1, vol2)

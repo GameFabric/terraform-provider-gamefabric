@@ -3,7 +3,6 @@ package core
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -38,16 +37,16 @@ func TestRegionModel_ToObjectWithAllocator(t *testing.T) {
 
 var (
 	testRegionObject = &corev1.Region{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "test-region",
-			Environment: "test-environment",
-			Labels: map[string]string{
-				"label-key": "label-value",
-			},
-			Annotations: map[string]string{
-				"annotation-key": "annotation-value",
-			},
+		// ObjectMeta
+		Name:        "test-region",
+		Environment: "test-environment",
+		Labels: map[string]string{
+			"label-key": "label-value",
 		},
+		Annotations: map[string]string{
+			"annotation-key": "annotation-value",
+		},
+
 		Spec: corev1.RegionSpec{
 			DisplayName: "Test Region",
 			Description: "Test Region Description",

@@ -4,23 +4,24 @@ import (
 	"regexp"
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
-	storagev1 "github.com/gamefabric/gf-core/pkg/api/storage/v1beta1"
+	storagev1beta1 "github.com/gamefabric/gf-core/pkg/api/storage/v1beta1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
-	typesframework "github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestVolumeStore_ByName(t *testing.T) {
 	t.Parallel()
 
-	vs := &storagev1.VolumeStore{
-		ObjectMeta: metav1.ObjectMeta{Name: "test-volumestore"},
-		Spec: storagev1.VolumeStoreSpec{
+	vs := &storagev1beta1.VolumeStore{
+		// ObjectMeta
+		Name: "test-volumestore",
+
+		Spec: storagev1beta1.VolumeStoreSpec{
 			Region:        "europe-west1",
 			Destination:   "gs://bucket",
-			MaxVolumeSize: *conv.Quantity(typesframework.StringValue("10Mi")),
+			MaxVolumeSize: *conv.Quantity(types.StringValue("10Mi")),
 		},
 	}
 
@@ -48,12 +49,14 @@ func TestVolumeStore_ByName(t *testing.T) {
 func TestVolumeStore_ByRegion(t *testing.T) {
 	t.Parallel()
 
-	vs := &storagev1.VolumeStore{
-		ObjectMeta: metav1.ObjectMeta{Name: "vs-region"},
-		Spec: storagev1.VolumeStoreSpec{
+	vs := &storagev1beta1.VolumeStore{
+		// ObjectMeta
+		Name: "vs-region",
+
+		Spec: storagev1beta1.VolumeStoreSpec{
 			Region:        "europe-west1",
 			Destination:   "gs://bucket2",
-			MaxVolumeSize: *conv.Quantity(typesframework.StringValue("5Gi")),
+			MaxVolumeSize: *conv.Quantity(types.StringValue("5Gi")),
 		},
 	}
 
@@ -81,20 +84,24 @@ func TestVolumeStore_ByRegion(t *testing.T) {
 func TestVolumeStore_ByRegion_MultipleMatches(t *testing.T) {
 	t.Parallel()
 
-	vs1 := &storagev1.VolumeStore{
-		ObjectMeta: metav1.ObjectMeta{Name: "vs-a"},
-		Spec: storagev1.VolumeStoreSpec{
+	vs1 := &storagev1beta1.VolumeStore{
+		// ObjectMeta
+		Name: "vs-a",
+
+		Spec: storagev1beta1.VolumeStoreSpec{
 			Region:        "dup-region",
 			Destination:   "gs://b1",
-			MaxVolumeSize: *conv.Quantity(typesframework.StringValue("1Gi")),
+			MaxVolumeSize: *conv.Quantity(types.StringValue("1Gi")),
 		},
 	}
-	vs2 := &storagev1.VolumeStore{
-		ObjectMeta: metav1.ObjectMeta{Name: "vs-b"},
-		Spec: storagev1.VolumeStoreSpec{
+	vs2 := &storagev1beta1.VolumeStore{
+		// ObjectMeta
+		Name: "vs-b",
+
+		Spec: storagev1beta1.VolumeStoreSpec{
 			Region:        "dup-region",
 			Destination:   "gs://b2",
-			MaxVolumeSize: *conv.Quantity(typesframework.StringValue("2Gi")),
+			MaxVolumeSize: *conv.Quantity(types.StringValue("2Gi")),
 		},
 	}
 

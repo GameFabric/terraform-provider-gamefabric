@@ -6,7 +6,7 @@ import (
 	"time"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
-	v1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
+	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/fake"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/wait"
 	"github.com/stretchr/testify/assert"
@@ -27,10 +27,9 @@ func TestPollUntilNotFound_NotGone(t *testing.T) {
 	t.Parallel()
 
 	synctest.Test(t, func(t *testing.T) {
-		cs, err := fake.New(&v1.Environment{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "test-env",
-			},
+		cs, err := fake.New(&corev1.Environment{
+			// ObjectMeta
+			Name: "test-env",
 		})
 		require.NoError(t, err)
 
@@ -49,10 +48,9 @@ func TestPollUntilNotFound_GoneLater(t *testing.T) {
 	t.Parallel()
 
 	synctest.Test(t, func(t *testing.T) {
-		cs, err := fake.New(&v1.Environment{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "test-env",
-			},
+		cs, err := fake.New(&corev1.Environment{
+			// ObjectMeta
+			Name: "test-env",
 		})
 		require.NoError(t, err)
 

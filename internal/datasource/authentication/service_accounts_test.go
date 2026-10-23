@@ -13,10 +13,10 @@ func TestServiceAccounts(t *testing.T) {
 	t.Parallel()
 
 	sa1 := authv1.ServiceAccount{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   "user1",
-			Labels: map[string]string{"env": "test", "team": "devops"},
-		},
+		// ObjectMeta
+		Name:   "user1",
+		Labels: map[string]string{"env": "test", "team": "devops"},
+
 		Spec: authv1.ServiceAccountSpec{
 			Username: "user1",
 			Email:    "user1@example.com",
@@ -55,6 +55,7 @@ func TestServiceAccounts_NoLabels(t *testing.T) {
 
 	sa := authv1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
+			// ObjectMeta
 			Name: "user-nolabel",
 			// Labels is nil
 		},

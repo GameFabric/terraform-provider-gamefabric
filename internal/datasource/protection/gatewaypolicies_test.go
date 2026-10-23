@@ -3,7 +3,6 @@ package protection_test
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	protectionv1 "github.com/gamefabric/gf-core/pkg/api/protection/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -13,11 +12,10 @@ func TestGatewayPolicies(t *testing.T) {
 	t.Parallel()
 
 	pol := &protectionv1.GatewayPolicy{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-policy",
-			Labels: map[string]string{
-				"env": "prod",
-			},
+		// ObjectMeta
+		Name: "test-policy",
+		Labels: map[string]string{
+			"env": "prod",
 		},
 	}
 
@@ -48,11 +46,10 @@ func TestEnvironments_AllowsGettingAll(t *testing.T) {
 	t.Parallel()
 
 	pol := &protectionv1.GatewayPolicy{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-policy",
-			Labels: map[string]string{
-				"env": "prod",
-			},
+		// ObjectMeta
+		Name: "test-policy",
+		Labels: map[string]string{
+			"env": "prod",
 		},
 	}
 
