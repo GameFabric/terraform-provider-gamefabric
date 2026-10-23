@@ -1,7 +1,6 @@
 package notification_test
 
 import (
-	"context"
 	"regexp"
 	"testing"
 
@@ -101,9 +100,7 @@ func TestReceiverResource_DestroyBlockedByCloudBudget(t *testing.T) {
 			// without hitting the ModifyPlan guard again.
 			{
 				PreConfig: func() {
-					_ = cs.BillingV2Alpha1().CloudBudgets().Delete(
-						context.Background(), "example-budget", metav1.DeleteOptions{},
-					)
+					_ = cs.BillingV2Alpha1().CloudBudgets().Delete(t.Context(), "example-budget", metav1.DeleteOptions{})
 				},
 				Config: `# receiver removed – no more CloudBudget references`,
 			},
