@@ -3,7 +3,6 @@ package core_test
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -13,13 +12,12 @@ func TestSecrets(t *testing.T) {
 	t.Parallel()
 
 	secret1 := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "secret-1",
-			Environment: "dflt",
-			Labels: map[string]string{
-				"team": "platform",
-				"env":  "prod",
-			},
+		// ObjectMeta
+		Name:        "secret-1",
+		Environment: "dflt",
+		Labels: map[string]string{
+			"team": "platform",
+			"env":  "prod",
 		},
 		Description: "First test secret",
 		Data: map[string]string{
@@ -28,13 +26,12 @@ func TestSecrets(t *testing.T) {
 	}
 
 	secret2 := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "secret-2",
-			Environment: "dflt",
-			Labels: map[string]string{
-				"team": "platform",
-				"env":  "staging",
-			},
+		// ObjectMeta
+		Name:        "secret-2",
+		Environment: "dflt",
+		Labels: map[string]string{
+			"team": "platform",
+			"env":  "staging",
 		},
 		Description: "Second test secret",
 		Data: map[string]string{

@@ -36,6 +36,7 @@ func toStringMap(m map[string]string) map[string]types.String {
 
 func (m serviceAccountResourceModel) ToObject() *authv1.ServiceAccount {
 	return &authv1.ServiceAccount{
+		// ObjectMeta
 		Name:   m.Name.ValueString(),
 		Labels: conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
 		Spec: authv1.ServiceAccountSpec{

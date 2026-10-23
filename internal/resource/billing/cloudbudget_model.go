@@ -58,6 +58,7 @@ func (m cloudBudgetModel) ToObject() *billingv2alpha1.CloudBudget {
 	}
 
 	return &billingv2alpha1.CloudBudget{
+		// ObjectMeta
 		Name:        m.Name.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),

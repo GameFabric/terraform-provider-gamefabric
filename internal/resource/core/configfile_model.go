@@ -31,6 +31,7 @@ func newConfigModel(obj *corev1.ConfigFile) configFileModel {
 
 func (m configFileModel) ToObject() *corev1.ConfigFile {
 	return &corev1.ConfigFile{
+		// ObjectMeta
 		Name:        m.Name.ValueString(),
 		Environment: m.Environment.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),

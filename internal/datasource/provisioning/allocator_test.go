@@ -3,7 +3,6 @@ package provisioning_test
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	provisioningv1beta2 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta2"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -13,9 +12,8 @@ func TestAllocator(t *testing.T) {
 	t.Parallel()
 
 	alloc := &provisioningv1beta2.Allocator{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-allocator",
-		},
+		// ObjectMeta
+		Name: "test-allocator",
 		Spec: provisioningv1beta2.AllocatorSpec{
 			Region: "eu-west",
 			RateLimit: provisioningv1beta2.RateLimit{
@@ -71,9 +69,8 @@ func TestAllocator_NoRateLimit(t *testing.T) {
 	t.Parallel()
 
 	alloc := &provisioningv1beta2.Allocator{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "minimal-allocator",
-		},
+		// ObjectMeta
+		Name: "minimal-allocator",
 		Spec: provisioningv1beta2.AllocatorSpec{
 			Region: "us-east",
 		},

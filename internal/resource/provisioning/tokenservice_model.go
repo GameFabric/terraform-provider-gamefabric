@@ -74,6 +74,7 @@ func newTokenServiceModel(obj *provisioningv1beta2.TokenService) tokenServiceMod
 
 func (m tokenServiceModel) ToObject() *provisioningv1beta2.TokenService {
 	return &provisioningv1beta2.TokenService{
+		// ObjectMeta
 		Name:        m.Name.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(v types.String) string { return v.ValueString() }),

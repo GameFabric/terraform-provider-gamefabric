@@ -62,6 +62,7 @@ func newArmadaSetModel(obj *armadav1.ArmadaSet, as *armadaSetAutoscalingModel) a
 
 func (m armadaSetModel) ToObject() *armadav1.ArmadaSet {
 	return &armadav1.ArmadaSet{
+		// ObjectMeta
 		Name:        m.Name.ValueString(),
 		Environment: m.Environment.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
@@ -77,6 +78,7 @@ func (m armadaSetModel) ToObject() *armadav1.ArmadaSet {
 			},
 			Template: armadav1.FleetTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
+					// ObjectMeta
 					Labels: conv.ForEachMapItem(
 						conv.MapWithBool(
 							conv.MapWithBool(m.GameServerLabels, profilingKey, m.ProfilingEnabled),

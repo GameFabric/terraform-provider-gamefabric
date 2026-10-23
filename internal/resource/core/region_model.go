@@ -39,6 +39,7 @@ func newRegionModel(obj *corev1.Region) regionModel {
 
 func (m regionModel) ToObject() *corev1.Region {
 	obj := &corev1.Region{
+		// ObjectMeta
 		Name:        m.Name.ValueString(),
 		Environment: m.Environment.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),

@@ -4,7 +4,6 @@ import (
 	"regexp"
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -14,12 +13,11 @@ func TestSecret(t *testing.T) {
 	t.Parallel()
 
 	secret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "test-secret",
-			Environment: "dflt",
-			Labels: map[string]string{
-				"team": "platform",
-			},
+		// ObjectMeta
+		Name:        "test-secret",
+		Environment: "dflt",
+		Labels: map[string]string{
+			"team": "platform",
 		},
 		Description: "Test secret",
 		Data: map[string]string{
@@ -58,10 +56,9 @@ func TestSecret_NotFound(t *testing.T) {
 	t.Parallel()
 
 	secret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "test-secret",
-			Environment: "dflt",
-		},
+		// ObjectMeta
+		Name:        "test-secret",
+		Environment: "dflt",
 		Description: "Test secret",
 		Data: map[string]string{
 			"password": "secret-value",

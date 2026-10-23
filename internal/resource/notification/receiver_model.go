@@ -31,6 +31,7 @@ func newReceiverModel(obj *notificationv1alpha1.Receiver) receiverModel {
 
 func (m receiverModel) ToObject() *notificationv1alpha1.Receiver {
 	return &notificationv1alpha1.Receiver{
+		// ObjectMeta
 		Name:        m.Name.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),

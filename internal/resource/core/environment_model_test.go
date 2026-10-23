@@ -3,7 +3,6 @@ package core
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -21,14 +20,13 @@ func TestEnvironmentModel_ToObject(t *testing.T) {
 
 var (
 	testEnvironmentObject = &corev1.Environment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-environment",
-			Labels: map[string]string{
-				"label-key": "label-value",
-			},
-			Annotations: map[string]string{
-				"annotation-key": "annotation-value",
-			},
+		// ObjectMeta
+		Name: "test-environment",
+		Labels: map[string]string{
+			"label-key": "label-value",
+		},
+		Annotations: map[string]string{
+			"annotation-key": "annotation-value",
 		},
 		Spec: corev1.EnvironmentSpec{
 			DisplayName: "Test Environment Display Name",

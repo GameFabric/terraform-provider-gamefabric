@@ -30,6 +30,7 @@ func newGatewayPolicyModel(obj *protectionv1.GatewayPolicy) gatewayPolicyModel {
 
 func (m gatewayPolicyModel) ToObject() *protectionv1.GatewayPolicy {
 	return &protectionv1.GatewayPolicy{
+		// ObjectMeta
 		Name:        m.Name.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),

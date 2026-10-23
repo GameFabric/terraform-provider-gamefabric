@@ -3,7 +3,6 @@ package rbac
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	rbacv1 "github.com/gamefabric/gf-core/pkg/api/rbac/v1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -21,14 +20,13 @@ func TestGroupModel_ToObject(t *testing.T) {
 
 var (
 	testGroupObject = &rbacv1.Group{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-group",
-			Labels: map[string]string{
-				"label-key": "label-value",
-			},
-			Annotations: map[string]string{
-				"annotation-key": "annotation-value",
-			},
+		// ObjectMeta
+		Name: "test-group",
+		Labels: map[string]string{
+			"label-key": "label-value",
+		},
+		Annotations: map[string]string{
+			"annotation-key": "annotation-value",
 		},
 		Users: []string{"test1", "test2"},
 	}

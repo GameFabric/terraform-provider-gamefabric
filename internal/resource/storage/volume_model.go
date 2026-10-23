@@ -31,6 +31,7 @@ func newVolumeModel(obj *storagev1beta1.Volume) volumeModel {
 
 func (m volumeModel) ToObject() *storagev1beta1.Volume {
 	return &storagev1beta1.Volume{
+		// ObjectMeta
 		Name:        m.Name.ValueString(),
 		Environment: m.Environment.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),

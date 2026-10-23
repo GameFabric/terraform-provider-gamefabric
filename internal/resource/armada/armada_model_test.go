@@ -30,15 +30,15 @@ func TestArmadaModel_ToObject(t *testing.T) {
 
 var (
 	testArmadaObject = &armadav1.Armada{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "test-armada",
-			Environment: "test-environment",
-			Labels: map[string]string{
-				"label-key": "label-value",
-			},
-			Annotations: map[string]string{
-				"annotation-key": "annotation-value",
-			},
+		// ObjectMeta
+		Name:        "test-armada",
+		Environment: "test-environment",
+		// ObjectMeta
+		Labels: map[string]string{
+			"label-key": "label-value",
+		},
+		Annotations: map[string]string{
+			"annotation-key": "annotation-value",
 		},
 		Spec: armadav1.ArmadaSpec{
 			Description: "Armada Description",

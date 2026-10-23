@@ -4,7 +4,6 @@ import (
 	"regexp"
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -14,7 +13,8 @@ func TestEnvironment(t *testing.T) {
 	t.Parallel()
 
 	env := &corev1.Environment{
-		ObjectMeta: metav1.ObjectMeta{Name: "dflt"},
+		// ObjectMeta
+		Name: "dflt",
 		Spec: corev1.EnvironmentSpec{
 			DisplayName: "My Env",
 			Description: "My Env Description",
@@ -57,14 +57,16 @@ func TestEnvironment_HandlesMultipleMatches(t *testing.T) {
 	t.Parallel()
 
 	env := &corev1.Environment{
-		ObjectMeta: metav1.ObjectMeta{Name: "dflt"},
+		// ObjectMeta
+		Name: "dflt",
 		Spec: corev1.EnvironmentSpec{
 			DisplayName: "My Env",
 			Description: "My Env Description",
 		},
 	}
 	otherEnv := &corev1.Environment{
-		ObjectMeta: metav1.ObjectMeta{Name: "other"},
+		// ObjectMeta
+		Name: "other",
 		Spec: corev1.EnvironmentSpec{
 			DisplayName: "My Env",
 			Description: "My Env Description",
@@ -92,14 +94,16 @@ func TestEnvironment_HandlesMultipleSelectors(t *testing.T) {
 	t.Parallel()
 
 	env := &corev1.Environment{
-		ObjectMeta: metav1.ObjectMeta{Name: "dflt"},
+		// ObjectMeta
+		Name: "dflt",
 		Spec: corev1.EnvironmentSpec{
 			DisplayName: "My Env",
 			Description: "My Env Description",
 		},
 	}
 	otherEnv := &corev1.Environment{
-		ObjectMeta: metav1.ObjectMeta{Name: "other"},
+		// ObjectMeta
+		Name: "other",
 		Spec: corev1.EnvironmentSpec{
 			DisplayName: "My Env",
 			Description: "My Env Description",

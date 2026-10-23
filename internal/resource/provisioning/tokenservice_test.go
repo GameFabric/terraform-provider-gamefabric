@@ -112,7 +112,8 @@ func TestTokenService_EOS(t *testing.T) {
 func TestTokenService_EOSLegacyPlatforms(t *testing.T) {
 	name := "eos-legacy-service"
 	ts := &provisioningv1beta2.TokenService{
-		ObjectMeta: metav1.ObjectMeta{Name: name},
+		// ObjectMeta
+		Name: name,
 		Spec: provisioningv1beta2.TokenServiceSpec{
 			Environment: provisioningv1beta2.TokenServiceEnvProd,
 			Game: provisioningv1beta2.TokenServiceGameSpec{

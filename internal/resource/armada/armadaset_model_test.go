@@ -99,15 +99,15 @@ func TestArmadaSetModel_ToObjectWithTopLevelScaleToZero(t *testing.T) {
 
 var (
 	testArmadaSetObject = &armadav1.ArmadaSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "test-armadaset",
-			Environment: "test-environment",
-			Labels: map[string]string{
-				"label-key": "label-value",
-			},
-			Annotations: map[string]string{
-				"annotation-key": "annotation-value",
-			},
+		// ObjectMeta
+		Name:        "test-armadaset",
+		Environment: "test-environment",
+		// ObjectMeta
+		Labels: map[string]string{
+			"label-key": "label-value",
+		},
+		Annotations: map[string]string{
+			"annotation-key": "annotation-value",
 		},
 		Spec: armadav1.ArmadaSetSpec{
 			Description: "ArmadaSet Description",

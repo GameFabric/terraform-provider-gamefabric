@@ -4,7 +4,6 @@ import (
 	"regexp"
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -15,10 +14,9 @@ func TestRegion(t *testing.T) {
 	t.Parallel()
 
 	region := &corev1.Region{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "test-region",
-			Environment: "dflt",
-		},
+		// ObjectMeta
+		Name:        "test-region",
+		Environment: "dflt",
 		Spec: corev1.RegionSpec{
 			DisplayName: "My Region",
 			Types: []corev1.RegionType{
@@ -80,19 +78,17 @@ func TestRegion_HandlesMultipleMatches(t *testing.T) {
 	t.Parallel()
 
 	region := &corev1.Region{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "test-region",
-			Environment: "dflt",
-		},
+		// ObjectMeta
+		Name:        "test-region",
+		Environment: "dflt",
 		Spec: corev1.RegionSpec{
 			DisplayName: "My Region",
 		},
 	}
 	otherRegion := &corev1.Region{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "other-region",
-			Environment: "dflt",
-		},
+		// ObjectMeta
+		Name:        "other-region",
+		Environment: "dflt",
 		Spec: corev1.RegionSpec{
 			DisplayName: "My Region",
 		},
@@ -120,19 +116,17 @@ func TestRegion_HandlesMultipleSelectors(t *testing.T) {
 	t.Parallel()
 
 	region := &corev1.Region{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "test-region",
-			Environment: "dflt",
-		},
+		// ObjectMeta
+		Name:        "test-region",
+		Environment: "dflt",
 		Spec: corev1.RegionSpec{
 			DisplayName: "My Region",
 		},
 	}
 	otherRegion := &corev1.Region{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "other-region",
-			Environment: "dflt",
-		},
+		// ObjectMeta
+		Name:        "other-region",
+		Environment: "dflt",
 		Spec: corev1.RegionSpec{
 			DisplayName: "My Region",
 		},

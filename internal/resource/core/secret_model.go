@@ -35,6 +35,7 @@ func newSecretModel(obj *corev1.Secret, ver int64) secretModel {
 
 func (m secretModel) ToObject() *corev1.Secret {
 	return &corev1.Secret{
+		// ObjectMeta
 		Name:        m.Name.ValueString(),
 		Environment: m.Environment.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),

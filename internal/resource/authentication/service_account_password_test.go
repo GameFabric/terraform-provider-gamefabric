@@ -3,7 +3,6 @@ package authentication_test
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	authv1 "github.com/gamefabric/gf-core/pkg/api/authentication/v1beta1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -14,9 +13,8 @@ func TestServiceAccountPasswordResource(t *testing.T) {
 
 	// Pre-create a service account that will be used for the password reset
 	serviceAccount := &authv1.ServiceAccount{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "svc-test",
-		},
+		// ObjectMeta
+		Name: "svc-test",
 		Spec: authv1.ServiceAccountSpec{
 			Username: "svc-test",
 			Email:    "svc-test@ec.nitrado.systems",

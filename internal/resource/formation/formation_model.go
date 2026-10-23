@@ -62,6 +62,7 @@ func newFormationModel(obj *formationv1.Formation) formationModel {
 
 func (m formationModel) ToObject() *formationv1.Formation {
 	return &formationv1.Formation{
+		// ObjectMeta
 		Name:        m.Name.ValueString(),
 		Environment: m.Environment.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
@@ -71,6 +72,7 @@ func (m formationModel) ToObject() *formationv1.Formation {
 			Vessels:     conv.ForEachSliceItem(m.Vessels, toVesselTemplateModel),
 			Template: formationv1.GameServerTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
+					// ObjectMeta
 					Labels: conv.ForEachMapItem(
 						conv.MapWithBool(
 							conv.MapWithBool(m.GameServerLabels, profilingKey, m.ProfilingEnabled),
@@ -127,6 +129,7 @@ func newVolumeTemplate(obj formationv1.VolumeTemplate) VolumeTemplateModel {
 
 func toVolumeTemplateModel(m VolumeTemplateModel) formationv1.VolumeTemplate {
 	return formationv1.VolumeTemplate{
+		// ObjectMeta
 		Name: m.Name.ValueString(),
 		Spec: formationv1.VolumeTemplateSpec{
 			VolumeSpec: v1beta1.VolumeSpec{

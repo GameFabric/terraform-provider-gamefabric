@@ -3,7 +3,6 @@ package protection
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	protectionv1 "github.com/gamefabric/gf-core/pkg/api/protection/v1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -21,14 +20,13 @@ func TestGatewayPolicyModel_ToObject(t *testing.T) {
 
 var (
 	testGatewayPolicyObject = &protectionv1.GatewayPolicy{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-gateway-policy",
-			Labels: map[string]string{
-				"label-key": "label-value",
-			},
-			Annotations: map[string]string{
-				"annotation-key": "annotation-value",
-			},
+		// ObjectMeta
+		Name: "test-gateway-policy",
+		Labels: map[string]string{
+			"label-key": "label-value",
+		},
+		Annotations: map[string]string{
+			"annotation-key": "annotation-value",
 		},
 		Spec: protectionv1.GatewayPolicySpec{
 			DisplayName: "Test Gateway Policy",

@@ -28,9 +28,8 @@ func TestPollUntilNotFound_NotGone(t *testing.T) {
 
 	synctest.Test(t, func(t *testing.T) {
 		cs, err := fake.New(&v1.Environment{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "test-env",
-			},
+			// ObjectMeta
+			Name: "test-env",
 		})
 		require.NoError(t, err)
 
@@ -50,9 +49,8 @@ func TestPollUntilNotFound_GoneLater(t *testing.T) {
 
 	synctest.Test(t, func(t *testing.T) {
 		cs, err := fake.New(&v1.Environment{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "test-env",
-			},
+			// ObjectMeta
+			Name: "test-env",
 		})
 		require.NoError(t, err)
 

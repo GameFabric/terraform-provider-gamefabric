@@ -3,7 +3,6 @@ package storage
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	storagev1beta1 "github.com/gamefabric/gf-core/pkg/api/storage/v1beta1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -24,15 +23,14 @@ func TestVolumeModel_ToObject(t *testing.T) {
 
 var (
 	testVolumeObject = &storagev1beta1.Volume{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "test-volume",
-			Environment: "dflt",
-			Labels: map[string]string{
-				"label-key": "label-value",
-			},
-			Annotations: map[string]string{
-				"annotation-key": "annotation-value",
-			},
+		// ObjectMeta
+		Name:        "test-volume",
+		Environment: "dflt",
+		Labels: map[string]string{
+			"label-key": "label-value",
+		},
+		Annotations: map[string]string{
+			"annotation-key": "annotation-value",
 		},
 		Spec: storagev1beta1.VolumeSpec{
 			VolumeStoreName: "test-volume-store",

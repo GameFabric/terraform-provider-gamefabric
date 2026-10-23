@@ -59,6 +59,7 @@ func newVesselModel(obj *formationv1.Vessel) vesselModel {
 
 func (m vesselModel) ToObject() *formationv1.Vessel {
 	return &formationv1.Vessel{
+		// ObjectMeta
 		Name:        m.Name.ValueString(),
 		Environment: m.Environment.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
@@ -69,6 +70,7 @@ func (m vesselModel) ToObject() *formationv1.Vessel {
 			Suspend:     m.Suspend.ValueBoolPointer(),
 			Template: formationv1.GameServerTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
+					// ObjectMeta
 					Labels: conv.ForEachMapItem(
 						conv.MapWithBool(
 							conv.MapWithBool(m.GameServerLabels, profilingKey, m.ProfilingEnabled),

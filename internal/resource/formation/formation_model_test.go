@@ -30,23 +30,21 @@ func TestFormationModel_ToObject(t *testing.T) {
 
 var (
 	testFormationObject = &formationv1.Formation{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "test-formation",
-			Environment: "test-env",
-			Labels: map[string]string{
-				"label-key": "label-value",
-			},
-			Annotations: map[string]string{
-				"annotation-key": "annotation-value",
-			},
+		// ObjectMeta
+		Name:        "test-formation",
+		Environment: "test-env",
+		Labels: map[string]string{
+			"label-key": "label-value",
+		},
+		Annotations: map[string]string{
+			"annotation-key": "annotation-value",
 		},
 		Spec: formationv1.FormationSpec{
 			Description: "Test Formation Description",
 			VolumeTemplates: []formationv1.VolumeTemplate{
 				{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "test-volume-template",
-					},
+					// ObjectMeta
+					Name: "test-volume-template",
 					Spec: formationv1.VolumeTemplateSpec{
 						VolumeSpec: v1beta1.VolumeSpec{
 							VolumeStoreName: "test-volume-store",
@@ -63,6 +61,7 @@ var (
 					Description: "Test Vessel Description",
 					Suspend:     new(true),
 					Override: formationv1.VesselOverride{
+						// ObjectMeta
 						Labels: map[string]string{
 							"override-label-key": "override-label-value",
 						},

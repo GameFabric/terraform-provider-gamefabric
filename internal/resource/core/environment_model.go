@@ -28,6 +28,7 @@ func newEnvironmentModel(obj *corev1.Environment) environmentModel {
 
 func (m environmentModel) ToObject() *corev1.Environment {
 	return &corev1.Environment{
+		// ObjectMeta
 		Name:        m.Name.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),

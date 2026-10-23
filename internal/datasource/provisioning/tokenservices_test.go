@@ -3,7 +3,6 @@ package provisioning_test
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	provisioningv1beta2 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta2"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -11,10 +10,9 @@ import (
 
 func TestTokenServicesDataSource(t *testing.T) {
 	a := &provisioningv1beta2.TokenService{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   "service-a",
-			Labels: map[string]string{"team": "platforms"},
-		},
+		// ObjectMeta
+		Name:   "service-a",
+		Labels: map[string]string{"team": "platforms"},
 		Spec: provisioningv1beta2.TokenServiceSpec{
 			Environment: provisioningv1beta2.TokenServiceEnvProd,
 			Game:        provisioningv1beta2.TokenServiceGameSpec{Name: "game-a"},
@@ -22,10 +20,9 @@ func TestTokenServicesDataSource(t *testing.T) {
 		},
 	}
 	b := &provisioningv1beta2.TokenService{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   "service-b",
-			Labels: map[string]string{"team": "other"},
-		},
+		// ObjectMeta
+		Name:   "service-b",
+		Labels: map[string]string{"team": "other"},
 		Spec: provisioningv1beta2.TokenServiceSpec{
 			Environment: provisioningv1beta2.TokenServiceEnvDev,
 			Game:        provisioningv1beta2.TokenServiceGameSpec{Name: "game-b"},

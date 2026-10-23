@@ -38,6 +38,7 @@ func newVolumeStoreRetentionPolicyModel(obj *storagev1beta1.VolumeStoreRetention
 
 func (m volumeStoreRetentionPolicyModel) ToObject() *storagev1beta1.VolumeStoreRetentionPolicy {
 	obj := &storagev1beta1.VolumeStoreRetentionPolicy{
+		// ObjectMeta
 		Name:        m.VolumeStore.ValueString(),
 		Environment: m.Environment.ValueString(),
 		Spec: storagev1beta1.VolumeStoreRetentionPolicySpec{

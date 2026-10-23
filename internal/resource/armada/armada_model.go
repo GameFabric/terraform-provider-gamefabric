@@ -65,6 +65,7 @@ func newArmadaModel(obj *armadav1.Armada) armadaModel {
 
 func (m armadaModel) ToObject() *armadav1.Armada {
 	return &armadav1.Armada{
+		// ObjectMeta
 		Name:        m.Name.ValueString(),
 		Environment: m.Environment.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
@@ -87,6 +88,7 @@ func (m armadaModel) ToObject() *armadav1.Armada {
 			},
 			Template: armadav1.FleetTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
+					// ObjectMeta
 					Labels: conv.ForEachMapItem(
 						conv.MapWithBool(
 							conv.MapWithBool(m.GameServerLabels, profilingKey, m.ProfilingEnabled),

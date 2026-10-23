@@ -30,6 +30,7 @@ func newBranchModel(obj *containerv1.Branch) branchModel {
 
 func (m branchModel) ToObject() *containerv1.Branch {
 	return &containerv1.Branch{
+		// ObjectMeta
 		Name:        m.Name.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),

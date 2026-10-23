@@ -66,7 +66,8 @@ func TestReceiverResource_DestroyBlockedByCloudBudget(t *testing.T) {
 	// there is no "already exists" conflict. By the time step 2 runs (destroy),
 	// the CloudBudget is already present and ModifyPlan can detect the reference.
 	budget := &billingv2alpha1.CloudBudget{
-		ObjectMeta: metav1.ObjectMeta{Name: "example-budget"},
+		// ObjectMeta
+		Name: "example-budget",
 		Spec: billingv2alpha1.CloudBudgetSpec{
 			Receivers: []string{"blocked-receiver"},
 			MaxBudget: 100,

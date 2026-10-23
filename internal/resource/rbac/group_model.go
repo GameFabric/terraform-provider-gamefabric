@@ -26,6 +26,7 @@ func newGroupModel(obj *rbacv1.Group) groupModel {
 
 func (m groupModel) ToObject() *rbacv1.Group {
 	return &rbacv1.Group{
+		// ObjectMeta
 		Name:        m.Name.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),

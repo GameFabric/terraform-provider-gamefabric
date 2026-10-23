@@ -4,7 +4,6 @@ import (
 	"regexp"
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	storagev1 "github.com/gamefabric/gf-core/pkg/api/storage/v1beta1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
@@ -16,7 +15,8 @@ func TestVolumeStore_ByName(t *testing.T) {
 	t.Parallel()
 
 	vs := &storagev1.VolumeStore{
-		ObjectMeta: metav1.ObjectMeta{Name: "test-volumestore"},
+		// ObjectMeta
+		Name: "test-volumestore",
 		Spec: storagev1.VolumeStoreSpec{
 			Region:        "europe-west1",
 			Destination:   "gs://bucket",
@@ -49,7 +49,8 @@ func TestVolumeStore_ByRegion(t *testing.T) {
 	t.Parallel()
 
 	vs := &storagev1.VolumeStore{
-		ObjectMeta: metav1.ObjectMeta{Name: "vs-region"},
+		// ObjectMeta
+		Name: "vs-region",
 		Spec: storagev1.VolumeStoreSpec{
 			Region:        "europe-west1",
 			Destination:   "gs://bucket2",
@@ -82,7 +83,8 @@ func TestVolumeStore_ByRegion_MultipleMatches(t *testing.T) {
 	t.Parallel()
 
 	vs1 := &storagev1.VolumeStore{
-		ObjectMeta: metav1.ObjectMeta{Name: "vs-a"},
+		// ObjectMeta
+		Name: "vs-a",
 		Spec: storagev1.VolumeStoreSpec{
 			Region:        "dup-region",
 			Destination:   "gs://b1",
@@ -90,7 +92,8 @@ func TestVolumeStore_ByRegion_MultipleMatches(t *testing.T) {
 		},
 	}
 	vs2 := &storagev1.VolumeStore{
-		ObjectMeta: metav1.ObjectMeta{Name: "vs-b"},
+		// ObjectMeta
+		Name: "vs-b",
 		Spec: storagev1.VolumeStoreSpec{
 			Region:        "dup-region",
 			Destination:   "gs://b2",

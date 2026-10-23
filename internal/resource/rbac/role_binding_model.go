@@ -24,6 +24,7 @@ func newRoleBindingModel(obj *rbacv1.RoleBinding) roleBindingModel {
 
 func (m roleBindingModel) ToObject() *rbacv1.RoleBinding {
 	return &rbacv1.RoleBinding{
+		// ObjectMeta
 		Name:   m.Role.ValueString(),
 		Users:  conv.ForEachSliceItem(m.Users, func(item types.String) string { return item.ValueString() }),
 		Groups: conv.ForEachSliceItem(m.Groups, func(item types.String) string { return item.ValueString() }),

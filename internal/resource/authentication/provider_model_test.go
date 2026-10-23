@@ -3,7 +3,6 @@ package authentication
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	authenticationv1 "github.com/gamefabric/gf-core/pkg/api/authentication/v1beta1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -21,9 +20,8 @@ func TestProviderModel_ToObject(t *testing.T) {
 
 var (
 	testProviderObject = &authenticationv1.Provider{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-provider",
-		},
+		// ObjectMeta
+		Name: "test-provider",
 		Spec: authenticationv1.ProviderSpec{
 			DisplayName: "Test Provider",
 			OIDC: &authenticationv1.OIDCProvider{
