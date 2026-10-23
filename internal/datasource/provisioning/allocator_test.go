@@ -14,6 +14,7 @@ func TestAllocator(t *testing.T) {
 	alloc := &provisioningv1beta2.Allocator{
 		// ObjectMeta
 		Name: "test-allocator",
+
 		Spec: provisioningv1beta2.AllocatorSpec{
 			Region: "eu-west",
 			RateLimit: provisioningv1beta2.RateLimit{
@@ -71,6 +72,7 @@ func TestAllocator_NoRateLimit(t *testing.T) {
 	alloc := &provisioningv1beta2.Allocator{
 		// ObjectMeta
 		Name: "minimal-allocator",
+
 		Spec: provisioningv1beta2.AllocatorSpec{
 			Region: "us-east",
 		},

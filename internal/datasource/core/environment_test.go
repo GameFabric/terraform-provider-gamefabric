@@ -15,6 +15,7 @@ func TestEnvironment(t *testing.T) {
 	env := &corev1.Environment{
 		// ObjectMeta
 		Name: "dflt",
+
 		Spec: corev1.EnvironmentSpec{
 			DisplayName: "My Env",
 			Description: "My Env Description",
@@ -59,6 +60,7 @@ func TestEnvironment_HandlesMultipleMatches(t *testing.T) {
 	env := &corev1.Environment{
 		// ObjectMeta
 		Name: "dflt",
+
 		Spec: corev1.EnvironmentSpec{
 			DisplayName: "My Env",
 			Description: "My Env Description",
@@ -67,6 +69,7 @@ func TestEnvironment_HandlesMultipleMatches(t *testing.T) {
 	otherEnv := &corev1.Environment{
 		// ObjectMeta
 		Name: "other",
+
 		Spec: corev1.EnvironmentSpec{
 			DisplayName: "My Env",
 			Description: "My Env Description",
@@ -96,6 +99,7 @@ func TestEnvironment_HandlesMultipleSelectors(t *testing.T) {
 	env := &corev1.Environment{
 		// ObjectMeta
 		Name: "dflt",
+
 		Spec: corev1.EnvironmentSpec{
 			DisplayName: "My Env",
 			Description: "My Env Description",
@@ -104,6 +108,7 @@ func TestEnvironment_HandlesMultipleSelectors(t *testing.T) {
 	otherEnv := &corev1.Environment{
 		// ObjectMeta
 		Name: "other",
+
 		Spec: corev1.EnvironmentSpec{
 			DisplayName: "My Env",
 			Description: "My Env Description",

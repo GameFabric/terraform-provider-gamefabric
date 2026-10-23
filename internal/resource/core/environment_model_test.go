@@ -28,6 +28,7 @@ var (
 		Annotations: map[string]string{
 			"annotation-key": "annotation-value",
 		},
+
 		Spec: corev1.EnvironmentSpec{
 			DisplayName: "Test Environment Display Name",
 			Description: "Test Environment Description",

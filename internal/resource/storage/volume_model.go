@@ -36,6 +36,7 @@ func (m volumeModel) ToObject() *storagev1beta1.Volume {
 		Environment: m.Environment.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
+
 		Spec: storagev1beta1.VolumeSpec{
 			VolumeStoreName: m.VolumeStore.ValueString(),
 			Capacity:        *conv.Quantity(m.Capacity),

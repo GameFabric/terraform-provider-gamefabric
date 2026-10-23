@@ -19,6 +19,7 @@ func TestSecret(t *testing.T) {
 		Labels: map[string]string{
 			"team": "platform",
 		},
+
 		Description: "Test secret",
 		Data: map[string]string{
 			"password":   "secret-value",
@@ -59,6 +60,7 @@ func TestSecret_NotFound(t *testing.T) {
 		// ObjectMeta
 		Name:        "test-secret",
 		Environment: "dflt",
+
 		Description: "Test secret",
 		Data: map[string]string{
 			"password": "secret-value",

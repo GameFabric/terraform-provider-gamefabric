@@ -46,6 +46,7 @@ var (
 		Annotations: map[string]string{
 			"annotation-key": "annotation-value",
 		},
+
 		Spec: corev1.RegionSpec{
 			DisplayName: "Test Region",
 			Description: "Test Region Description",

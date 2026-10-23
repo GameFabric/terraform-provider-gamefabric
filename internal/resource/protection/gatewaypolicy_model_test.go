@@ -28,6 +28,7 @@ var (
 		Annotations: map[string]string{
 			"annotation-key": "annotation-value",
 		},
+
 		Spec: protectionv1.GatewayPolicySpec{
 			DisplayName: "Test Gateway Policy",
 			Description: "Test Gateway Policy Description",

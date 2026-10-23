@@ -30,6 +30,7 @@ var (
 	testExportStoreObject = &auditv1alpha1.ExportStore{
 		// ObjectMeta
 		Name: "my-store",
+
 		Spec: auditv1alpha1.ExportStoreSpec{
 			S3: &auditv1alpha1.ExportStoreS3{
 				Bucket:   "my-bucket",

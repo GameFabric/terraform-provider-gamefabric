@@ -67,6 +67,7 @@ func TestReceiverResource_DestroyBlockedByCloudBudget(t *testing.T) {
 	budget := &billingv2alpha1.CloudBudget{
 		// ObjectMeta
 		Name: "example-budget",
+
 		Spec: billingv2alpha1.CloudBudgetSpec{
 			Receivers: []string{"blocked-receiver"},
 			MaxBudget: 100,

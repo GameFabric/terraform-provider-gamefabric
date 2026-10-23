@@ -39,6 +39,7 @@ func (m serviceAccountResourceModel) ToObject() *authv1.ServiceAccount {
 		// ObjectMeta
 		Name:   m.Name.ValueString(),
 		Labels: conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
+
 		Spec: authv1.ServiceAccountSpec{
 			Username: m.Name.ValueString(),
 			Email:    fmt.Sprintf("%s@%s", m.Name.ValueString(), ecDomain),

@@ -22,6 +22,7 @@ var (
 	testProviderObject = &authv1.Provider{
 		// ObjectMeta
 		Name: "test-provider",
+
 		Spec: authv1.ProviderSpec{
 			DisplayName: "Test Provider",
 			OIDC: &authv1.OIDCProvider{

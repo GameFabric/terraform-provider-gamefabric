@@ -40,6 +40,7 @@ var (
 		Annotations: map[string]string{
 			"annotation-key": "annotation-value",
 		},
+
 		Spec: armadav1.ArmadaSpec{
 			Description: "Armada Description",
 			Region:      "eu",

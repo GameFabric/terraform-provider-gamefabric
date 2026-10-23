@@ -14,6 +14,7 @@ func TestPingDiscovery(t *testing.T) {
 	pd := &provisioningv1beta2.PingDiscovery{
 		// ObjectMeta
 		Name: "test-pd",
+
 		Status: provisioningv1beta2.PingDiscoveryStatus{
 			URL:    "https://ping.example.com",
 			Tokens: []string{"pd-token-old", "pd-token-new"},

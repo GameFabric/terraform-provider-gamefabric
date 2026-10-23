@@ -15,7 +15,8 @@ func TestConfigFile(t *testing.T) {
 		// ObjectMeta
 		Name:        "test-config-file",
 		Environment: "dflt",
-		Data:        "some-configuration-data",
+
+		Data: "some-configuration-data",
 	}
 
 	pf, _ := providertest.ProtoV6ProviderFactories(t, cfgFile)

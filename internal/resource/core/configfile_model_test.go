@@ -29,6 +29,7 @@ var (
 		Annotations: map[string]string{
 			"annotation-key": "annotation-value",
 		},
+
 		Description: "ConfigFile Description",
 		Data:        "config file data content",
 	}

@@ -14,6 +14,7 @@ func TestProtocols(t *testing.T) {
 	proto1 := &protectionv1.Protocol{
 		// ObjectMeta
 		Name: "test-protocol1",
+
 		Spec: protectionv1.ProtocolSpec{
 			DisplayName: "My Protocol 1",
 			Description: "My Protection Protocol 1",
@@ -23,6 +24,7 @@ func TestProtocols(t *testing.T) {
 	proto2 := &protectionv1.Protocol{
 		// ObjectMeta
 		Name: "test-protocol2",
+
 		Spec: protectionv1.ProtocolSpec{
 			DisplayName: "My Protocol 2",
 			Description: "My Protection Protocol 2",

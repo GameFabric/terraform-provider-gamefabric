@@ -17,6 +17,7 @@ func TestEnvironments(t *testing.T) {
 		Labels: map[string]string{
 			"env": "prod",
 		},
+
 		Spec: corev1.EnvironmentSpec{
 			DisplayName: "My Env",
 			Description: "My Env Description",
@@ -55,6 +56,7 @@ func TestEnvironments_AllowsGettingAll(t *testing.T) {
 	env := &corev1.Environment{
 		// ObjectMeta
 		Name: "dflt",
+
 		Spec: corev1.EnvironmentSpec{
 			DisplayName: "My Env",
 			Description: "My Env Description",

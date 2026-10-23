@@ -109,6 +109,7 @@ var (
 		Annotations: map[string]string{
 			"annotation-key": "annotation-value",
 		},
+
 		Spec: armadav1.ArmadaSetSpec{
 			Description: "ArmadaSet Description",
 			Armadas: []armadav1.ArmadaTemplate{

@@ -16,6 +16,7 @@ func TestConfigFiles(t *testing.T) {
 		Labels: map[string]string{
 			"test": "lbl",
 		},
+
 		Data: "some-configuration-data",
 	}
 

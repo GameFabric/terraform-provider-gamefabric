@@ -16,6 +16,7 @@ func TestServiceAccount(t *testing.T) {
 		// ObjectMeta
 		Name:   "something",
 		Labels: map[string]string{"env": "test", "team": "devops"},
+
 		Spec: authv1.ServiceAccountSpec{
 			Username: "user",
 			Email:    "user@example.com",

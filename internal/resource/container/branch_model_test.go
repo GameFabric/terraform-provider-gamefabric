@@ -28,6 +28,7 @@ var (
 		Annotations: map[string]string{
 			"annotation-key": "annotation-value",
 		},
+
 		Spec: containerv1.BranchSpec{
 			DisplayName: "Test Branch Display Name",
 			Description: "Test Branch Description",

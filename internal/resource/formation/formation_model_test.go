@@ -39,12 +39,14 @@ var (
 		Annotations: map[string]string{
 			"annotation-key": "annotation-value",
 		},
+
 		Spec: formationv1.FormationSpec{
 			Description: "Test Formation Description",
 			VolumeTemplates: []formationv1.VolumeTemplate{
 				{
 					// ObjectMeta
 					Name: "test-volume-template",
+
 					Spec: formationv1.VolumeTemplateSpec{
 						VolumeSpec: v1beta1.VolumeSpec{
 							VolumeStoreName: "test-volume-store",
@@ -65,6 +67,7 @@ var (
 						Labels: map[string]string{
 							"override-label-key": "override-label-value",
 						},
+
 						Containers: []formationv1.VesselContainerOverride{
 							{
 								Command: []string{"/bin/sh"},

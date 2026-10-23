@@ -15,6 +15,7 @@ func TestProtocol(t *testing.T) {
 	proto := &protectionv1.Protocol{
 		// ObjectMeta
 		Name: "test-protocol",
+
 		Spec: protectionv1.ProtocolSpec{
 			DisplayName: "My Protocol",
 			Description: "My Protection Protocol",
@@ -62,6 +63,7 @@ func TestProtocol_HandlesMultipleMatches(t *testing.T) {
 	proto := &protectionv1.Protocol{
 		// ObjectMeta
 		Name: "test-protocol",
+
 		Spec: protectionv1.ProtocolSpec{
 			DisplayName: "My Protocol",
 		},
@@ -69,6 +71,7 @@ func TestProtocol_HandlesMultipleMatches(t *testing.T) {
 	otherProto := &protectionv1.Protocol{
 		// ObjectMeta
 		Name: "other-region",
+
 		Spec: protectionv1.ProtocolSpec{
 			DisplayName: "My Protocol",
 		},

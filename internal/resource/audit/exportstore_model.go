@@ -55,6 +55,7 @@ func (m exportStoreModel) ToObject() *auditv1alpha1.ExportStore {
 	obj := &auditv1alpha1.ExportStore{
 		// ObjectMeta
 		Name: m.Name.ValueString(),
+
 		Spec: auditv1alpha1.ExportStoreSpec{
 			Suspended: m.Suspended.ValueBool(),
 		},

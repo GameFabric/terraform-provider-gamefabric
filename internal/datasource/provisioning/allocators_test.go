@@ -13,6 +13,7 @@ func TestAllocatorsDataSource(t *testing.T) {
 		// ObjectMeta
 		Name:   "allocator-a",
 		Labels: map[string]string{"region": "eu-west"},
+
 		Spec: provisioningv1beta2.AllocatorSpec{
 			Region: "eu-west",
 		},
@@ -21,6 +22,7 @@ func TestAllocatorsDataSource(t *testing.T) {
 		// ObjectMeta
 		Name:   "allocator-b",
 		Labels: map[string]string{"region": "us-east"},
+
 		Spec: provisioningv1beta2.AllocatorSpec{
 			Region: "us-east",
 		},

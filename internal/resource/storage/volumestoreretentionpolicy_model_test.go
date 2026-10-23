@@ -25,6 +25,7 @@ var (
 		// ObjectMeta
 		Name:        "test-volume-store",
 		Environment: "dflt",
+
 		Spec: storagev1beta1.VolumeStoreRetentionPolicySpec{
 			VolumeStoreName: "test-volume-store",
 			Snapshots: &storagev1beta1.VolumeStoreRetentionPolicySnapshots{

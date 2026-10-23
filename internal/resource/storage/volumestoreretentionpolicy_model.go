@@ -41,6 +41,7 @@ func (m volumeStoreRetentionPolicyModel) ToObject() *storagev1beta1.VolumeStoreR
 		// ObjectMeta
 		Name:        m.VolumeStore.ValueString(),
 		Environment: m.Environment.ValueString(),
+
 		Spec: storagev1beta1.VolumeStoreRetentionPolicySpec{
 			VolumeStoreName: m.VolumeStore.ValueString(),
 		},

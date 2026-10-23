@@ -14,6 +14,7 @@ func TestTokenServiceDataSource(t *testing.T) {
 		// ObjectMeta
 		Name:   "test-token-service",
 		Labels: map[string]string{"team": "platforms"},
+
 		Spec: provisioningv1beta2.TokenServiceSpec{
 			Environment: provisioningv1beta2.TokenServiceEnvProd,
 			Game: provisioningv1beta2.TokenServiceGameSpec{
@@ -65,6 +66,7 @@ func TestTokenServiceDataSource_EOS(t *testing.T) {
 	ts := &provisioningv1beta2.TokenService{
 		// ObjectMeta
 		Name: "eos-token-service",
+
 		Spec: provisioningv1beta2.TokenServiceSpec{
 			Environment: provisioningv1beta2.TokenServiceEnvProd,
 			Game: provisioningv1beta2.TokenServiceGameSpec{

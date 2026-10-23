@@ -34,6 +34,7 @@ func (m gatewayPolicyModel) ToObject() *protectionv1.GatewayPolicy {
 		Name:        m.Name.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
+
 		Spec: protectionv1.GatewayPolicySpec{
 			DisplayName:      m.DisplayName.ValueString(),
 			Description:      m.Description.ValueString(),

@@ -62,6 +62,7 @@ func (m cloudBudgetModel) ToObject() *billingv2alpha1.CloudBudget {
 		Name:        m.Name.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
+
 		Spec: billingv2alpha1.CloudBudgetSpec{
 			Suspended: m.Suspended.ValueBool(),
 			Receivers: conv.ForEachSliceItem(m.Receivers, func(v types.String) string { return v.ValueString() }),

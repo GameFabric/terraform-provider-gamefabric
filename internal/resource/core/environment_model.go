@@ -32,6 +32,7 @@ func (m environmentModel) ToObject() *corev1.Environment {
 		Name:        m.Name.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
+
 		Spec: corev1.EnvironmentSpec{
 			DisplayName: m.DisplayName.ValueString(),
 			Description: m.Description.ValueString(),

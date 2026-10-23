@@ -16,6 +16,7 @@ func TestVolumeStores(t *testing.T) {
 	vs1 := &storagev1beta1.VolumeStore{
 		// ObjectMeta
 		Name: "vs-1",
+
 		Spec: storagev1beta1.VolumeStoreSpec{
 			Region:        "eu-central1",
 			Destination:   "gs://b1",
@@ -25,6 +26,7 @@ func TestVolumeStores(t *testing.T) {
 	vs2 := &storagev1beta1.VolumeStore{
 		// ObjectMeta
 		Name: "vs-2",
+
 		Spec: storagev1beta1.VolumeStoreSpec{
 			Region:        "us-west1",
 			Destination:   "gs://b2",

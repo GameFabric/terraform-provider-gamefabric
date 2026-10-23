@@ -17,6 +17,7 @@ func TestRegions(t *testing.T) {
 		Labels: map[string]string{
 			"baremetal": "true",
 		},
+
 		Spec: corev1.RegionSpec{
 			Types: []corev1.RegionType{
 				{

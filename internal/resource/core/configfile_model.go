@@ -36,6 +36,7 @@ func (m configFileModel) ToObject() *corev1.ConfigFile {
 		Environment: m.Environment.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
+
 		Description: m.Description.ValueString(),
 		Data:        m.Data.ValueString(),
 	}

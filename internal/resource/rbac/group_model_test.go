@@ -28,6 +28,7 @@ var (
 		Annotations: map[string]string{
 			"annotation-key": "annotation-value",
 		},
+
 		Users: []string{"test1", "test2"},
 	}
 

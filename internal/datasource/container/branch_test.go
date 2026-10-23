@@ -15,6 +15,7 @@ func TestBranch(t *testing.T) {
 	branch := &containerv1.Branch{
 		// ObjectMeta
 		Name: "test-branch",
+
 		Spec: containerv1.BranchSpec{
 			DisplayName: "My Branch",
 			RetentionPolicyRules: []containerv1.BranchImageRetentionPolicyRule{
@@ -77,6 +78,7 @@ func TestBranch_HandlesMultipleMatches(t *testing.T) {
 	branch := &containerv1.Branch{
 		// ObjectMeta
 		Name: "test-branch",
+
 		Spec: containerv1.BranchSpec{
 			DisplayName: "My Branch",
 		},
@@ -84,6 +86,7 @@ func TestBranch_HandlesMultipleMatches(t *testing.T) {
 	otherBranch := &containerv1.Branch{
 		// ObjectMeta
 		Name: "other-branch",
+
 		Spec: containerv1.BranchSpec{
 			DisplayName: "My Branch",
 		},

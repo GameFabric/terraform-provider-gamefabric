@@ -17,6 +17,7 @@ func TestVolumeStore_ByName(t *testing.T) {
 	vs := &storagev1beta1.VolumeStore{
 		// ObjectMeta
 		Name: "test-volumestore",
+
 		Spec: storagev1beta1.VolumeStoreSpec{
 			Region:        "europe-west1",
 			Destination:   "gs://bucket",
@@ -51,6 +52,7 @@ func TestVolumeStore_ByRegion(t *testing.T) {
 	vs := &storagev1beta1.VolumeStore{
 		// ObjectMeta
 		Name: "vs-region",
+
 		Spec: storagev1beta1.VolumeStoreSpec{
 			Region:        "europe-west1",
 			Destination:   "gs://bucket2",
@@ -85,6 +87,7 @@ func TestVolumeStore_ByRegion_MultipleMatches(t *testing.T) {
 	vs1 := &storagev1beta1.VolumeStore{
 		// ObjectMeta
 		Name: "vs-a",
+
 		Spec: storagev1beta1.VolumeStoreSpec{
 			Region:        "dup-region",
 			Destination:   "gs://b1",
@@ -94,6 +97,7 @@ func TestVolumeStore_ByRegion_MultipleMatches(t *testing.T) {
 	vs2 := &storagev1beta1.VolumeStore{
 		// ObjectMeta
 		Name: "vs-b",
+
 		Spec: storagev1beta1.VolumeStoreSpec{
 			Region:        "dup-region",
 			Destination:   "gs://b2",

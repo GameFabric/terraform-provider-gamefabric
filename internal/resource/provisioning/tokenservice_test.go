@@ -114,6 +114,7 @@ func TestTokenService_EOSLegacyPlatforms(t *testing.T) {
 	ts := &provisioningv1beta2.TokenService{
 		// ObjectMeta
 		Name: name,
+
 		Spec: provisioningv1beta2.TokenServiceSpec{
 			Environment: provisioningv1beta2.TokenServiceEnvProd,
 			Game: provisioningv1beta2.TokenServiceGameSpec{

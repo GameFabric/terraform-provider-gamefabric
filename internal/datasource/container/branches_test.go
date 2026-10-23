@@ -17,6 +17,7 @@ func TestBranches(t *testing.T) {
 		Labels: map[string]string{
 			"baremetal": "true",
 		},
+
 		Spec: containerv1.BranchSpec{
 			DisplayName: "Test Branch 1",
 			RetentionPolicyRules: []containerv1.BranchImageRetentionPolicyRule{
@@ -67,6 +68,7 @@ func TestBranches_AllowsGettingAll(t *testing.T) {
 	branch1 := &containerv1.Branch{
 		// ObjectMeta
 		Name: "test-branch-1",
+
 		Spec: containerv1.BranchSpec{
 			DisplayName: "Test Branch 1",
 		},
@@ -75,6 +77,7 @@ func TestBranches_AllowsGettingAll(t *testing.T) {
 	branch2 := &containerv1.Branch{
 		// ObjectMeta
 		Name: "test-branch-2",
+
 		Spec: containerv1.BranchSpec{
 			DisplayName: "Test Branch 2",
 		},

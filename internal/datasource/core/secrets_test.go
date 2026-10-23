@@ -19,6 +19,7 @@ func TestSecrets(t *testing.T) {
 			"team": "platform",
 			"env":  "prod",
 		},
+
 		Description: "First test secret",
 		Data: map[string]string{
 			"password": "value1",
@@ -33,6 +34,7 @@ func TestSecrets(t *testing.T) {
 			"team": "platform",
 			"env":  "staging",
 		},
+
 		Description: "Second test secret",
 		Data: map[string]string{
 			"api-key": "value2",

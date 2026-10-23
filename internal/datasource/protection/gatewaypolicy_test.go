@@ -15,6 +15,7 @@ func TestGatewayPolicy(t *testing.T) {
 	pol := &protectionv1.GatewayPolicy{
 		// ObjectMeta
 		Name: "test-gateway-policy",
+
 		Spec: protectionv1.GatewayPolicySpec{
 			DisplayName:      "My Gateway Policy",
 			Description:      "My Gateway Policy Description",
@@ -64,6 +65,7 @@ func TestGatewayPolicy_HandlesMultipleMatches(t *testing.T) {
 	pol := &protectionv1.GatewayPolicy{
 		// ObjectMeta
 		Name: "test-gateway-policy",
+
 		Spec: protectionv1.GatewayPolicySpec{
 			DisplayName: "My Gateway Policy",
 		},
@@ -71,6 +73,7 @@ func TestGatewayPolicy_HandlesMultipleMatches(t *testing.T) {
 	otherPol := &protectionv1.GatewayPolicy{
 		// ObjectMeta
 		Name: "other",
+
 		Spec: protectionv1.GatewayPolicySpec{
 			DisplayName: "My Gateway Policy",
 		},

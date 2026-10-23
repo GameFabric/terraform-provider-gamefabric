@@ -147,6 +147,7 @@ func (m imageUpdaterModel) ToObject(name string) *containerv1.ImageUpdater {
 		// ObjectMeta
 		Name:        name,
 		Environment: m.Target.Environment.ValueString(),
+
 		Spec: containerv1.ImageUpdaterSpec{
 			Branch:    m.Branch.ValueString(),
 			ImageName: m.Image.ValueString(),

@@ -17,6 +17,7 @@ func TestRegion(t *testing.T) {
 		// ObjectMeta
 		Name:        "test-region",
 		Environment: "dflt",
+
 		Spec: corev1.RegionSpec{
 			DisplayName: "My Region",
 			Types: []corev1.RegionType{
@@ -81,6 +82,7 @@ func TestRegion_HandlesMultipleMatches(t *testing.T) {
 		// ObjectMeta
 		Name:        "test-region",
 		Environment: "dflt",
+
 		Spec: corev1.RegionSpec{
 			DisplayName: "My Region",
 		},
@@ -89,6 +91,7 @@ func TestRegion_HandlesMultipleMatches(t *testing.T) {
 		// ObjectMeta
 		Name:        "other-region",
 		Environment: "dflt",
+
 		Spec: corev1.RegionSpec{
 			DisplayName: "My Region",
 		},
@@ -119,6 +122,7 @@ func TestRegion_HandlesMultipleSelectors(t *testing.T) {
 		// ObjectMeta
 		Name:        "test-region",
 		Environment: "dflt",
+
 		Spec: corev1.RegionSpec{
 			DisplayName: "My Region",
 		},
@@ -127,6 +131,7 @@ func TestRegion_HandlesMultipleSelectors(t *testing.T) {
 		// ObjectMeta
 		Name:        "other-region",
 		Environment: "dflt",
+
 		Spec: corev1.RegionSpec{
 			DisplayName: "My Region",
 		},

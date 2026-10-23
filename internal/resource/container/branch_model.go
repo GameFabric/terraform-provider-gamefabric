@@ -34,6 +34,7 @@ func (m branchModel) ToObject() *containerv1.Branch {
 		Name:        m.Name.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
+
 		Spec: containerv1.BranchSpec{
 			DisplayName: m.DisplayName.ValueString(),
 			Description: m.Description.ValueString(),

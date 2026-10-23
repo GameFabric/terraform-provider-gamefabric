@@ -26,6 +26,7 @@ func (m providerModel) ToObject() *authv1.Provider {
 	return &authv1.Provider{
 		// ObjectMeta
 		Name: m.Name.ValueString(),
+
 		Spec: authv1.ProviderSpec{
 			DisplayName: m.DisplayName.ValueString(),
 			OIDC:        m.OIDC.ToObject(),

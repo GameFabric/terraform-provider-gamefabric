@@ -38,6 +38,7 @@ var (
 		Annotations: map[string]string{
 			"annotation-key": "annotation-value",
 		},
+
 		Spec: formationv1.VesselSpec{
 			Description: "Test Vessel Description",
 			Region:      "us-west",

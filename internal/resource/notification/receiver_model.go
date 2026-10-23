@@ -35,6 +35,7 @@ func (m receiverModel) ToObject() *notificationv1alpha1.Receiver {
 		Name:        m.Name.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
+
 		Spec: notificationv1alpha1.ReceiverSpec{
 			Email: &notificationv1alpha1.ReceiverEmail{
 				To: conv.ForEachSliceItem(m.EmailTo, func(v types.String) string { return v.ValueString() }),

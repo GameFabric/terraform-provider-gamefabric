@@ -64,6 +64,7 @@ func (m vesselModel) ToObject() *formationv1.Vessel {
 		Environment: m.Environment.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(v types.String) string { return v.ValueString() }),
+
 		Spec: formationv1.VesselSpec{
 			Description: m.Description.ValueString(),
 			Region:      m.Region.ValueString(),

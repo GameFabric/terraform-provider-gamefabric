@@ -14,6 +14,7 @@ func TestLocation(t *testing.T) {
 	loc := &corev1.Location{
 		// ObjectMeta
 		Name: "test-location",
+
 		Spec: corev1.LocationSpec{
 			Sites: []string{"test-site-1", "test-site-2"},
 		},

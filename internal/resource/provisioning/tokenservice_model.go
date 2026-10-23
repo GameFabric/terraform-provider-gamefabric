@@ -78,6 +78,7 @@ func (m tokenServiceModel) ToObject() *provisioningv1beta2.TokenService {
 		Name:        m.Name.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(v types.String) string { return v.ValueString() }),
+
 		Spec: provisioningv1beta2.TokenServiceSpec{
 			Environment: tokenServiceEnvFromDevelopmentMode(m.DevelopmentMode.ValueBool()),
 			EOS:         tokenServiceEOSToObject(m.EOS),

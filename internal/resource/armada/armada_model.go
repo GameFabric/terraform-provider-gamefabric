@@ -70,6 +70,7 @@ func (m armadaModel) ToObject() *armadav1.Armada {
 		Environment: m.Environment.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(v types.String) string { return v.ValueString() }),
+
 		Spec: armadav1.ArmadaSpec{
 			Description: m.Description.ValueString(),
 			Region:      m.Region.ValueString(),

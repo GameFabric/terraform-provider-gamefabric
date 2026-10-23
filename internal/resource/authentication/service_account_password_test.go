@@ -15,6 +15,7 @@ func TestServiceAccountPasswordResource(t *testing.T) {
 	serviceAccount := &authv1.ServiceAccount{
 		// ObjectMeta
 		Name: "svc-test",
+
 		Spec: authv1.ServiceAccountSpec{
 			Username: "svc-test",
 			Email:    "svc-test@ec.nitrado.systems",
