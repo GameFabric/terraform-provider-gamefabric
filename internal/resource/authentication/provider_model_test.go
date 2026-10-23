@@ -3,7 +3,7 @@ package authentication
 import (
 	"testing"
 
-	authenticationv1 "github.com/gamefabric/gf-core/pkg/api/authentication/v1beta1"
+	authv1 "github.com/gamefabric/gf-core/pkg/api/authentication/v1beta1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -19,17 +19,17 @@ func TestProviderModel_ToObject(t *testing.T) {
 }
 
 var (
-	testProviderObject = &authenticationv1.Provider{
+	testProviderObject = &authv1.Provider{
 		// ObjectMeta
 		Name: "test-provider",
-		Spec: authenticationv1.ProviderSpec{
+		Spec: authv1.ProviderSpec{
 			DisplayName: "Test Provider",
-			OIDC: &authenticationv1.OIDCProvider{
+			OIDC: &authv1.OIDCProvider{
 				Issuer:       "issuer",
 				ClientID:     "client",
 				ClientSecret: "secr3t",
 				RedirectURI:  "https://example.org/redirecturi",
-				ProviderDiscoveryOverrides: authenticationv1.OIDCProviderDiscoveryOverrides{
+				ProviderDiscoveryOverrides: authv1.OIDCProviderDiscoveryOverrides{
 					TokenURL: "https://example.org/token",
 					AuthURL:  "https://example.org/auth",
 					JWKSURL:  "https://example.org/jwks",
@@ -48,13 +48,13 @@ var (
 				UserNameKey:               "username",
 				PromptType:                new("login"),
 				OverrideClaimMapping:      true,
-				ClaimMapping: authenticationv1.OIDCProviderClaimMapping{
+				ClaimMapping: authv1.OIDCProviderClaimMapping{
 					PreferredUsernameKey: "preferred_username",
 					EmailKey:             "email",
 					GroupsKey:            "groups",
 				},
-				ClaimMutations: authenticationv1.OIDCProviderClaimMutations{
-					NewGroupFromClaims: []authenticationv1.OIDCProviderNewGroupFromClaims{
+				ClaimMutations: authv1.OIDCProviderClaimMutations{
+					NewGroupFromClaims: []authv1.OIDCProviderNewGroupFromClaims{
 						{
 							Claims:         []string{"claim1", "claim2"},
 							Delimiter:      "-",
@@ -62,7 +62,7 @@ var (
 							Prefix:         "role_",
 						},
 					},
-					FilterGroupClaims: authenticationv1.OIDCProviderFilterGroupClaims{
+					FilterGroupClaims: authv1.OIDCProviderFilterGroupClaims{
 						GroupsFilter: "^dev-.*$",
 					},
 				},

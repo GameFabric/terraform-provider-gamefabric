@@ -60,6 +60,36 @@ linters:
         rules:
           json: pascal
         use-field-name: true
+    importas:
+      alias:
+        - pkg: github.com/gamefabric/gf-apicore/apis/meta/v1
+          alias: metav1
+        - pkg: github.com/gamefabric/gf-core/pkg/api/core/v1
+          alias: corev1
+        - pkg: github.com/gamefabric/gf-core/pkg/api/armada/v1
+          alias: armadav1
+        - pkg: github.com/gamefabric/gf-core/pkg/api/container/v1
+          alias: containerv1
+        - pkg: github.com/gamefabric/gf-core/pkg/api/formation/v1
+          alias: formationv1
+        - pkg: github.com/gamefabric/gf-core/pkg/api/protection/v1
+          alias: protectionv1
+        - pkg: github.com/gamefabric/gf-core/pkg/api/rbac/v1
+          alias: rbacv1
+        - pkg: github.com/gamefabric/gf-core/pkg/api/authentication/v1beta1
+          alias: authv1
+        - pkg: github.com/gamefabric/gf-core/pkg/api/storage/v1beta1
+          alias: storagev1beta1
+        - pkg: github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta2
+          alias: provisioningv1beta2
+        - pkg: github.com/gamefabric/gf-core/pkg/api/notification/v1alpha1
+          alias: notificationv1alpha1
+        - pkg: github.com/gamefabric/gf-core/pkg/api/billing/v2alpha1
+          alias: billingv2alpha1
+        - pkg: github.com/gamefabric/gf-core/pkg/api/audit/v1alpha1
+          alias: auditv1alpha1
+        - pkg: k8s.io/api/core/v1
+          alias: kcorev1
     revive:
       rules:
         - name: var-naming

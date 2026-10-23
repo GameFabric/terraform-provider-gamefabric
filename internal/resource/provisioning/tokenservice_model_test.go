@@ -3,7 +3,7 @@ package provisioning_test
 import (
 	"testing"
 
-	provisioning "github.com/gamefabric/terraform-provider-gamefabric/internal/resource/provisioning"
+	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/provisioning"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

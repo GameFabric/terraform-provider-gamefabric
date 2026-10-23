@@ -3,32 +3,32 @@ package storage_test
 import (
 	"testing"
 
-	storagev1 "github.com/gamefabric/gf-core/pkg/api/storage/v1beta1"
+	storagev1beta1 "github.com/gamefabric/gf-core/pkg/api/storage/v1beta1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
-	typesframework "github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestVolumeStores(t *testing.T) {
 	t.Parallel()
 
-	vs1 := &storagev1.VolumeStore{
+	vs1 := &storagev1beta1.VolumeStore{
 		// ObjectMeta
 		Name: "vs-1",
-		Spec: storagev1.VolumeStoreSpec{
+		Spec: storagev1beta1.VolumeStoreSpec{
 			Region:        "eu-central1",
 			Destination:   "gs://b1",
-			MaxVolumeSize: *conv.Quantity(typesframework.StringValue("10Mi")),
+			MaxVolumeSize: *conv.Quantity(types.StringValue("10Mi")),
 		},
 	}
-	vs2 := &storagev1.VolumeStore{
+	vs2 := &storagev1beta1.VolumeStore{
 		// ObjectMeta
 		Name: "vs-2",
-		Spec: storagev1.VolumeStoreSpec{
+		Spec: storagev1beta1.VolumeStoreSpec{
 			Region:        "us-west1",
 			Destination:   "gs://b2",
-			MaxVolumeSize: *conv.Quantity(typesframework.StringValue("20Mi")),
+			MaxVolumeSize: *conv.Quantity(types.StringValue("20Mi")),
 		},
 	}
 

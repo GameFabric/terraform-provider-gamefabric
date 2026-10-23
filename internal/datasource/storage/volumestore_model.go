@@ -1,7 +1,7 @@
 package storage
 
 import (
-	storagev1 "github.com/gamefabric/gf-core/pkg/api/storage/v1beta1"
+	storagev1beta1 "github.com/gamefabric/gf-core/pkg/api/storage/v1beta1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -12,7 +12,7 @@ type volumeStoreModel struct {
 	MaxVolumeSize types.String `tfsdk:"max_volume_size"`
 }
 
-func newVolumeStoreModel(obj *storagev1.VolumeStore) volumeStoreModel {
+func newVolumeStoreModel(obj *storagev1beta1.VolumeStore) volumeStoreModel {
 	return volumeStoreModel{
 		Name:          types.StringValue(obj.Name),
 		Region:        types.StringValue(obj.Spec.Region),

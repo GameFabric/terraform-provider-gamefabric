@@ -5,7 +5,7 @@ import (
 
 	"github.com/gamefabric/gf-apiclient/tools/cache"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
-	v1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
+	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	formationv1 "github.com/gamefabric/gf-core/pkg/api/formation/v1"
 	"github.com/gamefabric/gf-core/pkg/api/storage/v1beta1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
@@ -213,7 +213,7 @@ func toContainerOverrideModel(m VesselContainerOverrideModel) formationv1.Vessel
 	return formationv1.VesselContainerOverride{
 		Command:     conv.ForEachSliceItem(m.Command, func(v types.String) string { return v.ValueString() }),
 		Args:        conv.ForEachSliceItem(m.Args, func(v types.String) string { return v.ValueString() }),
-		Env:         conv.ForEachSliceItem(m.Envs, func(m core.EnvVarModel) v1.EnvVar { return m.ToObject() }),
+		Env:         conv.ForEachSliceItem(m.Envs, func(m core.EnvVarModel) corev1.EnvVar { return m.ToObject() }),
 		ConfigFiles: conv.ForEachSliceItem(m.ConfigFiles, mps.ToConfigFileForFormation),
 		Secrets:     conv.ForEachSliceItem(m.Secrets, mps.ToFormationSecretMount),
 	}

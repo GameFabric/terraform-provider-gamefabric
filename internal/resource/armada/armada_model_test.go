@@ -6,7 +6,7 @@ import (
 	agonesv1 "agones.dev/agones/pkg/apis/agones/v1"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	armadav1 "github.com/gamefabric/gf-core/pkg/api/armada/v1"
-	v1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
+	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/container"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/core"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/mps"
@@ -120,14 +120,14 @@ var (
 							},
 							Command: []string{"start.sh"},
 							Args:    []string{"arg1", "arg2"},
-							Env: []v1.EnvVar{
+							Env: []corev1.EnvVar{
 								{
 									Name:  "ENV_VAR",
 									Value: "value",
 								},
 								{
 									Name: "FIELD_REF_VAR",
-									ValueFrom: &v1.EnvVarSource{
+									ValueFrom: &corev1.EnvVarSource{
 										FieldRef: &kcorev1.ObjectFieldSelector{
 											FieldPath: "metadata.name",
 										},
@@ -135,8 +135,8 @@ var (
 								},
 								{
 									Name: "CONFIG_FILE_KEY_REF_VAR",
-									ValueFrom: &v1.EnvVarSource{
-										ConfigFileKeyRef: &v1.ConfigFileKeySelector{
+									ValueFrom: &corev1.EnvVarSource{
+										ConfigFileKeyRef: &corev1.ConfigFileKeySelector{
 											Name: "config-file-name",
 										},
 									},
