@@ -1,7 +1,6 @@
 package rbac
 
 import (
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	rbacv1 "github.com/gamefabric/gf-core/pkg/api/rbac/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -27,11 +26,11 @@ func newGroupModel(obj *rbacv1.Group) groupModel {
 
 func (m groupModel) ToObject() *rbacv1.Group {
 	return &rbacv1.Group{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        m.Name.ValueString(),
-			Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
-			Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
-		},
+		// ObjectMeta
+		Name:        m.Name.ValueString(),
+		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
+		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
+
 		Users: conv.ForEachSliceItem(m.Users, func(item types.String) string { return item.ValueString() }),
 	}
 }

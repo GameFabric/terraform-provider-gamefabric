@@ -3,7 +3,6 @@ package audit
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	auditv1alpha1 "github.com/gamefabric/gf-core/pkg/api/audit/v1alpha1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -29,7 +28,9 @@ func TestExportStoreModel_ToObject(t *testing.T) {
 
 var (
 	testExportStoreObject = &auditv1alpha1.ExportStore{
-		ObjectMeta: metav1.ObjectMeta{Name: "my-store"},
+		// ObjectMeta
+		Name: "my-store",
+
 		Spec: auditv1alpha1.ExportStoreSpec{
 			S3: &auditv1alpha1.ExportStoreS3{
 				Bucket:   "my-bucket",

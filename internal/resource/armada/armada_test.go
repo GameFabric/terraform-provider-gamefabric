@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
-	v1 "github.com/gamefabric/gf-core/pkg/api/armada/v1"
+	armadav1 "github.com/gamefabric/gf-core/pkg/api/armada/v1"
 	"github.com/gamefabric/gf-core/pkg/apiclient/clientset"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/resource/armada"
@@ -661,7 +661,7 @@ func TestArmadaResourceGameFabricValidators(t *testing.T) {
 	arm := armada.NewArmada()
 	arm.Schema(t.Context(), tfresource.SchemaRequest{}, resp)
 
-	want := validatorstest.CollectJSONPaths(&v1.Armada{})
+	want := validatorstest.CollectJSONPaths(&armadav1.Armada{})
 	got := validatorstest.CollectPathExpressions(resp.Schema)
 
 	require.NotEmpty(t, got)

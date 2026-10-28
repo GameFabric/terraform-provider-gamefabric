@@ -4,7 +4,6 @@ import (
 	"regexp"
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	provisioningv1beta2 "github.com/gamefabric/gf-core/pkg/api/provisioning/v1beta2"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -12,10 +11,10 @@ import (
 
 func TestTokenServiceDataSource(t *testing.T) {
 	ts := &provisioningv1beta2.TokenService{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   "test-token-service",
-			Labels: map[string]string{"team": "platforms"},
-		},
+		// ObjectMeta
+		Name:   "test-token-service",
+		Labels: map[string]string{"team": "platforms"},
+
 		Spec: provisioningv1beta2.TokenServiceSpec{
 			Environment: provisioningv1beta2.TokenServiceEnvProd,
 			Game: provisioningv1beta2.TokenServiceGameSpec{
@@ -65,7 +64,9 @@ func TestTokenServiceDataSource(t *testing.T) {
 
 func TestTokenServiceDataSource_EOS(t *testing.T) {
 	ts := &provisioningv1beta2.TokenService{
-		ObjectMeta: metav1.ObjectMeta{Name: "eos-token-service"},
+		// ObjectMeta
+		Name: "eos-token-service",
+
 		Spec: provisioningv1beta2.TokenServiceSpec{
 			Environment: provisioningv1beta2.TokenServiceEnvProd,
 			Game: provisioningv1beta2.TokenServiceGameSpec{

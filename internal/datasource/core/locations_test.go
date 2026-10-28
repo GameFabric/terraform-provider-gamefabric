@@ -4,7 +4,6 @@ import (
 	"regexp"
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -14,69 +13,63 @@ func TestLocations(t *testing.T) {
 	t.Parallel()
 
 	loc1 := &corev1.Location{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "loc-1",
-			Annotations: map[string]string{
-				"g8c.io/provider-type": "baremetal",
-				"g8c.io/city":          "amsterdam",
-				"g8c.io/country":       "netherlands",
-				"g8c.io/continent":     "europe",
-			},
+		// ObjectMeta
+		Name: "loc-1",
+		Annotations: map[string]string{
+			"g8c.io/provider-type": "baremetal",
+			"g8c.io/city":          "amsterdam",
+			"g8c.io/country":       "netherlands",
+			"g8c.io/continent":     "europe",
 		},
 	}
 	loc2 := &corev1.Location{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "loc2",
-			Annotations: map[string]string{
-				"g8c.io/provider-type": "baremetal",
-				"g8c.io/city":          "amsterdam",
-				"g8c.io/country":       "netherlands",
-				"g8c.io/continent":     "europe",
-			},
+		// ObjectMeta
+		Name: "loc2",
+		Annotations: map[string]string{
+			"g8c.io/provider-type": "baremetal",
+			"g8c.io/city":          "amsterdam",
+			"g8c.io/country":       "netherlands",
+			"g8c.io/continent":     "europe",
 		},
 	}
 	loc3 := &corev1.Location{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "loc-3",
-			Annotations: map[string]string{
-				"g8c.io/provider-type": "something",
-				"g8c.io/city":          "amsterdam",
-				"g8c.io/country":       "netherlands",
-				"g8c.io/continent":     "europe",
-			},
+		// ObjectMeta
+		Name: "loc-3",
+		Annotations: map[string]string{
+			"g8c.io/provider-type": "something",
+			"g8c.io/city":          "amsterdam",
+			"g8c.io/country":       "netherlands",
+			"g8c.io/continent":     "europe",
 		},
 	}
 	loc4 := &corev1.Location{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "loc-4",
-			Annotations: map[string]string{
-				"g8c.io/provider-type": "baremetal",
-				"g8c.io/city":          "something",
-				"g8c.io/country":       "netherlands",
-				"g8c.io/continent":     "europe",
-			},
+		// ObjectMeta
+		Name: "loc-4",
+		Annotations: map[string]string{
+			"g8c.io/provider-type": "baremetal",
+			"g8c.io/city":          "something",
+			"g8c.io/country":       "netherlands",
+			"g8c.io/continent":     "europe",
 		},
 	}
 	loc5 := &corev1.Location{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "loc-5",
-			Annotations: map[string]string{
-				"g8c.io/provider-type": "baremetal",
-				"g8c.io/city":          "amsterdam",
-				"g8c.io/country":       "something",
-				"g8c.io/continent":     "europe",
-			},
+		// ObjectMeta
+		Name: "loc-5",
+		Annotations: map[string]string{
+			"g8c.io/provider-type": "baremetal",
+			"g8c.io/city":          "amsterdam",
+			"g8c.io/country":       "something",
+			"g8c.io/continent":     "europe",
 		},
 	}
 	loc6 := &corev1.Location{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "loc-6",
-			Annotations: map[string]string{
-				"g8c.io/provider-type": "baremetal",
-				"g8c.io/city":          "amsterdam",
-				"g8c.io/country":       "netherlands",
-				"g8c.io/continent":     "something",
-			},
+		// ObjectMeta
+		Name: "loc-6",
+		Annotations: map[string]string{
+			"g8c.io/provider-type": "baremetal",
+			"g8c.io/city":          "amsterdam",
+			"g8c.io/country":       "netherlands",
+			"g8c.io/continent":     "something",
 		},
 	}
 
@@ -195,9 +188,8 @@ func TestLocations_NoLabelFilterNoLabels(t *testing.T) {
 	t.Parallel()
 
 	pf, _ := providertest.ProtoV6ProviderFactories(t, &corev1.Location{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test",
-		},
+		// ObjectMeta
+		Name: "test",
 	})
 
 	resource.Test(t, resource.TestCase{
@@ -222,9 +214,8 @@ func TestLocations_LabelFilterButNoLabels(t *testing.T) {
 	t.Parallel()
 
 	pf, _ := providertest.ProtoV6ProviderFactories(t, &corev1.Location{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test",
-		},
+		// ObjectMeta
+		Name: "test",
 	})
 
 	resource.Test(t, resource.TestCase{
@@ -254,19 +245,17 @@ func TestLocations_LabelFilterDocumentBehavior(t *testing.T) {
 	t.Parallel()
 
 	loc1 := &corev1.Location{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-1",
-			Labels: map[string]string{
-				"foo": "bar",
-			},
+		// ObjectMeta
+		Name: "test-1",
+		Labels: map[string]string{
+			"foo": "bar",
 		},
 	}
 	loc2 := &corev1.Location{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-2",
-			Labels: map[string]string{
-				"bar": "foo",
-			},
+		// ObjectMeta
+		Name: "test-2",
+		Labels: map[string]string{
+			"bar": "foo",
 		},
 	}
 
@@ -388,57 +377,54 @@ func TestLocations_LabelFilterInvalidElement(t *testing.T) {
 
 var (
 	testAmsterdamAzure = &corev1.Location{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "amsterdam-azure",
-			Labels: map[string]string{
-				"g8c.io/city":          "amsterdam",
-				"g8c.io/continent":     "eu",
-				"g8c.io/country":       "nl",
-				"g8c.io/provider-type": "cloud",
-			},
-			Annotations: map[string]string{
-				"g8c.io/city":            "Amsterdam",
-				"g8c.io/continent":       "Europe",
-				"g8c.io/country":         "Netherlands",
-				"g8c.io/provider-type":   "Cloud",
-				"g8c.io/system-location": "true",
-			},
+		// ObjectMeta
+		Name: "amsterdam-azure",
+		Labels: map[string]string{
+			"g8c.io/city":          "amsterdam",
+			"g8c.io/continent":     "eu",
+			"g8c.io/country":       "nl",
+			"g8c.io/provider-type": "cloud",
+		},
+		Annotations: map[string]string{
+			"g8c.io/city":            "Amsterdam",
+			"g8c.io/continent":       "Europe",
+			"g8c.io/country":         "Netherlands",
+			"g8c.io/provider-type":   "Cloud",
+			"g8c.io/system-location": "true",
 		},
 	}
 	testAmsterdamBm = &corev1.Location{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "amsterdam-baremetal",
-			Labels: map[string]string{
-				"g8c.io/city":          "amsterdam",
-				"g8c.io/continent":     "eu",
-				"g8c.io/country":       "nl",
-				"g8c.io/provider-type": "baremetal",
-			},
-			Annotations: map[string]string{
-				"g8c.io/city":            "Amsterdam",
-				"g8c.io/continent":       "Europe",
-				"g8c.io/country":         "Netherlands",
-				"g8c.io/provider-type":   "Baremetal",
-				"g8c.io/system-location": "true",
-			},
+		// ObjectMeta
+		Name: "amsterdam-baremetal",
+		Labels: map[string]string{
+			"g8c.io/city":          "amsterdam",
+			"g8c.io/continent":     "eu",
+			"g8c.io/country":       "nl",
+			"g8c.io/provider-type": "baremetal",
+		},
+		Annotations: map[string]string{
+			"g8c.io/city":            "Amsterdam",
+			"g8c.io/continent":       "Europe",
+			"g8c.io/country":         "Netherlands",
+			"g8c.io/provider-type":   "Baremetal",
+			"g8c.io/system-location": "true",
 		},
 	}
 	testFrankfurtAws = &corev1.Location{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "frankfurt-aws",
-			Labels: map[string]string{
-				"g8c.io/city":          "frankfurt",
-				"g8c.io/continent":     "eu",
-				"g8c.io/country":       "de",
-				"g8c.io/provider-type": "cloud",
-			},
-			Annotations: map[string]string{
-				"g8c.io/city":            "Frankfurt",
-				"g8c.io/continent":       "Europe",
-				"g8c.io/country":         "Germany",
-				"g8c.io/provider-type":   "Cloud",
-				"g8c.io/system-location": "true",
-			},
+		// ObjectMeta
+		Name: "frankfurt-aws",
+		Labels: map[string]string{
+			"g8c.io/city":          "frankfurt",
+			"g8c.io/continent":     "eu",
+			"g8c.io/country":       "de",
+			"g8c.io/provider-type": "cloud",
+		},
+		Annotations: map[string]string{
+			"g8c.io/city":            "Frankfurt",
+			"g8c.io/continent":       "Europe",
+			"g8c.io/country":         "Germany",
+			"g8c.io/provider-type":   "Cloud",
+			"g8c.io/system-location": "true",
 		},
 	}
 )

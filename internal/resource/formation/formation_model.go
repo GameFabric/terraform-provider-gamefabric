@@ -5,7 +5,7 @@ import (
 
 	"github.com/gamefabric/gf-apiclient/tools/cache"
 	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
-	v1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
+	corev1 "github.com/gamefabric/gf-core/pkg/api/core/v1"
 	formationv1 "github.com/gamefabric/gf-core/pkg/api/formation/v1"
 	"github.com/gamefabric/gf-core/pkg/api/storage/v1beta1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
@@ -62,17 +62,18 @@ func newFormationModel(obj *formationv1.Formation) formationModel {
 
 func (m formationModel) ToObject() *formationv1.Formation {
 	return &formationv1.Formation{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        m.Name.ValueString(),
-			Environment: m.Environment.ValueString(),
-			Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
-			Annotations: conv.ForEachMapItem(m.Annotations, func(v types.String) string { return v.ValueString() }),
-		},
+		// ObjectMeta
+		Name:        m.Name.ValueString(),
+		Environment: m.Environment.ValueString(),
+		Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
+		Annotations: conv.ForEachMapItem(m.Annotations, func(v types.String) string { return v.ValueString() }),
+
 		Spec: formationv1.FormationSpec{
 			Description: m.Description.ValueString(),
 			Vessels:     conv.ForEachSliceItem(m.Vessels, toVesselTemplateModel),
 			Template: formationv1.GameServerTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
+					// ObjectMeta
 					Labels: conv.ForEachMapItem(
 						conv.MapWithBool(
 							conv.MapWithBool(m.GameServerLabels, profilingKey, m.ProfilingEnabled),
@@ -129,9 +130,9 @@ func newVolumeTemplate(obj formationv1.VolumeTemplate) VolumeTemplateModel {
 
 func toVolumeTemplateModel(m VolumeTemplateModel) formationv1.VolumeTemplate {
 	return formationv1.VolumeTemplate{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: m.Name.ValueString(),
-		},
+		// ObjectMeta
+		Name: m.Name.ValueString(),
+
 		Spec: formationv1.VolumeTemplateSpec{
 			VolumeSpec: v1beta1.VolumeSpec{
 				VolumeStoreName: m.VolumeStoreName.ValueString(),
@@ -214,7 +215,7 @@ func toContainerOverrideModel(m VesselContainerOverrideModel) formationv1.Vessel
 	return formationv1.VesselContainerOverride{
 		Command:     conv.ForEachSliceItem(m.Command, func(v types.String) string { return v.ValueString() }),
 		Args:        conv.ForEachSliceItem(m.Args, func(v types.String) string { return v.ValueString() }),
-		Env:         conv.ForEachSliceItem(m.Envs, func(m core.EnvVarModel) v1.EnvVar { return m.ToObject() }),
+		Env:         conv.ForEachSliceItem(m.Envs, func(m core.EnvVarModel) corev1.EnvVar { return m.ToObject() }),
 		ConfigFiles: conv.ForEachSliceItem(m.ConfigFiles, mps.ToConfigFileForFormation),
 		Secrets:     conv.ForEachSliceItem(m.Secrets, mps.ToFormationSecretMount),
 	}

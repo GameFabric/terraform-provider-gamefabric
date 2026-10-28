@@ -407,8 +407,8 @@ func completePathExpr(pathExpr string, steps path.PathSteps) string {
 }
 
 func relatedPathExprs(target, expr string) bool {
-	if idx := strings.LastIndex(expr, "?"); idx >= 0 {
-		return strings.HasPrefix(target, expr[:idx])
+	if before, _, ok := strings.CutLast(expr, "?"); ok {
+		return strings.HasPrefix(target, before)
 	}
 
 	// If there are no variables, it is very difficult to determine relation.

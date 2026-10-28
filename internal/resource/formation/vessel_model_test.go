@@ -28,16 +28,17 @@ func TestVesselModel_ToObject(t *testing.T) {
 
 var (
 	testVesselObject = &formationv1.Vessel{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "test-vessel",
-			Environment: "test-env",
-			Labels: map[string]string{
-				"label-key": "label-value",
-			},
-			Annotations: map[string]string{
-				"annotation-key": "annotation-value",
-			},
+		// ObjectMeta
+		Name:        "test-vessel",
+		Environment: "test-env",
+		// ObjectMeta
+		Labels: map[string]string{
+			"label-key": "label-value",
 		},
+		Annotations: map[string]string{
+			"annotation-key": "annotation-value",
+		},
+
 		Spec: formationv1.VesselSpec{
 			Description: "Test Vessel Description",
 			Region:      "us-west",

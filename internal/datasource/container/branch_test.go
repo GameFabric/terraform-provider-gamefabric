@@ -4,7 +4,6 @@ import (
 	"regexp"
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	containerv1 "github.com/gamefabric/gf-core/pkg/api/container/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -14,7 +13,9 @@ func TestBranch(t *testing.T) {
 	t.Parallel()
 
 	branch := &containerv1.Branch{
-		ObjectMeta: metav1.ObjectMeta{Name: "test-branch"},
+		// ObjectMeta
+		Name: "test-branch",
+
 		Spec: containerv1.BranchSpec{
 			DisplayName: "My Branch",
 			RetentionPolicyRules: []containerv1.BranchImageRetentionPolicyRule{
@@ -75,13 +76,17 @@ func TestBranch_HandlesMultipleMatches(t *testing.T) {
 	t.Parallel()
 
 	branch := &containerv1.Branch{
-		ObjectMeta: metav1.ObjectMeta{Name: "test-branch"},
+		// ObjectMeta
+		Name: "test-branch",
+
 		Spec: containerv1.BranchSpec{
 			DisplayName: "My Branch",
 		},
 	}
 	otherBranch := &containerv1.Branch{
-		ObjectMeta: metav1.ObjectMeta{Name: "other-branch"},
+		// ObjectMeta
+		Name: "other-branch",
+
 		Spec: containerv1.BranchSpec{
 			DisplayName: "My Branch",
 		},

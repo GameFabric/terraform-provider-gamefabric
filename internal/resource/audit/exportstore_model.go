@@ -1,7 +1,6 @@
 package audit
 
 import (
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	auditv1alpha1 "github.com/gamefabric/gf-core/pkg/api/audit/v1alpha1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -54,9 +53,9 @@ func newExportStoreModel(obj *auditv1alpha1.ExportStore) exportStoreModel {
 
 func (m exportStoreModel) ToObject() *auditv1alpha1.ExportStore {
 	obj := &auditv1alpha1.ExportStore{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: m.Name.ValueString(),
-		},
+		// ObjectMeta
+		Name: m.Name.ValueString(),
+
 		Spec: auditv1alpha1.ExportStoreSpec{
 			Suspended: m.Suspended.ValueBool(),
 		},

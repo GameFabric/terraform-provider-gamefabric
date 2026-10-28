@@ -3,7 +3,6 @@ package container_test
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	containerv1 "github.com/gamefabric/gf-core/pkg/api/container/v1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -13,12 +12,12 @@ func TestBranches(t *testing.T) {
 	t.Parallel()
 
 	branch := &containerv1.Branch{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-branch-1",
-			Labels: map[string]string{
-				"baremetal": "true",
-			},
+		// ObjectMeta
+		Name: "test-branch-1",
+		Labels: map[string]string{
+			"baremetal": "true",
 		},
+
 		Spec: containerv1.BranchSpec{
 			DisplayName: "Test Branch 1",
 			RetentionPolicyRules: []containerv1.BranchImageRetentionPolicyRule{
@@ -67,18 +66,18 @@ func TestBranches_AllowsGettingAll(t *testing.T) {
 	t.Parallel()
 
 	branch1 := &containerv1.Branch{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-branch-1",
-		},
+		// ObjectMeta
+		Name: "test-branch-1",
+
 		Spec: containerv1.BranchSpec{
 			DisplayName: "Test Branch 1",
 		},
 	}
 
 	branch2 := &containerv1.Branch{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-branch-2",
-		},
+		// ObjectMeta
+		Name: "test-branch-2",
+
 		Spec: containerv1.BranchSpec{
 			DisplayName: "Test Branch 2",
 		},

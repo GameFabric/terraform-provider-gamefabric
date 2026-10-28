@@ -3,7 +3,6 @@ package container
 import (
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	containerv1 "github.com/gamefabric/gf-core/pkg/api/container/v1"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -21,15 +20,15 @@ func TestBranchModel_ToObject(t *testing.T) {
 
 var (
 	testBranchObject = &containerv1.Branch{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-branch",
-			Labels: map[string]string{
-				"label-key": "label-value",
-			},
-			Annotations: map[string]string{
-				"annotation-key": "annotation-value",
-			},
+		// ObjectMeta
+		Name: "test-branch",
+		Labels: map[string]string{
+			"label-key": "label-value",
 		},
+		Annotations: map[string]string{
+			"annotation-key": "annotation-value",
+		},
+
 		Spec: containerv1.BranchSpec{
 			DisplayName: "Test Branch Display Name",
 			Description: "Test Branch Description",

@@ -4,7 +4,6 @@ import (
 	"regexp"
 	"testing"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	authv1 "github.com/gamefabric/gf-core/pkg/api/authentication/v1beta1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/provider/providertest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -14,10 +13,10 @@ func TestServiceAccount(t *testing.T) {
 	t.Parallel()
 
 	sa := &authv1.ServiceAccount{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   "something",
-			Labels: map[string]string{"env": "test", "team": "devops"},
-		},
+		// ObjectMeta
+		Name:   "something",
+		Labels: map[string]string{"env": "test", "team": "devops"},
+
 		Spec: authv1.ServiceAccountSpec{
 			Username: "user",
 			Email:    "user@example.com",

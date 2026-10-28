@@ -3,7 +3,6 @@ package authentication
 import (
 	"fmt"
 
-	metav1 "github.com/gamefabric/gf-apicore/apis/meta/v1"
 	authv1 "github.com/gamefabric/gf-core/pkg/api/authentication/v1beta1"
 	"github.com/gamefabric/terraform-provider-gamefabric/internal/conv"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -37,10 +36,10 @@ func toStringMap(m map[string]string) map[string]types.String {
 
 func (m serviceAccountResourceModel) ToObject() *authv1.ServiceAccount {
 	return &authv1.ServiceAccount{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   m.Name.ValueString(),
-			Labels: conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
-		},
+		// ObjectMeta
+		Name:   m.Name.ValueString(),
+		Labels: conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
+
 		Spec: authv1.ServiceAccountSpec{
 			Username: m.Name.ValueString(),
 			Email:    fmt.Sprintf("%s@%s", m.Name.ValueString(), ecDomain),
