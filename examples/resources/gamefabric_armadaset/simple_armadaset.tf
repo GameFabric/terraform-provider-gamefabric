@@ -101,7 +101,6 @@ resource "gamefabric_armadaset" "this" {
           mount_path = "/secrets/us-east"
         }
       ]
-    },
       labels = {
         region = "us-east"
       }
