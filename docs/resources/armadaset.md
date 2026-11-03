@@ -74,7 +74,7 @@ resource "gamefabric_armadaset" "this" {
           }
         }
       ]
-      labels = {
+      gameserver_labels = {
         region = "europe"
       }
     },
@@ -124,7 +124,7 @@ resource "gamefabric_armadaset" "this" {
           mount_path = "/secrets/us-east"
         }
       ]
-      labels = {
+      gameserver_labels = {
         region = "us-east"
       }
     }
