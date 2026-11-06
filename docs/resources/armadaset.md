@@ -74,7 +74,7 @@ resource "gamefabric_armadaset" "this" {
           }
         }
       ]
-      labels = {
+      gameserver_labels = {
         region = "europe"
       }
     },
@@ -124,8 +124,7 @@ resource "gamefabric_armadaset" "this" {
           mount_path = "/secrets/us-east"
         }
       ]
-    },
-      labels = {
+      gameserver_labels = {
         region = "us-east"
       }
     }
@@ -296,6 +295,76 @@ data "gamefabric_image" "gameserver" {
 
 data "gamefabric_environment" "prod" {
   name = "prod"
+}
+```
+
+## Example Usage - Metric Ports
+
+This example adds a port with the `Metric` policy, which enables Prometheus scraping of the game server. Metric ports require `protocol = "TCP"` and a `container_port`. The `path` defaults to `/metrics` when omitted.
+
+```terraform
+data "gamefabric_branch" "prod" {
+  display_name = "prod"
+}
+
+data "gamefabric_image" "gameserver" {
+  branch = data.gamefabric_branch.prod.name
+  image  = "gameserver"
+  tag    = "1.2.3"
+}
+
+data "gamefabric_environment" "prod" {
+  name = "prod"
+}
+
+# Enables Prometheus scraping of the game server through a Metric port.
+resource "gamefabric_armadaset" "this" {
+  name        = "myarmadaset"
+  environment = data.gamefabric_environment.prod.name
+
+  regions = [
+    {
+      name = "europe"
+      replicas = [
+        {
+          region_type  = "baremetal"
+          min_replicas = 10
+          max_replicas = 200
+          buffer_size  = 10
+        }
+      ]
+    }
+  ]
+
+  containers = [
+    {
+      name      = "default" # the game server container should always be named "default"
+      image_ref = data.gamefabric_image.gameserver.image_ref
+      resources = {
+        requests = {
+          cpu    = "250m"
+          memory = "256Mi"
+        }
+      }
+      ports = [
+        {
+          name           = "game"
+          protocol       = "UDP"
+          container_port = 7777
+          policy         = "Dynamic"
+        },
+        {
+          # Metric ports are scraped by Prometheus. protocol must be TCP.
+          # path defaults to /metrics when omitted.
+          name           = "metrics"
+          protocol       = "TCP"
+          container_port = 9090
+          policy         = "Metric"
+          path           = "/metrics"
+        }
+      ]
+    }
+  ]
 }
 ```
 

@@ -29,6 +29,12 @@ See [Replicas and Buffer Size](https://docs.gamefabric.com/multiplayer-servers/m
 
 {{ tffile "examples/resources/gamefabric_armadaset/replicas_and_buffer.tf" }}
 
+## Example Usage - Metric Ports
+
+This example adds a port with the `Metric` policy, which enables Prometheus scraping of the game server. Metric ports require `protocol = "TCP"` and a `container_port`. The `path` defaults to `/metrics` when omitted.
+
+{{ tffile "examples/resources/gamefabric_armadaset/metric_ports.tf" }}
+
 {{ .SchemaMarkdown | trimspace }}
 {{- if or .HasImport .HasImportIDConfig .HasImportIdentityConfig }}
 

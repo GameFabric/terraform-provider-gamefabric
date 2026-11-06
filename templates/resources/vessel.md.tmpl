@@ -29,6 +29,12 @@ It will create 3 vessels for each game mode within europe and configure the game
 
 {{ tffile "examples/resources/gamefabric_vessel/vessels_and_gametypes.tf" }}
 
+## Example Usage - Metric Ports
+
+This example adds a port with the `Metric` policy, which enables Prometheus scraping of the game server. Metric ports require `protocol = "TCP"` and a `container_port`. The `path` defaults to `/metrics` when omitted.
+
+{{ tffile "examples/resources/gamefabric_vessel/metric_ports.tf" }}
+
 
 {{ .SchemaMarkdown | trimspace }}
 {{- if or .HasImport .HasImportIDConfig .HasImportIdentityConfig }}
