@@ -291,13 +291,7 @@ data "gamefabric_region" "europe" {
   environment = data.gamefabric_environment.prod.name
 }
 
-# Formation with a Prometheus metrics port.
-#
-# The "Metric" policy is a GameFabric-native abstraction: it maps to the Agones
-# "None" port policy (no public host port) and automatically injects the
-# g8c.io/gameserver-scrape label and g8c.io/metrics-endpoints annotation onto
-# each GameServer pod, enabling Prometheus scraping without any manual
-# label/annotation management.
+# Enables Prometheus scraping of the game server through a Metric port.
 resource "gamefabric_formation" "this" {
   name        = "my-formation"
   environment = data.gamefabric_environment.prod.name
