@@ -1,0 +1,15 @@
+config:
+  allowed-licenses:
+    - Apache-2.0
+    - BSD-2-Clause
+    - BSD-3-Clause
+    - ISC
+    - MIT
+    - MPL-2.0
+    - MPL-2.0-no-copyleft-exception
+  ignored-packages:
+    - github.com/gamefabric/gf-apiclient
+    - github.com/gamefabric/gf-apicore
+    - github.com/gamefabric/gf-apiserver
+    - github.com/gamefabric/gf-core
+    - github.com/gamefabric/terraform-provider-gamefabric
