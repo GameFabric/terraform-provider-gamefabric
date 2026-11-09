@@ -48,9 +48,9 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ steps.go-env.outputs.gomodcache }}
-          key: ${{ runner.os }}-go-mod-${{ steps.go-env.outputs.cache-interval }}-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-go-mod-${{ steps.go-env.outputs.cache-interval }}-
+            ${{ runner.os }}-go-mod-
 
       - name: Download dependencies
         run: go mod download
@@ -60,10 +60,10 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ${{ steps.go-env.outputs.gocache }}
-          key: ${{ runner.os }}-go-build-${{ steps.go-env.outputs.cache-interval }}-${{ hashFiles('**/go.sum') }}-${{ github.sha }}
+          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-go-build-${{ steps.go-env.outputs.cache-interval }}-${{ hashFiles('**/go.sum') }}-
-            ${{ runner.os }}-go-build-${{ steps.go-env.outputs.cache-interval }}-
+            ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}-
+            ${{ runner.os }}-go-build-
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
@@ -75,4 +75,4 @@ jobs:
         uses: actions/cache/save@v6
         with:
           path: ${{ steps.go-env.outputs.gocache }}
-          key: ${{ runner.os }}-go-build-${{ steps.go-env.outputs.cache-interval }}-${{ hashFiles('**/go.sum') }}-${{ github.sha }}
+          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}-${{ github.sha }}

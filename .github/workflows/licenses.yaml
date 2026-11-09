@@ -46,9 +46,9 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ steps.go-env.outputs.gomodcache }}
-          key: ${{ runner.os }}-go-mod-${{ steps.go-env.outputs.cache-interval }}-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-go-mod-${{ steps.go-env.outputs.cache-interval }}-
+            ${{ runner.os }}-go-mod-
 
       - name: Download dependencies
         run: go mod download
@@ -58,10 +58,10 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ${{ steps.go-env.outputs.gocache }}
-          key: ${{ runner.os }}-go-license-${{ steps.go-env.outputs.cache-interval }}-${{ hashFiles('**/go.sum') }}-${{ github.sha }}
+          key: ${{ runner.os }}-go-license-${{ hashFiles('**/go.sum') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-go-license-${{ steps.go-env.outputs.cache-interval }}-${{ hashFiles('**/go.sum') }}-
-            ${{ runner.os }}-go-license-${{ steps.go-env.outputs.cache-interval }}-
+            ${{ runner.os }}-go-license-${{ hashFiles('**/go.sum') }}-
+            ${{ runner.os }}-go-license-
 
       - name: Check License Report
         run: |
@@ -72,4 +72,4 @@ jobs:
         uses: actions/cache/save@v6
         with:
           path: ${{ steps.go-env.outputs.gocache }}
-          key: ${{ runner.os }}-go-license-${{ steps.go-env.outputs.cache-interval }}-${{ hashFiles('**/go.sum') }}-${{ github.sha }}
+          key: ${{ runner.os }}-go-license-${{ hashFiles('**/go.sum') }}-${{ github.sha }}

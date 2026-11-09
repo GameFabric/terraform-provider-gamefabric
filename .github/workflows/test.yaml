@@ -53,17 +53,17 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ steps.go-env.outputs.gomodcache }}
-          key: ${{ runner.os }}-go-mod-${{ steps.go-env.outputs.cache-interval }}-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-go-mod-${{ steps.go-env.outputs.cache-interval }}-
+            ${{ runner.os }}-go-mod-
 
       - name: Cache Go test
         uses: actions/cache@v6
         with:
           path: ${{ steps.go-env.outputs.gocache }}
-          key: ${{ runner.os }}-go-test-${{ steps.go-env.outputs.cache-interval }}-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-go-test-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-go-test-${{ steps.go-env.outputs.cache-interval }}-
+            ${{ runner.os }}-go-test-
 
       # We trigger mod download separately as otherwise it will count towards
       # the 1 minute default timeout of golangci-lint. Only needed if there is no cache.
