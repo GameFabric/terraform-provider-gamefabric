@@ -65,6 +65,7 @@ jobs:
 
       - name: Check License Report
         run: |
+          make license-check
           make license-gen-check
 
       - name: Save Go build cache
