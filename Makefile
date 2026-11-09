@@ -24,6 +24,20 @@ build:
 	@goreleaser release --clean --snapshot --skip=sign
 .PHONY: build
 
+# Licenses
+
+license-gen:
+	@go run ./internal/cmd/licenses generate --save-licenses-dir=LICENSES/
+.PHONY: license-gen
+
+license-check:
+	@go run ./internal/cmd/licenses check
+.PHONY: license-check
+
+license-gen-check: license-gen
+	@git diff --exit-code
+.PHONY: license-gen-check
+
 # Docs Generation
 
 docs-gen:
