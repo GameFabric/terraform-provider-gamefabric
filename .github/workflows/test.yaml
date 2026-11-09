@@ -41,24 +41,29 @@ jobs:
           go-version-file: 'go.mod'
           cache: false
 
-      - name: Cache Go mod
+      - name: Resolve Go cache paths
+        id: go-env
+        run: |
+          echo "gocache=$(go env GOCACHE)" >> "$GITHUB_OUTPUT"
+          echo "gomodcache=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
+          echo "cache-interval=$(( $(date +%s) / 604800 ))" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Go modules
         id: gomod
         uses: actions/cache@v6
         with:
-          path: |
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
+          path: ${{ steps.go-env.outputs.gomodcache }}
+          key: ${{ runner.os }}-go-mod-${{ steps.go-env.outputs.cache-interval }}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-go-mod-
+            ${{ runner.os }}-go-mod-${{ steps.go-env.outputs.cache-interval }}-
 
       - name: Cache Go test
         uses: actions/cache@v6
         with:
-          path: |
-            ~/.cache/go-build
-          key: ${{ runner.os }}-go-test-${{ github.ref_name }}
+          path: ${{ steps.go-env.outputs.gocache }}
+          key: ${{ runner.os }}-go-test-${{ steps.go-env.outputs.cache-interval }}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-go-test-
+            ${{ runner.os }}-go-test-${{ steps.go-env.outputs.cache-interval }}-
 
       # We trigger mod download separately as otherwise it will count towards
       # the 1 minute default timeout of golangci-lint. Only needed if there is no cache.
@@ -77,7 +82,7 @@ jobs:
           terraform_wrapper: false
 
       - name: Setup gotestsum
-        run: go install gotest.tools/gotestsum@${{ env.GOTESTSUM_VERSION }}
+        run: go install gotest.tools/gotestsum@$GOTESTSUM_VERSION
 
       - name: Run Tests
         env:

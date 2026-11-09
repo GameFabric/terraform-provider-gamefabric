@@ -84,7 +84,7 @@ func runGenerate(ctx context.Context, cmd *cli.Command) error {
 	var goInfo [2]string
 	for i, args := range [][]string{{"list", "-m", "-f", "go{{.GoVersion}}"}, {"env", "GOROOT"}} {
 		var out bytes.Buffer
-		c := exec.CommandContext(ctx, "go", args...)
+		c := exec.CommandContext(ctx, "go", args...) //nolint:gosec // The arguments are fixed values.
 		c.Stdout = &out
 		c.Stderr = os.Stderr
 		if err = c.Run(); err != nil {
@@ -113,7 +113,7 @@ func runGenerate(ctx context.Context, cmd *cli.Command) error {
 		if err = runGoLicenses(ctx, platform, bytes.NewReader(rowTmpl.Bytes()), &report, args...); err != nil {
 			return fmt.Errorf("reporting licenses for %s: %w", platform, err)
 		}
-		for _, row := range strings.Split(report.String(), "\n") {
+		for row := range strings.SplitSeq(report.String(), "\n") {
 			if strings.TrimSpace(row) != "" {
 				rows = append(rows, row)
 			}
@@ -126,7 +126,7 @@ func runGenerate(ctx context.Context, cmd *cli.Command) error {
 	if err = tmpl.Execute(&out, data); err != nil {
 		return fmt.Errorf("rendering template: %w", err)
 	}
-	if err = os.WriteFile(cmd.String(flagOut), out.Bytes(), 0o644); err != nil {
+	if err = os.WriteFile(cmd.String(flagOut), out.Bytes(), 0o644); err != nil { //nolint:gosec // The notices are meant to be readable by everyone.
 		return err
 	}
 
@@ -142,11 +142,11 @@ func saveLicenses(ctx context.Context, cmd *cli.Command, ignore []string, goRoot
 	if err != nil {
 		return err
 	}
-	// The saved files keep the read-only permissions of the module cache.
+	// The saved directories keep the read-only permissions of the module cache.
 	defer func() {
 		_ = filepath.WalkDir(tmp, func(path string, d fs.DirEntry, err error) error {
 			if err == nil && d.IsDir() {
-				return os.Chmod(path, 0o755)
+				return os.Chmod(path, 0o700) //nolint:gosec // Directories need to be traversable to be removed.
 			}
 			return nil
 		})
@@ -157,31 +157,15 @@ func saveLicenses(ctx context.Context, cmd *cli.Command, ignore []string, goRoot
 	if err = os.RemoveAll(dir); err != nil {
 		return err
 	}
+	if err = os.MkdirAll(dir, 0o750); err != nil {
+		return err
+	}
 	for _, platform := range cmd.StringSlice(flagPlatform) {
 		src := filepath.Join(tmp, strings.ReplaceAll(platform, "/", "_"))
 		if err = runGoLicenses(ctx, platform, nil, nil, append([]string{"save", ".", "--save_path=" + src}, ignore...)...); err != nil {
 			return fmt.Errorf("saving licenses for %s: %w", platform, err)
 		}
-
-		err = filepath.WalkDir(src, func(path string, d fs.DirEntry, err error) error {
-			if err != nil {
-				return err
-			}
-			rel, _ := filepath.Rel(src, path)
-			target := filepath.Join(dir, rel)
-			if d.IsDir() {
-				return os.MkdirAll(target, 0o755)
-			}
-			if _, err = os.Stat(target); err == nil {
-				return nil
-			}
-			b, err := os.ReadFile(path)
-			if err != nil {
-				return err
-			}
-			return os.WriteFile(target, b, 0o644)
-		})
-		if err != nil {
+		if err = mergeDir(src, dir); err != nil {
 			return err
 		}
 	}
@@ -191,6 +175,46 @@ func saveLicenses(ctx context.Context, cmd *cli.Command, ignore []string, goRoot
 			return err
 		}
 	}
+	return copyGoLicenses(goRoot, dir)
+}
+
+// mergeDir copies the files of src into dst, keeping the files that dst already has.
+func mergeDir(src, dst string) error {
+	srcRoot, err := os.OpenRoot(src)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = srcRoot.Close() }()
+
+	dstRoot, err := os.OpenRoot(dst)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = dstRoot.Close() }()
+
+	return fs.WalkDir(srcRoot.FS(), ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return dstRoot.MkdirAll(path, 0o750)
+		}
+		if _, err = dstRoot.Stat(path); err == nil {
+			return nil
+		}
+		b, err := srcRoot.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		return dstRoot.WriteFile(path, b, 0o644)
+	})
+}
+
+// copyGoLicenses copies the license and patent grant of the Go runtime into dir.
+func copyGoLicenses(goRoot, dir string) error {
+	if err := os.MkdirAll(filepath.Join(dir, "go"), 0o750); err != nil {
+		return err
+	}
 
 	for _, name := range []string{"LICENSE", "PATENTS"} {
 		// Some distributions, such as Homebrew, keep these outside of GOROOT.
@@ -198,14 +222,11 @@ func saveLicenses(ctx context.Context, cmd *cli.Command, ignore []string, goRoot
 		if _, err := os.Stat(src); err != nil {
 			src = filepath.Join(goRoot, "..", name)
 		}
-		b, err := os.ReadFile(src)
+		b, err := os.ReadFile(src) //nolint:gosec // This is not a security issue; the file is part of the local Go installation.
 		if err != nil {
 			return fmt.Errorf("reading go %s: %w", name, err)
 		}
-		if err = os.MkdirAll(filepath.Join(dir, "go"), 0o755); err != nil {
-			return err
-		}
-		if err = os.WriteFile(filepath.Join(dir, "go", name), b, 0o644); err != nil {
+		if err = os.WriteFile(filepath.Join(dir, "go", name), b, 0o644); err != nil { //nolint:gosec // The license files are meant to be readable by everyone.
 			return err
 		}
 	}
@@ -214,19 +235,25 @@ func saveLicenses(ctx context.Context, cmd *cli.Command, ignore []string, goRoot
 
 // keepLicenseFiles removes everything but license and notice files from dir, which drops the sources go-licenses copies for MPL-2.0 dependencies.
 func keepLicenseFiles(dir string) error {
+	root, err := os.OpenRoot(dir)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = root.Close() }()
+
 	var dirs []string
-	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+	err = fs.WalkDir(root.FS(), ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 		if d.IsDir() {
 			dirs = append(dirs, path)
-			return os.Chmod(path, 0o755)
+			return nil
 		}
 		if licenseFile.MatchString(d.Name()) {
 			return nil
 		}
-		return os.Remove(path)
+		return root.Remove(path)
 	})
 	if err != nil {
 		return err
@@ -235,7 +262,7 @@ func keepLicenseFiles(dir string) error {
 	// Remove the directories left empty, deepest first. Non-empty ones are kept.
 	slices.Reverse(dirs)
 	for _, d := range dirs {
-		_ = os.Remove(d)
+		_ = root.Remove(d)
 	}
 	return nil
 }

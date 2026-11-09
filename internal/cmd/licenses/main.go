@@ -65,7 +65,7 @@ func realMain(args []string) int {
 func loadConfig(cmd *cli.Command) (config, error) {
 	var cfg config
 	path := cmd.String(flagConfigFile)
-	b, err := os.ReadFile(path)
+	b, err := os.ReadFile(path) //nolint:gosec // This is not a security issue; the path is chosen by the person running the tool.
 	if err != nil {
 		return cfg, fmt.Errorf("reading config file: %w", err)
 	}
@@ -95,7 +95,7 @@ func runGoLicenses(ctx context.Context, platform string, stdin io.Reader, stdout
 		return fmt.Errorf("resolving go-licenses: %w", err)
 	}
 
-	c = exec.CommandContext(ctx, strings.TrimSpace(tool.String()), args...)
+	c = exec.CommandContext(ctx, strings.TrimSpace(tool.String()), args...) //nolint:gosec // The binary was resolved from the go.mod tool dependency.
 	c.Env = append(os.Environ(), "GOOS="+goos, "GOARCH="+goarch, "CGO_ENABLED=0")
 	c.Stdin = stdin
 	c.Stdout = stdout
