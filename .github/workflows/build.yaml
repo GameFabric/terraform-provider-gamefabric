@@ -36,30 +36,43 @@ jobs:
           go-version-file: 'go.mod'
           cache: false
 
-      - name: Cache Go mod
+      - name: Resolve Go cache paths
+        id: go-env
+        run: |
+          echo "gocache=$(go env GOCACHE)" >> "$GITHUB_OUTPUT"
+          echo "gomodcache=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
+          echo "cache-interval=$(( $(date +%s) / 604800 ))" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Go modules
         id: gomod
         uses: actions/cache@v6
         with:
-          path: |
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
+          path: ${{ steps.go-env.outputs.gomodcache }}
+          key: ${{ runner.os }}-go-mod-${{ steps.go-env.outputs.cache-interval }}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-go-mod-
-
-      - name: Cache Go build
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/go-build
-          key: ${{ runner.os }}-go-build-${{ github.ref_name }}
-          restore-keys: |
-            ${{ runner.os }}-go-build-
+            ${{ runner.os }}-go-mod-${{ steps.go-env.outputs.cache-interval }}-
 
       - name: Download dependencies
         run: go mod download
         if: steps.gomod.outputs.cache-hit != 'true'
+
+      - name: Restore Go build cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ steps.go-env.outputs.gocache }}
+          key: ${{ runner.os }}-go-build-${{ steps.go-env.outputs.cache-interval }}-${{ hashFiles('**/go.sum') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-go-build-${{ steps.go-env.outputs.cache-interval }}-${{ hashFiles('**/go.sum') }}-
+            ${{ runner.os }}-go-build-${{ steps.go-env.outputs.cache-interval }}-
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
         with:
           version: "~> v2"
           args: release --clean --snapshot --skip=sign
+
+      - name: Save Go build cache
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ steps.go-env.outputs.gocache }}
+          key: ${{ runner.os }}-go-build-${{ steps.go-env.outputs.cache-interval }}-${{ hashFiles('**/go.sum') }}-${{ github.sha }}

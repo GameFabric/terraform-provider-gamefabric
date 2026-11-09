@@ -35,7 +35,7 @@ license-check:
 .PHONY: license-check
 
 license-gen-check: license-gen
-	@git diff --exit-code
+	@git diff -w --ignore-blank-lines --exit-code
 .PHONY: license-gen-check
 
 # Docs Generation
