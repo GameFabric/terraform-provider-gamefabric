@@ -36,21 +36,28 @@ jobs:
           go-version-file: 'go.mod'
           cache: false
 
-      - name: Cache Go mod
+      - name: Resolve Go cache paths
+        id: go-env
+        run: |
+          echo "gocache=$(go env GOCACHE)" >> "$GITHUB_OUTPUT"
+          echo "gomodcache=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore Go modules cache
         id: gomod
-        uses: actions/cache@v6
+        uses: actions/cache/restore@v6
         with:
-          path: ~/go/pkg/mod
+          path: ${{ steps.go-env.outputs.gomodcache }}
           key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-mod-
 
-      - name: Cache Go build
-        uses: actions/cache@v6
+      - name: Restore Go build cache
+        uses: actions/cache/restore@v6
         with:
-          path: ~/.cache/go-build
-          key: ${{ runner.os }}-go-build-${{ github.ref_name }}
+          path: ${{ steps.go-env.outputs.gocache }}
+          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}-${{ github.sha }}
           restore-keys: |
+            ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}-
             ${{ runner.os }}-go-build-
 
       - name: Download dependencies
