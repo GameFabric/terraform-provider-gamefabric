@@ -165,7 +165,7 @@ func (r *volumeStoreRetentionPolicy) Create(ctx context.Context, req resource.Cr
 	}
 
 	obj := plan.ToObject()
-	outObj, err := r.clientSet.StorageV1Beta1().VolumeStoreRetentionPolicies(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.StorageV1Beta1().VolumeStoreRetentionPolicies(obj.Namespace).Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating VolumeStoreRetentionPolicy",
@@ -231,7 +231,7 @@ func (r *volumeStoreRetentionPolicy) Update(ctx context.Context, req resource.Up
 	}
 
 	_, err = r.clientSet.StorageV1Beta1().
-		VolumeStoreRetentionPolicies(newObj.Environment).
+		VolumeStoreRetentionPolicies(newObj.Namespace).
 		Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -241,7 +241,7 @@ func (r *volumeStoreRetentionPolicy) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	plan.ID = types.StringValue(cache.NewObjectName(newObj.Environment, newObj.Name).String())
+	plan.ID = types.StringValue(cache.NewObjectName(newObj.Namespace, newObj.Name).String())
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

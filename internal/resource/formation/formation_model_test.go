@@ -31,8 +31,8 @@ func TestFormationModel_ToObject(t *testing.T) {
 var (
 	testFormationObject = &formationv1.Formation{
 		// ObjectMeta
-		Name:        "test-formation",
-		Environment: "test-env",
+		Name:      "test-formation",
+		Namespace: "test-env",
 		Labels: map[string]string{
 			"label-key": "label-value",
 		},

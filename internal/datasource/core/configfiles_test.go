@@ -11,8 +11,8 @@ import (
 func TestConfigFiles(t *testing.T) {
 	cfgFile := &corev1.ConfigFile{
 		// ObjectMeta
-		Name:        "test-config-file",
-		Environment: "dflt",
+		Name:      "test-config-file",
+		Namespace: "dflt",
 		Labels: map[string]string{
 			"test": "lbl",
 		},

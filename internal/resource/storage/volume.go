@@ -149,7 +149,7 @@ func (r *volume) Create(ctx context.Context, req resource.CreateRequest, resp *r
 	}
 
 	obj := plan.ToObject()
-	outObj, err := r.clientSet.StorageV1Beta1().Volumes(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.StorageV1Beta1().Volumes(obj.Namespace).Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Volume",
@@ -221,7 +221,7 @@ func (r *volume) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	if _, err = r.clientSet.StorageV1Beta1().Volumes(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
+	if _, err = r.clientSet.StorageV1Beta1().Volumes(newObj.Namespace).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Volume",
 			fmt.Sprintf("Could not patch Volume: %v", err),
@@ -229,7 +229,7 @@ func (r *volume) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	plan.ID = types.StringValue(cache.NewObjectName(newObj.Environment, newObj.Name).String())
+	plan.ID = types.StringValue(cache.NewObjectName(newObj.Namespace, newObj.Name).String())
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

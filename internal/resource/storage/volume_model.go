@@ -19,9 +19,9 @@ type volumeModel struct {
 
 func newVolumeModel(obj *storagev1beta1.Volume) volumeModel {
 	return volumeModel{
-		ID:          types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String()),
+		ID:          types.StringValue(cache.NewObjectName(obj.Namespace, obj.Name).String()),
 		Name:        types.StringValue(obj.Name),
-		Environment: types.StringValue(obj.Environment),
+		Environment: types.StringValue(obj.Namespace),
 		Labels:      conv.ForEachMapItem(obj.Labels, func(item string) types.String { return types.StringValue(item) }),
 		Annotations: conv.ForEachMapItem(obj.Annotations, func(item string) types.String { return types.StringValue(item) }),
 		VolumeStore: types.StringValue(obj.Spec.VolumeStoreName),
@@ -33,7 +33,7 @@ func (m volumeModel) ToObject() *storagev1beta1.Volume {
 	return &storagev1beta1.Volume{
 		// ObjectMeta
 		Name:        m.Name.ValueString(),
-		Environment: m.Environment.ValueString(),
+		Namespace:   m.Environment.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
 

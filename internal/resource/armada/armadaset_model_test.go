@@ -100,8 +100,8 @@ func TestArmadaSetModel_ToObjectWithTopLevelScaleToZero(t *testing.T) {
 var (
 	testArmadaSetObject = &armadav1.ArmadaSet{
 		// ObjectMeta
-		Name:        "test-armadaset",
-		Environment: "test-environment",
+		Name:      "test-armadaset",
+		Namespace: "test-environment",
 		// ObjectMeta
 		Labels: map[string]string{
 			"label-key": "label-value",

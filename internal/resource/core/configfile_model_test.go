@@ -21,8 +21,8 @@ func TestConfigModel_ToObject(t *testing.T) {
 var (
 	testConfigFileObject = &corev1.ConfigFile{
 		// ObjectMeta
-		Name:        "test-configfile",
-		Environment: "test-environment",
+		Name:      "test-configfile",
+		Namespace: "test-environment",
 		Labels: map[string]string{
 			"label-key": "label-value",
 		},

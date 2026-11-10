@@ -13,8 +13,8 @@ func TestVolume(t *testing.T) {
 
 	vol := &storagev1beta1.Volume{
 		// ObjectMeta
-		Name:        "test-volume",
-		Environment: "dflt",
+		Name:      "test-volume",
+		Namespace: "dflt",
 	}
 
 	pf, _ := providertest.ProtoV6ProviderFactories(t, vol)

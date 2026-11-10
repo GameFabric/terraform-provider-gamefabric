@@ -16,7 +16,7 @@ func newImageModel(obj containerv1.Image) imageModel {
 	return imageModel{
 		ImageRef: &imageRef{
 			Name:   types.StringValue(obj.Name),
-			Branch: types.StringValue(obj.Branch),
+			Branch: types.StringValue(obj.Scope),
 		},
 	}
 }

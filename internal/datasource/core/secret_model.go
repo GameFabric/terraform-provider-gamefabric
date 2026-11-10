@@ -21,7 +21,7 @@ func newSecretModel(obj *corev1.Secret) secretModel {
 	return secretModel{
 		Name:        types.StringValue(obj.Name),
 		Labels:      conv.ForEachMapItem(obj.Labels, func(item string) types.String { return types.StringValue(item) }),
-		Environment: types.StringValue(obj.Environment),
+		Environment: types.StringValue(obj.Namespace),
 		Description: conv.OptionalFunc(obj.Description, types.StringValue, types.StringNull),
 		Data:        dataKeys(obj),
 	}

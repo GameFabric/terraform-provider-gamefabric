@@ -134,10 +134,10 @@ type imageUpdaterModel struct {
 
 func newImageUpdaterModel(obj *containerv1.ImageUpdater) imageUpdaterModel {
 	model := imageUpdaterModel{
-		ID:     types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String()),
+		ID:     types.StringValue(cache.NewObjectName(obj.Namespace, obj.Name).String()),
 		Branch: types.StringValue(obj.Spec.Branch),
 		Image:  types.StringValue(obj.Spec.ImageName),
-		Target: NewImageUpdaterTargetModelFromTarget(obj.Spec.TargetRef, obj.Environment),
+		Target: NewImageUpdaterTargetModelFromTarget(obj.Spec.TargetRef, obj.Namespace),
 	}
 	return model
 }
@@ -145,8 +145,8 @@ func newImageUpdaterModel(obj *containerv1.ImageUpdater) imageUpdaterModel {
 func (m imageUpdaterModel) ToObject(name string) *containerv1.ImageUpdater {
 	obj := &containerv1.ImageUpdater{
 		// ObjectMeta
-		Name:        name,
-		Environment: m.Target.Environment.ValueString(),
+		Name:      name,
+		Namespace: m.Target.Environment.ValueString(),
 
 		Spec: containerv1.ImageUpdaterSpec{
 			Branch:    m.Branch.ValueString(),

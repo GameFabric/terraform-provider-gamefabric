@@ -13,8 +13,8 @@ func TestSecrets(t *testing.T) {
 
 	secret1 := &corev1.Secret{
 		// ObjectMeta
-		Name:        "secret-1",
-		Environment: "dflt",
+		Name:      "secret-1",
+		Namespace: "dflt",
 		Labels: map[string]string{
 			"team": "platform",
 			"env":  "prod",
@@ -28,8 +28,8 @@ func TestSecrets(t *testing.T) {
 
 	secret2 := &corev1.Secret{
 		// ObjectMeta
-		Name:        "secret-2",
-		Environment: "dflt",
+		Name:      "secret-2",
+		Namespace: "dflt",
 		Labels: map[string]string{
 			"team": "platform",
 			"env":  "staging",

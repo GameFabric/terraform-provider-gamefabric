@@ -19,8 +19,8 @@ type volumeStoreRetentionPolicyModel struct {
 
 func newVolumeStoreRetentionPolicyModel(obj *storagev1beta1.VolumeStoreRetentionPolicy) volumeStoreRetentionPolicyModel {
 	model := volumeStoreRetentionPolicyModel{
-		ID:          types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String()),
-		Environment: types.StringValue(obj.Environment),
+		ID:          types.StringValue(cache.NewObjectName(obj.Namespace, obj.Name).String()),
+		Environment: types.StringValue(obj.Namespace),
 		VolumeStore: types.StringValue(obj.Spec.VolumeStoreName),
 	}
 	if obj.Spec.Snapshots != nil {
@@ -39,8 +39,8 @@ func newVolumeStoreRetentionPolicyModel(obj *storagev1beta1.VolumeStoreRetention
 func (m volumeStoreRetentionPolicyModel) ToObject() *storagev1beta1.VolumeStoreRetentionPolicy {
 	obj := &storagev1beta1.VolumeStoreRetentionPolicy{
 		// ObjectMeta
-		Name:        m.VolumeStore.ValueString(),
-		Environment: m.Environment.ValueString(),
+		Name:      m.VolumeStore.ValueString(),
+		Namespace: m.Environment.ValueString(),
 
 		Spec: storagev1beta1.VolumeStoreRetentionPolicySpec{
 			VolumeStoreName: m.VolumeStore.ValueString(),

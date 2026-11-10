@@ -35,9 +35,9 @@ type vesselModel struct {
 func newVesselModel(obj *formationv1.Vessel) vesselModel {
 	metricsMap := mps.ParseMetricsAnnotation(obj.Spec.Template.Annotations[mps.MetricsEndpointsAnnotation])
 	return vesselModel{
-		ID:                    types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String()),
+		ID:                    types.StringValue(cache.NewObjectName(obj.Namespace, obj.Name).String()),
 		Name:                  types.StringValue(obj.Name),
-		Environment:           types.StringValue(obj.Environment),
+		Environment:           types.StringValue(obj.Namespace),
 		Region:                types.StringValue(obj.Spec.Region),
 		Description:           conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
 		Suspend:               conv.OptionalFunc(obj.Spec.Suspend, types.BoolPointerValue, types.BoolNull),
@@ -53,7 +53,7 @@ func newVesselModel(obj *formationv1.Vessel) vesselModel {
 		Volumes:            conv.ForEachSliceItem(obj.Spec.Template.Spec.Volumes, newVolumeModel),
 		GatewayPolicies:    conv.ForEachSliceItem(obj.Spec.Template.Spec.GatewayPolicies, types.StringValue),
 		ProfilingEnabled:   conv.BoolFromMapKey(obj.Spec.Template.Labels, profilingKey, types.BoolValue(false)),
-		ImageUpdaterTarget: container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeVessel, obj.Name, obj.Environment),
+		ImageUpdaterTarget: container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeVessel, obj.Name, obj.Namespace),
 	}
 }
 
@@ -61,7 +61,7 @@ func (m vesselModel) ToObject() *formationv1.Vessel {
 	return &formationv1.Vessel{
 		// ObjectMeta
 		Name:        m.Name.ValueString(),
-		Environment: m.Environment.ValueString(),
+		Namespace:   m.Environment.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(v types.String) string { return v.ValueString() }),
 
