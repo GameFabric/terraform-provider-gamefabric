@@ -199,7 +199,7 @@ func (r *region) Create(ctx context.Context, req resource.CreateRequest, resp *r
 	}
 
 	obj := plan.ToObject()
-	outObj, err := r.clientSet.CoreV1().Regions(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.CoreV1().Regions(obj.Namespace).Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Region",
@@ -262,7 +262,7 @@ func (r *region) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	if _, err = r.clientSet.CoreV1().Regions(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
+	if _, err = r.clientSet.CoreV1().Regions(newObj.Namespace).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Region",
 			fmt.Sprintf("Could not patch Region: %v", err),
@@ -270,7 +270,7 @@ func (r *region) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	plan.ID = types.StringValue(cache.NewObjectName(newObj.Environment, newObj.Name).String())
+	plan.ID = types.StringValue(cache.NewObjectName(newObj.Namespace, newObj.Name).String())
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

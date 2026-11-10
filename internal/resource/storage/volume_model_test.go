@@ -24,8 +24,8 @@ func TestVolumeModel_ToObject(t *testing.T) {
 var (
 	testVolumeObject = &storagev1beta1.Volume{
 		// ObjectMeta
-		Name:        "test-volume",
-		Environment: "dflt",
+		Name:      "test-volume",
+		Namespace: "dflt",
 		Labels: map[string]string{
 			"label-key": "label-value",
 		},

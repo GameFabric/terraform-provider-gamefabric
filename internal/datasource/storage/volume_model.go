@@ -13,6 +13,6 @@ type volumeModel struct {
 func newVolumeModel(vol *storagev1beta1.Volume) volumeModel {
 	return volumeModel{
 		Name:        types.StringValue(vol.Name),
-		Environment: types.StringValue(vol.Environment),
+		Environment: types.StringValue(vol.Namespace),
 	}
 }

@@ -147,7 +147,7 @@ func (r *configFile) Create(ctx context.Context, req resource.CreateRequest, res
 	}
 
 	obj := plan.ToObject()
-	outObj, err := r.clientSet.CoreV1().ConfigFiles(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.CoreV1().ConfigFiles(obj.Namespace).Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Config File",
@@ -210,7 +210,7 @@ func (r *configFile) Update(ctx context.Context, req resource.UpdateRequest, res
 		return
 	}
 
-	if _, err = r.clientSet.CoreV1().ConfigFiles(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
+	if _, err = r.clientSet.CoreV1().ConfigFiles(newObj.Namespace).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Config File",
 			fmt.Sprintf("Could not patch ConfigFile: %v", err),
@@ -218,7 +218,7 @@ func (r *configFile) Update(ctx context.Context, req resource.UpdateRequest, res
 		return
 	}
 
-	plan.ID = types.StringValue(cache.NewObjectName(newObj.Environment, newObj.Name).String())
+	plan.ID = types.StringValue(cache.NewObjectName(newObj.Namespace, newObj.Name).String())
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

@@ -13,8 +13,8 @@ func TestConfigFile(t *testing.T) {
 
 	cfgFile := &corev1.ConfigFile{
 		// ObjectMeta
-		Name:        "test-config-file",
-		Environment: "dflt",
+		Name:      "test-config-file",
+		Namespace: "dflt",
 
 		Data: "some-configuration-data",
 	}

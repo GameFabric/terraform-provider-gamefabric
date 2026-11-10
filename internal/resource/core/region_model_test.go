@@ -38,8 +38,8 @@ func TestRegionModel_ToObjectWithAllocator(t *testing.T) {
 var (
 	testRegionObject = &corev1.Region{
 		// ObjectMeta
-		Name:        "test-region",
-		Environment: "test-environment",
+		Name:      "test-region",
+		Namespace: "test-environment",
 		Labels: map[string]string{
 			"label-key": "label-value",
 		},

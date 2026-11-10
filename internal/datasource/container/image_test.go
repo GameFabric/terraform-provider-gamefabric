@@ -17,7 +17,7 @@ func TestImage(t *testing.T) {
 		Name: "test-image",
 
 		// ImageObjectMeta
-		Branch: "test-branch",
+		Scope: "test-branch",
 		Spec: containerv1.ImageSpec{
 			Image: "my-image",
 			Tag:   "v1.0.0",
@@ -58,7 +58,7 @@ func TestImage_Latest(t *testing.T) {
 		CreatedTimestamp: before,
 
 		// ImageObjectMeta
-		Branch: "test-branch",
+		Scope: "test-branch",
 		Spec: containerv1.ImageSpec{
 			Image: "my-image",
 			Tag:   "v1.0.0",
@@ -70,7 +70,7 @@ func TestImage_Latest(t *testing.T) {
 		CreatedTimestamp: now,
 
 		// ImageObjectMeta
-		Branch: "test-branch",
+		Scope: "test-branch",
 		Spec: containerv1.ImageSpec{
 			Image: "my-image",
 			Tag:   "v1.0.1",

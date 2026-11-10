@@ -464,7 +464,7 @@ func (r *armada) Create(ctx context.Context, req resource.CreateRequest, resp *r
 	}
 
 	obj := plan.ToObject()
-	outObj, err := r.clientSet.ArmadaV1().Armadas(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.ArmadaV1().Armadas(obj.Namespace).Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Armada",
@@ -528,7 +528,7 @@ func (r *armada) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	outObj, err := r.clientSet.ArmadaV1().Armadas(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
+	outObj, err := r.clientSet.ArmadaV1().Armadas(newObj.Namespace).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Armada",

@@ -346,7 +346,7 @@ func (r *vessel) Create(ctx context.Context, req resource.CreateRequest, resp *r
 	}
 
 	obj := plan.ToObject()
-	outObj, err := r.clientSet.FormationV1().Vessels(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.FormationV1().Vessels(obj.Namespace).Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Vessel",
@@ -410,7 +410,7 @@ func (r *vessel) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	outObj, err := r.clientSet.FormationV1().Vessels(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
+	outObj, err := r.clientSet.FormationV1().Vessels(newObj.Namespace).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Vessel",

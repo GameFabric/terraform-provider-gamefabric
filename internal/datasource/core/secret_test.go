@@ -14,8 +14,8 @@ func TestSecret(t *testing.T) {
 
 	secret := &corev1.Secret{
 		// ObjectMeta
-		Name:        "test-secret",
-		Environment: "dflt",
+		Name:      "test-secret",
+		Namespace: "dflt",
 		Labels: map[string]string{
 			"team": "platform",
 		},
@@ -58,8 +58,8 @@ func TestSecret_NotFound(t *testing.T) {
 
 	secret := &corev1.Secret{
 		// ObjectMeta
-		Name:        "test-secret",
-		Environment: "dflt",
+		Name:      "test-secret",
+		Namespace: "dflt",
 
 		Description: "Test secret",
 		Data: map[string]string{

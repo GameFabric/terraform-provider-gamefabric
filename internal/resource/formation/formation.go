@@ -500,7 +500,7 @@ func (r *formation) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	obj := plan.ToObject()
-	outObj, err := r.clientSet.FormationV1().Formations(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.FormationV1().Formations(obj.Namespace).Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Formation",
@@ -564,7 +564,7 @@ func (r *formation) Update(ctx context.Context, req resource.UpdateRequest, resp
 		return
 	}
 
-	outObj, err := r.clientSet.FormationV1().Formations(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
+	outObj, err := r.clientSet.FormationV1().Formations(newObj.Namespace).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Formation",

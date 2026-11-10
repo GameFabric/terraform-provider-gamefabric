@@ -14,7 +14,7 @@ type configFileModel struct {
 func newConfigModel(obj *corev1.ConfigFile) configFileModel {
 	return configFileModel{
 		Name:        types.StringValue(obj.Name),
-		Environment: types.StringValue(obj.Environment),
+		Environment: types.StringValue(obj.Namespace),
 		Data:        types.StringValue(obj.Data),
 	}
 }

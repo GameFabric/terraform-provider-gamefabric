@@ -29,8 +29,8 @@ func TestVesselModel_ToObject(t *testing.T) {
 var (
 	testVesselObject = &formationv1.Vessel{
 		// ObjectMeta
-		Name:        "test-vessel",
-		Environment: "test-env",
+		Name:      "test-vessel",
+		Namespace: "test-env",
 		// ObjectMeta
 		Labels: map[string]string{
 			"label-key": "label-value",

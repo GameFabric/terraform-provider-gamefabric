@@ -23,8 +23,8 @@ func TestVolumeStoreRetentionPolicyModel_ToObject(t *testing.T) {
 var (
 	testVolumeRetentionPolicyObject = &storagev1beta1.VolumeStoreRetentionPolicy{
 		// ObjectMeta
-		Name:        "test-volume-store",
-		Environment: "dflt",
+		Name:      "test-volume-store",
+		Namespace: "dflt",
 
 		Spec: storagev1beta1.VolumeStoreRetentionPolicySpec{
 			VolumeStoreName: "test-volume-store",

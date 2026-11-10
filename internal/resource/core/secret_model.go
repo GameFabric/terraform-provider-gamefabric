@@ -21,9 +21,9 @@ type secretModel struct {
 
 func newSecretModel(obj *corev1.Secret, ver int64) secretModel {
 	return secretModel{
-		ID:            types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String()),
+		ID:            types.StringValue(cache.NewObjectName(obj.Namespace, obj.Name).String()),
 		Name:          types.StringValue(obj.Name),
-		Environment:   types.StringValue(obj.Environment),
+		Environment:   types.StringValue(obj.Namespace),
 		Labels:        conv.ForEachMapItem(obj.Labels, func(item string) types.String { return types.StringValue(item) }),
 		Annotations:   conv.ForEachMapItem(obj.Annotations, func(item string) types.String { return types.StringValue(item) }),
 		Description:   conv.OptionalFunc(obj.Description, types.StringValue, types.StringNull),
@@ -37,7 +37,7 @@ func (m secretModel) ToObject() *corev1.Secret {
 	return &corev1.Secret{
 		// ObjectMeta
 		Name:        m.Name.ValueString(),
-		Environment: m.Environment.ValueString(),
+		Namespace:   m.Environment.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(item types.String) string { return item.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(item types.String) string { return item.ValueString() }),
 

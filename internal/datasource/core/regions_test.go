@@ -12,8 +12,8 @@ import (
 func TestRegions(t *testing.T) {
 	region1 := &corev1.Region{
 		// ObjectMeta
-		Name:        "region-1",
-		Environment: "dflt",
+		Name:      "region-1",
+		Namespace: "dflt",
 		Labels: map[string]string{
 			"baremetal": "true",
 		},

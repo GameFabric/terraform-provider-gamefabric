@@ -13,8 +13,8 @@ func TestVolumes(t *testing.T) {
 
 	vol := &storagev1beta1.Volume{
 		// ObjectMeta
-		Name:        "test-volume",
-		Environment: "dflt",
+		Name:      "test-volume",
+		Namespace: "dflt",
 		Labels: map[string]string{
 			"foo": "bar",
 		},
@@ -51,13 +51,13 @@ func TestVolumes_AllowsGettingAll(t *testing.T) {
 
 	vol1 := &storagev1beta1.Volume{
 		// ObjectMeta
-		Name:        "test-volume1",
-		Environment: "dflt",
+		Name:      "test-volume1",
+		Namespace: "dflt",
 	}
 	vol2 := &storagev1beta1.Volume{
 		// ObjectMeta
-		Name:        "test-volume2",
-		Environment: "dflt",
+		Name:      "test-volume2",
+		Namespace: "dflt",
 	}
 
 	pf, _ := providertest.ProtoV6ProviderFactories(t, vol1, vol2)

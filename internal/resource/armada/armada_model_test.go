@@ -31,8 +31,8 @@ func TestArmadaModel_ToObject(t *testing.T) {
 var (
 	testArmadaObject = &armadav1.Armada{
 		// ObjectMeta
-		Name:        "test-armada",
-		Environment: "test-environment",
+		Name:      "test-armada",
+		Namespace: "test-environment",
 		// ObjectMeta
 		Labels: map[string]string{
 			"label-key": "label-value",

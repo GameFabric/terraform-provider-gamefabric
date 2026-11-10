@@ -186,7 +186,7 @@ func (r *secret) Create(ctx context.Context, req resource.CreateRequest, resp *r
 	plan.DataWO = config.DataWO
 
 	obj := plan.ToObject()
-	outObj, err := r.clientSet.CoreV1().Secrets(obj.Environment).Create(ctx, obj, metav1.CreateOptions{})
+	outObj, err := r.clientSet.CoreV1().Secrets(obj.Namespace).Create(ctx, obj, metav1.CreateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Secret",
@@ -324,7 +324,7 @@ func (r *secret) Update(ctx context.Context, req resource.UpdateRequest, resp *r
 		return
 	}
 
-	outObj, err := r.clientSet.CoreV1().Secrets(newObj.Environment).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
+	outObj, err := r.clientSet.CoreV1().Secrets(newObj.Namespace).Patch(ctx, newObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Patching Secret",
@@ -427,7 +427,7 @@ func (r *secret) patchLastSeen(ctx context.Context, obj *corev1.Secret, lastChan
 		return fmt.Errorf("creating patch: %w", err)
 	}
 
-	_, err = r.clientSet.CoreV1().Secrets(patchObj.Environment).Patch(ctx, patchObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
+	_, err = r.clientSet.CoreV1().Secrets(patchObj.Namespace).Patch(ctx, patchObj.Name, rest.MergePatchType, pb, metav1.UpdateOptions{})
 	if err != nil {
 		return fmt.Errorf("patching: %w", err)
 	}

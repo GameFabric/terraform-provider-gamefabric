@@ -16,7 +16,7 @@ type regionModel struct {
 func newRegionModel(obj *corev1.Region) regionModel {
 	model := regionModel{
 		Name:        conv.OptionalFunc(obj.Name, types.StringValue, types.StringNull),
-		Environment: types.StringValue(obj.Environment),
+		Environment: types.StringValue(obj.Namespace),
 		DisplayName: conv.OptionalFunc(obj.Spec.DisplayName, types.StringValue, types.StringNull),
 		Types:       map[string]RegionTypeModel{},
 	}

@@ -38,9 +38,9 @@ type formationModel struct {
 func newFormationModel(obj *formationv1.Formation) formationModel {
 	metricsMap := mps.ParseMetricsAnnotation(obj.Spec.Template.Annotations[mps.MetricsEndpointsAnnotation])
 	return formationModel{
-		ID:                    types.StringValue(cache.NewObjectName(obj.Environment, obj.Name).String()),
+		ID:                    types.StringValue(cache.NewObjectName(obj.Namespace, obj.Name).String()),
 		Name:                  types.StringValue(obj.Name),
-		Environment:           types.StringValue(obj.Environment),
+		Environment:           types.StringValue(obj.Namespace),
 		Description:           conv.OptionalFunc(obj.Spec.Description, types.StringValue, types.StringNull),
 		Labels:                conv.ForEachMapItem(obj.Labels, types.StringValue),
 		Annotations:           conv.ForEachMapItem(obj.Annotations, types.StringValue),
@@ -56,7 +56,7 @@ func newFormationModel(obj *formationv1.Formation) formationModel {
 		Volumes:            conv.ForEachSliceItem(obj.Spec.Template.Spec.Volumes, newVolumeModel),
 		GatewayPolicies:    conv.ForEachSliceItem(obj.Spec.Template.Spec.GatewayPolicies, types.StringValue),
 		ProfilingEnabled:   conv.BoolFromMapKey(obj.Spec.Template.Labels, profilingKey, types.BoolValue(false)),
-		ImageUpdaterTarget: container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeFormation, obj.Name, obj.Environment),
+		ImageUpdaterTarget: container.NewImageUpdaterTargetModel(container.ImageUpdaterTargetTypeFormation, obj.Name, obj.Namespace),
 	}
 }
 
@@ -64,7 +64,7 @@ func (m formationModel) ToObject() *formationv1.Formation {
 	return &formationv1.Formation{
 		// ObjectMeta
 		Name:        m.Name.ValueString(),
-		Environment: m.Environment.ValueString(),
+		Namespace:   m.Environment.ValueString(),
 		Labels:      conv.ForEachMapItem(m.Labels, func(v types.String) string { return v.ValueString() }),
 		Annotations: conv.ForEachMapItem(m.Annotations, func(v types.String) string { return v.ValueString() }),
 
