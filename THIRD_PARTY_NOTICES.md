@@ -5,10 +5,10 @@ The list covers all supported platforms, so some entries are only part of the bi
 
 ## Go Runtime
 
-The binary includes the Go standard library and runtime (go1.27.3), licensed under BSD-3-Clause.
+The binary includes the Go standard library and runtime (go1.27.4), licensed under BSD-3-Clause.
 
-- License: https://github.com/golang/go/blob/go1.27.3/LICENSE
-- Patent grant: https://github.com/golang/go/blob/go1.27.3/PATENTS
+- License: https://github.com/golang/go/blob/go1.27.4/LICENSE
+- Patent grant: https://github.com/golang/go/blob/go1.27.4/PATENTS
 
 ## Go Modules
 
